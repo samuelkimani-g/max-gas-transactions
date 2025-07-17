@@ -134,6 +134,11 @@ export default function Login() {
               <p><strong>Operator:</strong> operator1@maxgas.com / operator123</p>
               <p className="text-xs text-gray-500 mt-2">Note: Passwords are case-sensitive. These are the correct credentials as seeded in the database.</p>
             </div>
+            {process.env.NODE_ENV === 'production' && (
+              <div className="mt-3 p-2 bg-blue-50 border border-blue-200 rounded text-xs text-blue-700">
+                <strong>Demo Mode:</strong> This is a frontend-only demo. Data is simulated and changes won't persist.
+              </div>
+            )}
           </div>
         </CardContent>
       </Card>

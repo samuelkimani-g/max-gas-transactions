@@ -2,7 +2,45 @@ import { create } from "zustand"
 import { persist } from "zustand/middleware"
 
 // API base URL - adjust this to match your backend
-const API_BASE_URL = 'http://localhost:5000/api'
+const API_BASE_URL = process.env.NODE_ENV === 'production' ? 'https://your-backend-url.com/api' : 'http://localhost:5000/api'
+
+// Demo mode for frontend-only deployment
+const DEMO_MODE = process.env.NODE_ENV === 'production' && !API_BASE_URL.includes('localhost')
+
+// Demo users for frontend-only deployment
+const DEMO_USERS = {
+  'admin@maxgas.com': {
+    id: 1,
+    username: 'admin',
+    email: 'admin@maxgas.com',
+    fullName: 'System Administrator',
+    role: 'admin',
+    permissions: ['all']
+  },
+  'manager1@maxgas.com': {
+    id: 2,
+    username: 'manager1',
+    email: 'manager1@maxgas.com',
+    fullName: 'Jane Smith',
+    role: 'manager',
+    permissions: ['customers', 'transactions', 'reports']
+  },
+  'operator1@maxgas.com': {
+    id: 3,
+    username: 'operator1',
+    email: 'operator1@maxgas.com',
+    fullName: 'Michael Brown',
+    role: 'operator',
+    permissions: ['customers', 'transactions']
+  }
+}
+
+// Demo passwords
+const DEMO_PASSWORDS = {
+  'admin@maxgas.com': 'admin123',
+  'manager1@maxgas.com': 'manager123',
+  'operator1@maxgas.com': 'operator123'
+}
 
 // Helper function for API calls
 const apiCall = async (endpoint, options = {}) => {
@@ -46,6 +84,24 @@ export const useStore = create(
       checkAuthStatus: async () => {
         const token = localStorage.getItem('authToken')
         if (token) {
+          // Demo mode token validation
+          if (DEMO_MODE && token.startsWith('demo_token_')) {
+            console.log('[AUTH] Demo token found, restoring session')
+            // Extract user info from demo token
+            const tokenParts = token.split('_')
+            const userId = parseInt(tokenParts[2])
+            const demoUser = Object.values(DEMO_USERS).find(user => user.id === userId)
+            
+            if (demoUser) {
+              set({
+                isAuthenticated: true,
+                user: demoUser
+              })
+              return true
+            }
+          }
+          
+          // Real backend token validation
           try {
             const response = await fetch(`${API_BASE_URL}/auth/me`, {
               headers: {
@@ -272,6 +328,31 @@ export const useStore = create(
       login: async (username, password) => {
         try {
           console.log('[LOGIN] Frontend login attempt:', username)
+          
+          // Demo mode authentication
+          if (DEMO_MODE) {
+            console.log('[LOGIN] Using demo mode')
+            const demoUser = DEMO_USERS[username]
+            const expectedPassword = DEMO_PASSWORDS[username]
+            
+            if (!demoUser || password !== expectedPassword) {
+              throw new Error('Incorrect password')
+            }
+            
+            // Create a mock token
+            const mockToken = `demo_token_${demoUser.id}_${Date.now()}`
+            localStorage.setItem('authToken', mockToken)
+            
+            set({
+              isAuthenticated: true,
+              user: demoUser
+            })
+            
+            console.log('[LOGIN] Demo login success:', demoUser)
+            return { user: demoUser, token: mockToken }
+          }
+          
+          // Real backend authentication
           const response = await fetch(`${API_BASE_URL}/auth/login`, {
             method: 'POST',
             headers: {
@@ -370,6 +451,48 @@ export const useStore = create(
       loadCustomers: async () => {
         try {
           set({ isLoading: true })
+          
+          if (DEMO_MODE) {
+            // Load demo customers
+            const demoCustomers = [
+              {
+                id: 1,
+                name: 'Adebayo Johnson',
+                phone: '+2348012345679',
+                email: 'adebayo@email.com',
+                address: '45 Victoria Island, Lagos',
+                category: 'premium',
+                creditLimit: 50000,
+                status: 'active',
+                notes: 'Regular customer, pays on time'
+              },
+              {
+                id: 2,
+                name: 'Fatima Hassan',
+                phone: '+2348012345680',
+                email: 'fatima@email.com',
+                address: '12 Ikeja, Lagos',
+                category: 'regular',
+                creditLimit: 25000,
+                status: 'active',
+                notes: 'New customer'
+              },
+              {
+                id: 3,
+                name: 'Chukwudi Okonkwo',
+                phone: '+2348012345681',
+                email: 'chukwudi@email.com',
+                address: '78 Surulere, Lagos',
+                category: 'wholesale',
+                creditLimit: 100000,
+                status: 'active',
+                notes: 'Wholesale customer, large orders'
+              }
+            ]
+            set({ customers: demoCustomers, isLoading: false })
+            return
+          }
+          
           const result = await apiCall('/customers')
           set({ customers: result.data.customers, isLoading: false })
         } catch (error) {
@@ -382,6 +505,82 @@ export const useStore = create(
       loadTransactions: async () => {
         try {
           set({ isLoading: true })
+          
+          if (DEMO_MODE) {
+            // Load demo transactions
+            const demoTransactions = [
+              {
+                id: 1,
+                customerId: 1,
+                userId: 1,
+                date: '2024-01-15T00:00:00.000Z',
+                maxGas6kgLoad: 5,
+                maxGas13kgLoad: 3,
+                maxGas50kgLoad: 1,
+                return6kg: 2,
+                return13kg: 1,
+                return50kg: 0,
+                outright6kg: 0,
+                outright13kg: 0,
+                outright50kg: 0,
+                swipeReturn6kg: 0,
+                swipeReturn13kg: 0,
+                swipeReturn50kg: 0,
+                refillPrice6kg: 135,
+                refillPrice13kg: 135,
+                refillPrice50kg: 135,
+                outrightPrice6kg: 3200,
+                outrightPrice13kg: 3500,
+                outrightPrice50kg: 8500,
+                swipeRefillPrice6kg: 160,
+                swipeRefillPrice13kg: 160,
+                swipeRefillPrice50kg: 160,
+                total: 405,
+                paid: 405,
+                balance: 0,
+                paymentMethod: 'cash',
+                status: 'completed',
+                notes: 'Regular refill order'
+              },
+              {
+                id: 2,
+                customerId: 2,
+                userId: 1,
+                date: '2024-01-16T00:00:00.000Z',
+                maxGas6kgLoad: 2,
+                maxGas13kgLoad: 1,
+                maxGas50kgLoad: 0,
+                return6kg: 0,
+                return13kg: 0,
+                return50kg: 0,
+                outright6kg: 1,
+                outright13kg: 0,
+                outright50kg: 0,
+                swipeReturn6kg: 0,
+                swipeReturn13kg: 0,
+                swipeReturn50kg: 0,
+                refillPrice6kg: 135,
+                refillPrice13kg: 135,
+                refillPrice50kg: 135,
+                outrightPrice6kg: 3200,
+                outrightPrice13kg: 3500,
+                outrightPrice50kg: 8500,
+                swipeRefillPrice6kg: 160,
+                swipeRefillPrice13kg: 160,
+                swipeRefillPrice50kg: 160,
+                total: 3200,
+                paid: 2000,
+                balance: 1200,
+                paymentMethod: 'credit',
+                status: 'completed',
+                notes: 'Outright purchase with partial payment'
+              }
+            ]
+            console.log("Store: Loaded demo transactions:", demoTransactions.length, "transactions")
+            set({ transactions: demoTransactions, isLoading: false })
+            return
+          }
+          
           const result = await apiCall('/transactions')
           console.log("Store: Loaded transactions:", result.data.transactions.length, "transactions")
           console.log("Store: Sample transaction:", result.data.transactions[0])

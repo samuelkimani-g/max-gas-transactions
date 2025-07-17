@@ -1,24 +1,101 @@
 "use client"
 
-import { useRef } from "react"
+import { useRef, useState, useMemo } from "react"
 import { Button } from "./ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "./ui/card"
-import { FileText, Download, Printer } from "lucide-react"
+import { Input } from "./ui/input"
+import { Label } from "./ui/label"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select"
+import { FileText, Download, Printer, Filter, X } from "lucide-react"
 import { useStore } from "../lib/store"
 import { formatCurrency, formatDate, calculateTransactionTotal } from "../lib/calculations"
 
 export default function CustomerReportGenerator({ customerId, customerName }) {
-  const { customers, transactions } = useStore()
+  const { customers, getCustomerTransactions } = useStore()
+  const customerTransactions = getCustomerTransactions(customerId)
   const reportRef = useRef(null)
+  
+  // Filter states
+  const [showFilters, setShowFilters] = useState(false)
+  const [dateRange, setDateRange] = useState({ start: '', end: '' })
+  const [transactionTypeFilter, setTransactionTypeFilter] = useState('all')
+  const [statusFilter, setStatusFilter] = useState('all')
+  const [minAmount, setMinAmount] = useState('')
+  const [maxAmount, setMaxAmount] = useState('')
 
   const customer = customers.find((c) => c.id === customerId)
-  const customerTransactions = transactions
-    .filter((t) => t.customerId === customerId)
-    .sort((a, b) => new Date(b.date) - new Date(a.date))
+  
+  // Apply filters to customer transactions
+  const filteredTransactions = useMemo(() => {
+    let filtered = customerTransactions
+      .filter((t) => {
+        if (!t || !t.date) return false
+        
+        // Date range filter
+        if (dateRange.start && new Date(t.date) < new Date(dateRange.start)) return false
+        if (dateRange.end && new Date(t.date) > new Date(dateRange.end)) return false
+        
+        // Transaction type filter
+        if (transactionTypeFilter !== 'all') {
+          const hasRefill = (t.return6kg || 0) + (t.return13kg || 0) + (t.return50kg || 0) > 0
+          const hasOutright = (t.outright6kg || 0) + (t.outright13kg || 0) + (t.outright50kg || 0) > 0
+          const hasSwipe = (t.swipeReturn6kg || 0) + (t.swipeReturn13kg || 0) + (t.swipeReturn50kg || 0) > 0
+          
+          switch (transactionTypeFilter) {
+            case 'refill':
+              if (!hasRefill) return false
+              break
+            case 'outright':
+              if (!hasOutright) return false
+              break
+            case 'swipe':
+              if (!hasSwipe) return false
+              break
+          }
+        }
+        
+        // Amount range filter
+        const total = calculateTransactionTotal(t)
+        if (minAmount && total < parseFloat(minAmount)) return false
+        if (maxAmount && total > parseFloat(maxAmount)) return false
+        
+        // Status filter
+        if (statusFilter !== 'all') {
+          const paid = t.paid || 0
+          const outstanding = total - paid
+          
+          switch (statusFilter) {
+            case 'paid':
+              if (outstanding > 0) return false
+              break
+            case 'outstanding':
+              if (outstanding <= 0) return false
+              break
+            case 'partial':
+              if (outstanding <= 0 || outstanding >= total) return false
+              break
+          }
+        }
+        
+        return true
+      })
+      .sort((a, b) => new Date(b.date) - new Date(a.date))
+    
+    return filtered
+  }, [customerTransactions, dateRange, transactionTypeFilter, statusFilter, minAmount, maxAmount])
 
-  const totalSales = customerTransactions.reduce((sum, t) => sum + calculateTransactionTotal(t), 0)
-  const totalPaid = customerTransactions.reduce((sum, t) => sum + (t.paid || 0), 0)
+  const totalSales = filteredTransactions.reduce((sum, t) => sum + calculateTransactionTotal(t), 0)
+  const totalPaid = filteredTransactions.reduce((sum, t) => sum + (t.paid || 0), 0)
   const totalOutstanding = totalSales - totalPaid
+
+  // Clear all filters
+  const clearFilters = () => {
+    setDateRange({ start: '', end: '' })
+    setTransactionTypeFilter('all')
+    setStatusFilter('all')
+    setMinAmount('')
+    setMaxAmount('')
+  }
 
   const handlePrint = () => {
     const content = reportRef.current
@@ -143,76 +220,210 @@ export default function CustomerReportGenerator({ customerId, customerName }) {
   if (!customer) return null
 
   return (
-    <Card className="shadow-xl border-0 bg-white">
-      <CardHeader className="bg-gradient-to-r from-orange-500 to-orange-600 text-white">
-        <div className="flex justify-between items-center">
-          <CardTitle className="flex items-center gap-2">
-            <FileText className="w-5 h-5" />
-            Customer Report
-          </CardTitle>
-          <div className="flex gap-2">
-            <Button onClick={handlePrint} variant="ghost" size="sm" className="text-white hover:bg-white/20">
-              <Printer className="w-4 h-4 mr-1" />
-              Print
-            </Button>
-            <Button onClick={handleDownload} variant="ghost" size="sm" className="text-white hover:bg-white/20">
-              <Download className="w-4 h-4 mr-1" />
-              Download
-            </Button>
-          </div>
+    <div className="space-y-6">
+      {/* Action Buttons */}
+      <div className="flex justify-between items-center">
+        <div className="flex gap-2">
+          <Button onClick={handlePrint} variant="outline" size="sm">
+            <Printer className="w-4 h-4 mr-1" />
+            Print
+          </Button>
+          <Button onClick={handleDownload} variant="outline" size="sm">
+            <Download className="w-4 h-4 mr-1" />
+            Download
+          </Button>
         </div>
-      </CardHeader>
-      <CardContent className="p-0">
-        <div ref={reportRef} className="p-6">
-          {/* Header */}
-          <div className="header">
-            <div className="company-name">MaxGas</div>
-            <div className="report-title">Customer Report</div>
-            <div className="report-date">Generated on {formatDate(new Date())}</div>
-          </div>
+        
+        <Button
+          variant={showFilters ? "default" : "outline"}
+          size="sm"
+          onClick={() => setShowFilters(!showFilters)}
+          className="flex items-center gap-2"
+        >
+          <Filter className="w-4 h-4" />
+          Filters
+          {(dateRange.start || dateRange.end || transactionTypeFilter !== 'all' || statusFilter !== 'all' || minAmount || maxAmount) && (
+            <span className="ml-1 text-xs bg-orange-100 text-orange-800 px-2 py-1 rounded-full">
+              Active
+            </span>
+          )}
+        </Button>
+      </div>
 
+      {/* Filters Panel */}
+      {showFilters && (
+        <Card className="shadow-lg border-0 bg-white/80 backdrop-blur-sm">
+          <CardHeader className="bg-gradient-to-r from-gray-500 to-gray-600 text-white">
+            <div className="flex items-center justify-between">
+              <CardTitle className="flex items-center gap-2">
+                <Filter className="w-5 h-5" />
+                Filter Transactions
+              </CardTitle>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={clearFilters}
+                className="text-white border-white hover:bg-white hover:text-gray-700"
+              >
+                <X className="w-4 h-4 mr-1" />
+                Clear All
+              </Button>
+            </div>
+          </CardHeader>
+          <CardContent className="p-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+              {/* Date Range Filter */}
+              <div className="space-y-2">
+                <Label htmlFor="date-start">Date Range</Label>
+                <div className="flex gap-2">
+                  <Input
+                    id="date-start"
+                    type="date"
+                    value={dateRange.start}
+                    onChange={(e) => setDateRange(prev => ({ ...prev, start: e.target.value }))}
+                    placeholder="Start Date"
+                    className="text-sm"
+                  />
+                  <Input
+                    id="date-end"
+                    type="date"
+                    value={dateRange.end}
+                    onChange={(e) => setDateRange(prev => ({ ...prev, end: e.target.value }))}
+                    placeholder="End Date"
+                    className="text-sm"
+                  />
+                </div>
+              </div>
+
+              {/* Transaction Type Filter */}
+              <div className="space-y-2">
+                <Label htmlFor="transaction-type">Transaction Type</Label>
+                <Select value={transactionTypeFilter} onValueChange={setTransactionTypeFilter}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="All types" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Types</SelectItem>
+                    <SelectItem value="refill">Refills Only</SelectItem>
+                    <SelectItem value="outright">Outright Sales</SelectItem>
+                    <SelectItem value="swipe">Swipe Transactions</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {/* Status Filter */}
+              <div className="space-y-2">
+                <Label htmlFor="status-filter">Payment Status</Label>
+                <Select value={statusFilter} onValueChange={setStatusFilter}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="All statuses" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Statuses</SelectItem>
+                    <SelectItem value="paid">Fully Paid</SelectItem>
+                    <SelectItem value="outstanding">Outstanding</SelectItem>
+                    <SelectItem value="partial">Partially Paid</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {/* Amount Range Filter */}
+              <div className="space-y-2">
+                <Label htmlFor="amount-range">Amount Range</Label>
+                <div className="flex gap-2">
+                  <Input
+                    id="min-amount"
+                    type="number"
+                    value={minAmount}
+                    onChange={(e) => setMinAmount(e.target.value)}
+                    placeholder="Min Amount"
+                    className="text-sm"
+                  />
+                  <Input
+                    id="max-amount"
+                    type="number"
+                    value={maxAmount}
+                    onChange={(e) => setMaxAmount(e.target.value)}
+                    placeholder="Max Amount"
+                    className="text-sm"
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* Filter Summary */}
+            <div className="mt-4 p-3 bg-gray-50 rounded-lg">
+              <div className="text-sm text-gray-600">
+                <strong>Showing {customerTransactions.length} transactions</strong>
+                {(dateRange.start || dateRange.end || transactionTypeFilter !== 'all' || statusFilter !== 'all' || minAmount || maxAmount) && (
+                  <div className="mt-2 text-xs">
+                    Active filters: 
+                    {dateRange.start && ` Date from ${dateRange.start}`}
+                    {dateRange.end && ` to ${dateRange.end}`}
+                    {transactionTypeFilter !== 'all' && ` Type: ${transactionTypeFilter}`}
+                    {statusFilter !== 'all' && ` Status: ${statusFilter}`}
+                    {minAmount && ` Min: ${formatCurrency(parseFloat(minAmount))}`}
+                    {maxAmount && ` Max: ${formatCurrency(parseFloat(maxAmount))}`}
+                  </div>
+                )}
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Report Content */}
+      <div ref={reportRef} className="bg-white rounded-lg border">
+        {/* Header */}
+        <div className="bg-gradient-to-r from-slate-800 to-slate-700 text-white p-8 rounded-t-lg text-center">
+          <div className="text-3xl font-bold mb-2">MaxGas</div>
+          <div className="text-xl mb-1">Customer Report</div>
+          <div className="text-sm opacity-90">Generated on {formatDate(new Date())}</div>
+        </div>
+
+        <div className="p-6 space-y-6">
           {/* Summary */}
-          <div className="summary-grid">
-            <div className="summary-card">
-              <div className="summary-value">{formatCurrency(totalSales)}</div>
-              <div className="summary-label">Total Sales</div>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div className="bg-slate-50 p-4 rounded-lg border-l-4 border-orange-500 text-center">
+              <div className="text-2xl font-bold text-slate-800">{formatCurrency(totalSales)}</div>
+              <div className="text-sm text-slate-600">Total Sales</div>
             </div>
-            <div className="summary-card">
-              <div className="summary-value">{formatCurrency(totalPaid)}</div>
-              <div className="summary-label">Total Paid</div>
+            <div className="bg-slate-50 p-4 rounded-lg border-l-4 border-green-500 text-center">
+              <div className="text-2xl font-bold text-slate-800">{formatCurrency(totalPaid)}</div>
+              <div className="text-sm text-slate-600">Total Paid</div>
             </div>
-            <div className="summary-card">
-              <div className="summary-value">{formatCurrency(totalOutstanding)}</div>
-              <div className="summary-label">Outstanding</div>
+            <div className="bg-slate-50 p-4 rounded-lg border-l-4 border-red-500 text-center">
+              <div className="text-2xl font-bold text-slate-800">{formatCurrency(totalOutstanding)}</div>
+              <div className="text-sm text-slate-600">Outstanding</div>
             </div>
-            <div className="summary-card">
-              <div className="summary-value">{customerTransactions.length}</div>
-              <div className="summary-label">Transactions</div>
+            <div className="bg-slate-50 p-4 rounded-lg border-l-4 border-blue-500 text-center">
+              <div className="text-2xl font-bold text-slate-800">{customerTransactions.length}</div>
+              <div className="text-sm text-slate-600">Transactions</div>
             </div>
           </div>
 
           {/* Customer Info */}
-          <div className="customer-info">
-            <h3 style={{ marginBottom: "15px", fontSize: "18px", fontWeight: "bold" }}>Customer Information</h3>
-            <div className="info-grid">
-              <div className="info-item">
-                <span className="info-label">Name:</span>
-                <span>{customer.name}</span>
+          <div className="bg-slate-50 p-6 rounded-lg">
+            <h3 className="text-lg font-bold text-slate-800 mb-4">Customer Information</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="flex justify-between">
+                <span className="font-semibold text-slate-600">Name:</span>
+                <span className="text-slate-800">{customer.name}</span>
               </div>
-              <div className="info-item">
-                <span className="info-label">Phone:</span>
-                <span>{customer.phone}</span>
+              <div className="flex justify-between">
+                <span className="font-semibold text-slate-600">Phone:</span>
+                <span className="text-slate-800">{customer.phone}</span>
               </div>
               {customer.email && (
-                <div className="info-item">
-                  <span className="info-label">Email:</span>
-                  <span>{customer.email}</span>
+                <div className="flex justify-between">
+                  <span className="font-semibold text-slate-600">Email:</span>
+                  <span className="text-slate-800">{customer.email}</span>
                 </div>
               )}
               {customer.address && (
-                <div className="info-item">
-                  <span className="info-label">Address:</span>
-                  <span>{customer.address}</span>
+                <div className="flex justify-between md:col-span-2">
+                  <span className="font-semibold text-slate-600">Address:</span>
+                  <span className="text-slate-800">{customer.address}</span>
                 </div>
               )}
             </div>
@@ -220,43 +431,45 @@ export default function CustomerReportGenerator({ customerId, customerName }) {
 
           {/* Transactions */}
           <div>
-            <h3 style={{ marginBottom: "15px", fontSize: "18px", fontWeight: "bold" }}>Transaction History</h3>
-            <table className="transactions-table">
-              <thead>
-                <tr>
-                  <th>Date</th>
-                  <th>Transaction #</th>
-                  <th>Total</th>
-                  <th>Paid</th>
-                  <th>Outstanding</th>
-                  <th>Status</th>
-                </tr>
-              </thead>
-              <tbody>
-                {customerTransactions.map((transaction) => {
-                  const total = calculateTransactionTotal(transaction)
-                  const paid = transaction.paid || 0
-                  const outstanding = total - paid
-                  return (
-                    <tr key={transaction.id}>
-                      <td>{formatDate(transaction.date)}</td>
-                      <td>#{transaction.id}</td>
-                      <td>{formatCurrency(total)}</td>
-                      <td>{formatCurrency(paid)}</td>
-                      <td>{formatCurrency(outstanding)}</td>
-                      <td>
-                        <span className={outstanding <= 0 ? "status-paid" : "status-outstanding"}>
-                          {outstanding <= 0 ? "Paid" : "Outstanding"}
-                        </span>
-                      </td>
-                    </tr>
-                  )
-                })}
-              </tbody>
-            </table>
+            <h3 className="text-lg font-bold text-slate-800 mb-4">Transaction History</h3>
+            <div className="overflow-x-auto">
+              <table className="w-full border-collapse">
+                <thead>
+                  <tr className="bg-slate-100">
+                    <th className="p-3 text-left font-semibold text-slate-700 border-b">Date</th>
+                    <th className="p-3 text-left font-semibold text-slate-700 border-b">Transaction #</th>
+                    <th className="p-3 text-left font-semibold text-slate-700 border-b">Total</th>
+                    <th className="p-3 text-left font-semibold text-slate-700 border-b">Paid</th>
+                    <th className="p-3 text-left font-semibold text-slate-700 border-b">Outstanding</th>
+                    <th className="p-3 text-left font-semibold text-slate-700 border-b">Status</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {customerTransactions.map((transaction) => {
+                    const total = calculateTransactionTotal(transaction)
+                    const paid = transaction.paid || 0
+                    const outstanding = total - paid
+                    return (
+                      <tr key={transaction.id} className="border-b border-slate-200 hover:bg-slate-50">
+                        <td className="p-3 text-slate-800">{formatDate(transaction.date)}</td>
+                        <td className="p-3 text-slate-800">#{transaction.id}</td>
+                        <td className="p-3 text-slate-800">{formatCurrency(total)}</td>
+                        <td className="p-3 text-slate-800">{formatCurrency(paid)}</td>
+                        <td className="p-3 text-slate-800">{formatCurrency(outstanding)}</td>
+                        <td className="p-3">
+                          <span className={`font-semibold ${outstanding <= 0 ? "text-green-600" : "text-red-600"}`}>
+                            {outstanding <= 0 ? "Paid" : "Outstanding"}
+                          </span>
+                        </td>
+                      </tr>
+                    )
+                  })}
+                </tbody>
+              </table>
+            </div>
           </div>
         </div>
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   )
 }

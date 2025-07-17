@@ -4,10 +4,64 @@
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/vite.png" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#f97316" />
+    <meta name="description" content="Professional gas cylinder inventory and customer management system" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <meta name="apple-mobile-web-app-title" content="Gas Cylinder Manager" />
+    <link rel="apple-touch-icon" href="/icons/icon.svg" />
+    <link rel="manifest" href="/manifest.json" />
     <title>Gas Cylinder Manager</title>
   </head>
   <body>
     <div id="root"></div>
     <script type="module" src="/src/main.jsx"></script>
+    <script>
+      // Register service worker for PWA (only in production)
+      if ('serviceWorker' in navigator && window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') {
+        window.addEventListener('load', () => {
+          navigator.serviceWorker.register('/sw.js')
+            .then((registration) => {
+              console.log('SW registered: ', registration);
+            })
+            .catch((registrationError) => {
+              console.log('SW registration failed: ', registrationError);
+            });
+        });
+      }
+
+      // Install prompt for PWA
+      let deferredPrompt;
+      window.addEventListener('beforeinstallprompt', (e) => {
+        e.preventDefault();
+        deferredPrompt = e;
+        
+        // Store the prompt for later use
+        window.deferredPrompt = e;
+        
+        // Show install button if available
+        const installButton = document.getElementById('install-pwa');
+        if (installButton) {
+          installButton.style.display = 'block';
+        }
+      });
+      
+      // Handle install button click
+      window.addEventListener('load', () => {
+        const installButton = document.getElementById('install-pwa');
+        if (installButton) {
+          installButton.addEventListener('click', async () => {
+            if (window.deferredPrompt) {
+              window.deferredPrompt.prompt();
+              const { outcome } = await window.deferredPrompt.userChoice;
+              console.log(`User response to the install prompt: ${outcome}`);
+              window.deferredPrompt = null;
+              installButton.style.display = 'none';
+            }
+          });
+        }
+      });
+    </script>
   </body>
 </html>

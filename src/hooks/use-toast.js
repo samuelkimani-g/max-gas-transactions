@@ -41,4 +41,12 @@ export const useToast = () => {
   return { toasts, toast, dismiss }
 }
 
-export { useToast as toast }
+// Export toast function directly for convenience
+export const toast = ({ title, description, variant }) => {
+  // For now, just log the toast message
+  console.log(`Toast: ${title} - ${description} (${variant || 'default'})`);
+  
+  // In a real implementation, you would use a toast library like react-hot-toast
+  // or implement a proper toast system with state management
+  return Math.random().toString(36).substring(2, 9);
+};

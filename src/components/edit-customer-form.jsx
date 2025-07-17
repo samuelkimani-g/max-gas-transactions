@@ -5,12 +5,14 @@ import { Button } from "./ui/button"
 import { Input } from "./ui/input"
 import { Label } from "./ui/label"
 import { Card, CardContent, CardHeader, CardTitle } from "./ui/card"
-import { ArrowLeft, User, Save } from "lucide-react"
+import { ArrowLeft, User, Save, Clock } from "lucide-react"
 import { useStore } from "../lib/store"
+import { useRBAC } from "../lib/rbac"
 import { toast } from "../hooks/use-toast"
 
 export default function EditCustomerForm({ customer, onBack, onSuccess }) {
-  const { updateCustomer } = useStore()
+  const { updateCustomer, submitApprovalRequest } = useStore()
+  const { permissions } = useRBAC()
   const [formData, setFormData] = useState({
     name: customer.name || "",
     phone: customer.phone || "",
@@ -18,7 +20,7 @@ export default function EditCustomerForm({ customer, onBack, onSuccess }) {
     address: customer.address || "",
   })
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault()
 
     if (!formData.name.trim() || !formData.phone.trim()) {
@@ -30,14 +32,44 @@ export default function EditCustomerForm({ customer, onBack, onSuccess }) {
       return
     }
 
-    updateCustomer(customer.id, formData)
+    try {
+      // If user is operator, submit approval request instead of direct update
+      if (permissions?.canRequestApproval && !permissions?.canEditCustomer) {
+        const approvalData = {
+          requestType: 'customer_edit',
+          entityType: 'customer',
+          entityId: customer.id,
+          requestedChanges: formData,
+          reason: `Requesting to update customer ${customer.name}`
+        }
 
-    toast({
-      title: "Customer Updated",
-      description: `${formData.name} has been updated successfully.`,
-    })
+        await submitApprovalRequest(approvalData)
 
-    onSuccess()
+        toast({
+          title: "Approval Request Submitted",
+          description: "Your request has been sent to management for approval.",
+        })
+
+        onSuccess()
+      } else {
+        // Direct update for managers and admins
+      await updateCustomer(customer.id, formData)
+
+      toast({
+        title: "Customer Updated",
+        description: `${formData.name} has been updated successfully.`,
+      })
+
+      onSuccess()
+      }
+    } catch (error) {
+      console.error('Failed to update customer:', error)
+      toast({
+        title: "Error",
+        description: "Failed to update customer. Please try again.",
+        variant: "destructive",
+      })
+    }
   }
 
   const handleChange = (field, value) => {
@@ -60,6 +92,9 @@ export default function EditCustomerForm({ customer, onBack, onSuccess }) {
             <CardTitle className="flex items-center gap-2">
               <User className="w-5 h-5" />
               Edit Customer
+            {permissions?.canRequestApproval && !permissions?.canEditCustomer && (
+              <Clock className="w-4 h-4 text-yellow-500" title="Requires approval" />
+            )}
             </CardTitle>
           </CardHeader>
           <CardContent className="p-6">
@@ -115,7 +150,7 @@ export default function EditCustomerForm({ customer, onBack, onSuccess }) {
                   className="flex-1 bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700"
                 >
                   <Save className="w-4 h-4 mr-2" />
-                  Update Customer
+                  {permissions?.canRequestApproval && !permissions?.canEditCustomer ? 'Submit for Approval' : 'Update Customer'}
                 </Button>
                 <Button type="button" variant="outline" onClick={onBack} className="flex-1">
                   Cancel

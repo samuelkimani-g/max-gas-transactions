@@ -17,21 +17,29 @@ export default function BulkActionsPanel({ selectedTransactions, onClearSelectio
   const [showBulkPayment, setShowBulkPayment] = useState(false)
   const [bulkPaymentAmount, setBulkPaymentAmount] = useState("")
 
-  const handleBulkDelete = () => {
-    selectedTransactions.forEach((transactionId) => {
-      deleteTransaction(transactionId)
-    })
+  const handleBulkDelete = async () => {
+    try {
+      const { bulkDeleteTransactions } = useStore.getState()
+      await bulkDeleteTransactions(selectedTransactions.map(t => t.id))
 
-    toast({
-      title: "Transactions Deleted",
-      description: `${selectedTransactions.length} transactions have been deleted.`,
-    })
+      toast({
+        title: "Transactions Deleted",
+        description: `${selectedTransactions.length} transactions have been deleted.`,
+      })
 
-    onClearSelection()
-    setShowDeleteConfirm(false)
+      onClearSelection()
+      setShowDeleteConfirm(false)
+    } catch (error) {
+      console.error('Failed to bulk delete transactions:', error)
+      toast({
+        title: "Error",
+        description: "Failed to delete transactions. Please try again.",
+        variant: "destructive",
+      })
+    }
   }
 
-  const handleBulkPayment = () => {
+  const handleBulkPayment = async () => {
     const paymentAmount = Number.parseFloat(bulkPaymentAmount)
     if (paymentAmount <= 0) {
       toast({
@@ -42,29 +50,26 @@ export default function BulkActionsPanel({ selectedTransactions, onClearSelectio
       return
     }
 
-    // Apply payment equally across selected transactions
-    const paymentPerTransaction = paymentAmount / selectedTransactions.length
+    try {
+      const { bulkUpdateTransactionPayments } = useStore.getState()
+      await bulkUpdateTransactionPayments(selectedTransactions.map(t => t.id), paymentAmount)
 
-    selectedTransactions.forEach((transactionId) => {
-      // Get current transaction to update payment
-      const transaction = useStore.getState().transactions.find((t) => t.id === transactionId)
-      if (transaction) {
-        updateTransaction(transactionId, {
-          ...transaction,
-          paid: transaction.paid + paymentPerTransaction,
-          notes: `${transaction.notes || ""} | Bulk payment: ${formatCurrency(paymentPerTransaction)}`.trim(),
-        })
-      }
-    })
+      toast({
+        title: "Bulk Payment Applied",
+        description: `Payment of ${formatCurrency(paymentAmount)} applied to ${selectedTransactions.length} transactions.`,
+      })
 
-    toast({
-      title: "Bulk Payment Applied",
-      description: `Payment of ${formatCurrency(paymentAmount)} applied to ${selectedTransactions.length} transactions.`,
-    })
-
-    setBulkPaymentAmount("")
-    onClearSelection()
-    setShowBulkPayment(false)
+      setBulkPaymentAmount("")
+      onClearSelection()
+      setShowBulkPayment(false)
+    } catch (error) {
+      console.error('Failed to apply bulk payment:', error)
+      toast({
+        title: "Error",
+        description: "Failed to apply bulk payment. Please try again.",
+        variant: "destructive",
+      })
+    }
   }
 
   if (selectedTransactions.length === 0) {

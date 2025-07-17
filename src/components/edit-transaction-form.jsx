@@ -7,26 +7,44 @@ import { Label } from "./ui/label"
 import { Card, CardContent, CardHeader, CardTitle } from "./ui/card"
 import { ArrowLeft, Save, Receipt } from "lucide-react"
 import { useStore } from "../lib/store"
+import { useRBAC } from "../lib/rbac"
 import { formatCurrency, calculateTransactionTotal } from "../lib/calculations"
 import { toast } from "../hooks/use-toast"
 
 export default function EditTransactionForm({ transaction, onBack, onSuccess }) {
-  const { updateTransaction } = useStore()
+  const { updateTransaction, submitApprovalRequest, user } = useStore()
+  const { permissions } = useRBAC(user)
   const [formData, setFormData] = useState({
+    // Load quantities (cylinders given to customer)
+    maxGas6kgLoad: transaction.maxGas6kgLoad || 0,
+    maxGas13kgLoad: transaction.maxGas13kgLoad || 0,
+    maxGas50kgLoad: transaction.maxGas50kgLoad || 0,
+
     // Return quantities
     return6kg: transaction.return6kg || 0,
     return13kg: transaction.return13kg || 0,
     return50kg: transaction.return50kg || 0,
 
+    // Outright quantities (full cylinders sold)
+    outright6kg: transaction.outright6kg || 0,
+    outright13kg: transaction.outright13kg || 0,
+    outright50kg: transaction.outright50kg || 0,
+
     // Swipe return quantities
     swipeReturn6kg: transaction.swipeReturn6kg || 0,
     swipeReturn13kg: transaction.swipeReturn13kg || 0,
+    swipeReturn50kg: transaction.swipeReturn50kg || 0,
 
     // Pricing
-    refillPrice6kg: transaction.refillPrice6kg || 100,
-    refillPrice13kg: transaction.refillPrice13kg || 100,
-    swipeRefillPrice6kg: transaction.swipeRefillPrice6kg || 120,
-    swipeRefillPrice13kg: transaction.swipeRefillPrice13kg || 120,
+    refillPrice6kg: transaction.refillPrice6kg || 135,
+    refillPrice13kg: transaction.refillPrice13kg || 135,
+    refillPrice50kg: transaction.refillPrice50kg || 135,
+    outrightPrice6kg: transaction.outrightPrice6kg || 3200,
+    outrightPrice13kg: transaction.outrightPrice13kg || 3500,
+    outrightPrice50kg: transaction.outrightPrice50kg || 8500,
+    swipeRefillPrice6kg: transaction.swipeRefillPrice6kg || 160,
+    swipeRefillPrice13kg: transaction.swipeRefillPrice13kg || 160,
+    swipeRefillPrice50kg: transaction.swipeRefillPrice50kg || 160,
 
     // Payment
     paid: transaction.paid || 0,
@@ -36,21 +54,51 @@ export default function EditTransactionForm({ transaction, onBack, onSuccess }) 
   const total = calculateTransactionTotal(formData)
   const outstanding = total - formData.paid
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault()
 
-    updateTransaction(transaction.id, {
-      ...transaction,
-      ...formData,
-      updatedAt: new Date().toISOString(),
-    })
+    try {
+      // If user is operator, submit approval request instead of direct update
+      if (permissions?.canRequestApproval && !permissions?.canEditTransaction) {
+        const approvalData = {
+          requestType: 'transaction_edit',
+          entityType: 'transaction',
+          entityId: transaction.id,
+          requestedChanges: formData,
+          reason: `Requesting to update transaction #${transaction.id} for customer ${transaction.customerId}`
+        }
 
-    toast({
-      title: "Transaction Updated",
-      description: "Transaction has been updated successfully.",
-    })
+        await submitApprovalRequest(approvalData)
 
-    onSuccess()
+        toast({
+          title: "Approval Request Submitted",
+          description: "Your request has been sent to management for approval.",
+        })
+
+        onSuccess()
+      } else {
+        // Direct update for managers and admins
+        await updateTransaction(transaction.id, {
+          ...transaction,
+          ...formData,
+          updatedAt: new Date().toISOString(),
+        })
+
+        toast({
+          title: "Transaction Updated",
+          description: "Transaction has been updated successfully.",
+        })
+
+        onSuccess()
+      }
+    } catch (error) {
+      console.error('Failed to update transaction:', error)
+      toast({
+        title: "Error",
+        description: "Failed to update transaction. Please try again.",
+        variant: "destructive",
+      })
+    }
   }
 
   const handleChange = (field, value) => {
@@ -78,6 +126,43 @@ export default function EditTransactionForm({ transaction, onBack, onSuccess }) 
           </CardHeader>
           <CardContent className="p-6">
             <form onSubmit={handleSubmit} className="space-y-6">
+              {/* Load Quantities */}
+              <div className="space-y-4">
+                <h3 className="text-lg font-semibold text-gray-900">Load Quantities (Cylinders Given)</h3>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="maxGas6kgLoad">6kg Load</Label>
+                    <Input
+                      id="maxGas6kgLoad"
+                      type="number"
+                      min="0"
+                      value={formData.maxGas6kgLoad}
+                      onChange={(e) => handleChange("maxGas6kgLoad", e.target.value)}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="maxGas13kgLoad">13kg Load</Label>
+                    <Input
+                      id="maxGas13kgLoad"
+                      type="number"
+                      min="0"
+                      value={formData.maxGas13kgLoad}
+                      onChange={(e) => handleChange("maxGas13kgLoad", e.target.value)}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="maxGas50kgLoad">50kg Load</Label>
+                    <Input
+                      id="maxGas50kgLoad"
+                      type="number"
+                      min="0"
+                      value={formData.maxGas50kgLoad}
+                      onChange={(e) => handleChange("maxGas50kgLoad", e.target.value)}
+                    />
+                  </div>
+                </div>
+              </div>
+
               {/* Return Quantities */}
               <div className="space-y-4">
                 <h3 className="text-lg font-semibold text-gray-900">Return Quantities</h3>
@@ -115,10 +200,47 @@ export default function EditTransactionForm({ transaction, onBack, onSuccess }) 
                 </div>
               </div>
 
+              {/* Outright Sales */}
+              <div className="space-y-4">
+                <h3 className="text-lg font-semibold text-gray-900">Outright Sales (Full Cylinders)</h3>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="outright6kg">6kg Outright</Label>
+                    <Input
+                      id="outright6kg"
+                      type="number"
+                      min="0"
+                      value={formData.outright6kg}
+                      onChange={(e) => handleChange("outright6kg", e.target.value)}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="outright13kg">13kg Outright</Label>
+                    <Input
+                      id="outright13kg"
+                      type="number"
+                      min="0"
+                      value={formData.outright13kg}
+                      onChange={(e) => handleChange("outright13kg", e.target.value)}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="outright50kg">50kg Outright</Label>
+                    <Input
+                      id="outright50kg"
+                      type="number"
+                      min="0"
+                      value={formData.outright50kg}
+                      onChange={(e) => handleChange("outright50kg", e.target.value)}
+                    />
+                  </div>
+                </div>
+              </div>
+
               {/* Swipe Returns */}
               <div className="space-y-4">
                 <h3 className="text-lg font-semibold text-gray-900">Swipe Returns</h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <div className="space-y-2">
                     <Label htmlFor="swipeReturn6kg">6kg Swipe Returns</Label>
                     <Input
@@ -139,56 +261,140 @@ export default function EditTransactionForm({ transaction, onBack, onSuccess }) 
                       onChange={(e) => handleChange("swipeReturn13kg", e.target.value)}
                     />
                   </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="swipeReturn50kg">50kg Swipe Returns</Label>
+                    <Input
+                      id="swipeReturn50kg"
+                      type="number"
+                      min="0"
+                      value={formData.swipeReturn50kg}
+                      onChange={(e) => handleChange("swipeReturn50kg", e.target.value)}
+                    />
+                  </div>
                 </div>
               </div>
 
               {/* Pricing */}
               <div className="space-y-4">
-                <h3 className="text-lg font-semibold text-gray-900">Pricing (KSH per kg)</h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="refillPrice6kg">6kg Refill Price</Label>
-                    <Input
-                      id="refillPrice6kg"
-                      type="number"
-                      step="0.01"
-                      min="0"
-                      value={formData.refillPrice6kg}
-                      onChange={(e) => handleChange("refillPrice6kg", e.target.value)}
-                    />
+                <h3 className="text-lg font-semibold text-gray-900">Pricing</h3>
+                
+                {/* Refill Pricing (per kg) */}
+                <div className="space-y-2">
+                  <h4 className="text-md font-medium text-gray-700">Refill Pricing (KSH per kg)</h4>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="refillPrice6kg">6kg Refill Price</Label>
+                      <Input
+                        id="refillPrice6kg"
+                        type="number"
+                        step="0.01"
+                        min="0"
+                        value={formData.refillPrice6kg}
+                        onChange={(e) => handleChange("refillPrice6kg", e.target.value)}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="refillPrice13kg">13kg Refill Price</Label>
+                      <Input
+                        id="refillPrice13kg"
+                        type="number"
+                        step="0.01"
+                        min="0"
+                        value={formData.refillPrice13kg}
+                        onChange={(e) => handleChange("refillPrice13kg", e.target.value)}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="refillPrice50kg">50kg Refill Price</Label>
+                      <Input
+                        id="refillPrice50kg"
+                        type="number"
+                        step="0.01"
+                        min="0"
+                        value={formData.refillPrice50kg}
+                        onChange={(e) => handleChange("refillPrice50kg", e.target.value)}
+                      />
+                    </div>
                   </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="refillPrice13kg">13kg Refill Price</Label>
-                    <Input
-                      id="refillPrice13kg"
-                      type="number"
-                      step="0.01"
-                      min="0"
-                      value={formData.refillPrice13kg}
-                      onChange={(e) => handleChange("refillPrice13kg", e.target.value)}
-                    />
+                </div>
+
+                {/* Outright Pricing (per cylinder) */}
+                <div className="space-y-2">
+                  <h4 className="text-md font-medium text-gray-700">Outright Pricing (KSH per cylinder)</h4>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="outrightPrice6kg">6kg Outright Price</Label>
+                      <Input
+                        id="outrightPrice6kg"
+                        type="number"
+                        step="0.01"
+                        min="0"
+                        value={formData.outrightPrice6kg}
+                        onChange={(e) => handleChange("outrightPrice6kg", e.target.value)}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="outrightPrice13kg">13kg Outright Price</Label>
+                      <Input
+                        id="outrightPrice13kg"
+                        type="number"
+                        step="0.01"
+                        min="0"
+                        value={formData.outrightPrice13kg}
+                        onChange={(e) => handleChange("outrightPrice13kg", e.target.value)}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="outrightPrice50kg">50kg Outright Price</Label>
+                      <Input
+                        id="outrightPrice50kg"
+                        type="number"
+                        step="0.01"
+                        min="0"
+                        value={formData.outrightPrice50kg}
+                        onChange={(e) => handleChange("outrightPrice50kg", e.target.value)}
+                      />
+                    </div>
                   </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="swipeRefillPrice6kg">6kg Swipe Price</Label>
-                    <Input
-                      id="swipeRefillPrice6kg"
-                      type="number"
-                      step="0.01"
-                      min="0"
-                      value={formData.swipeRefillPrice6kg}
-                      onChange={(e) => handleChange("swipeRefillPrice6kg", e.target.value)}
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="swipeRefillPrice13kg">13kg Swipe Price</Label>
-                    <Input
-                      id="swipeRefillPrice13kg"
-                      type="number"
-                      step="0.01"
-                      min="0"
-                      value={formData.swipeRefillPrice13kg}
-                      onChange={(e) => handleChange("swipeRefillPrice13kg", e.target.value)}
-                    />
+                </div>
+
+                {/* Swipe Pricing (per kg) */}
+                <div className="space-y-2">
+                  <h4 className="text-md font-medium text-gray-700">Swipe Pricing (KSH per kg)</h4>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="swipeRefillPrice6kg">6kg Swipe Price</Label>
+                      <Input
+                        id="swipeRefillPrice6kg"
+                        type="number"
+                        step="0.01"
+                        min="0"
+                        value={formData.swipeRefillPrice6kg}
+                        onChange={(e) => handleChange("swipeRefillPrice6kg", e.target.value)}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="swipeRefillPrice13kg">13kg Swipe Price</Label>
+                      <Input
+                        id="swipeRefillPrice13kg"
+                        type="number"
+                        step="0.01"
+                        min="0"
+                        value={formData.swipeRefillPrice13kg}
+                        onChange={(e) => handleChange("swipeRefillPrice13kg", e.target.value)}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="swipeRefillPrice50kg">50kg Swipe Price</Label>
+                      <Input
+                        id="swipeRefillPrice50kg"
+                        type="number"
+                        step="0.01"
+                        min="0"
+                        value={formData.swipeRefillPrice50kg}
+                        onChange={(e) => handleChange("swipeRefillPrice50kg", e.target.value)}
+                      />
+                    </div>
                   </div>
                 </div>
               </div>

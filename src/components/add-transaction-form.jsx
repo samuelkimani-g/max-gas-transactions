@@ -13,9 +13,9 @@ export default function AddTransactionForm({ customerId, customerName, onBack, o
   const { addTransaction } = useStore()
   const [formData, setFormData] = useState({
     // Total cylinders (Load)
-    totalCylinders6kg: 0,
-    totalCylinders13kg: 0,
-    totalCylinders50kg: 0,
+    maxGas6kgLoad: 0,
+    maxGas13kgLoad: 0,
+    maxGas50kgLoad: 0,
 
     // MaxGas Returns (for refilling)
     return6kg: 0,
@@ -45,6 +45,7 @@ export default function AddTransactionForm({ customerId, customerName, onBack, o
 
     // Payment
     paid: 0,
+    paymentMethod: 'cash',
     notes: "",
   })
 
@@ -62,24 +63,31 @@ export default function AddTransactionForm({ customerId, customerName, onBack, o
     }))
   }
 
-  const calculateTotal = () => {
-    // MaxGas Refills
-    const refillTotal =
-      formData.return6kg * formData.refillPrice6kg +
-      formData.return13kg * formData.refillPrice13kg +
-      formData.return50kg * formData.refillPrice50kg
+  const handlePaymentMethodChange = (value) => {
+    setFormData((prev) => ({
+      ...prev,
+      paymentMethod: value,
+    }))
+  }
 
-    // MaxGas Outright
+  const calculateTotal = () => {
+    // MaxGas Refills - Price is per kg
+    const refillTotal =
+      formData.return6kg * 6 * formData.refillPrice6kg +
+      formData.return13kg * 13 * formData.refillPrice13kg +
+      formData.return50kg * 50 * formData.refillPrice50kg
+
+    // MaxGas Outright - Price is per cylinder
     const outrightTotal =
       formData.outright6kg * formData.outrightPrice6kg +
       formData.outright13kg * formData.outrightPrice13kg +
       formData.outright50kg * formData.outrightPrice50kg
 
-    // Swipes
+    // Swipes - Price is per kg
     const swipeTotal =
-      formData.swipeReturn6kg * formData.swipeRefillPrice6kg +
-      formData.swipeReturn13kg * formData.swipeRefillPrice13kg +
-      formData.swipeReturn50kg * formData.swipeRefillPrice50kg
+      formData.swipeReturn6kg * 6 * formData.swipeRefillPrice6kg +
+      formData.swipeReturn13kg * 13 * formData.swipeRefillPrice13kg +
+      formData.swipeReturn50kg * 50 * formData.swipeRefillPrice50kg
 
     return refillTotal + outrightTotal + swipeTotal
   }
@@ -87,15 +95,30 @@ export default function AddTransactionForm({ customerId, customerName, onBack, o
   const total = calculateTotal()
   const outstanding = total - formData.paid
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault()
-    addTransaction({
-      ...formData,
-      customerId: Number(customerId),
-      date: new Date().toISOString(),
-      total,
-    })
-    onSuccess()
+    
+    // Prepare transaction data
+    const transactionData = {
+        ...formData,
+        customerId: Number(customerId),
+        date: new Date().toISOString(),
+        total,
+    }
+    
+    // Remove paymentMethod if no payment is being made
+    if (formData.paid === 0) {
+      delete transactionData.paymentMethod
+    }
+    
+    try {
+      await addTransaction(transactionData)
+      
+      onSuccess()
+    } catch (error) {
+      console.error('Failed to add transaction:', error)
+      // You can add toast notification here if you want to show error to user
+    }
   }
 
   return (
@@ -123,33 +146,33 @@ export default function AddTransactionForm({ customerId, customerName, onBack, o
             <CardContent className="p-6">
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div>
-                  <Label htmlFor="totalCylinders6kg">6kg Cylinders</Label>
+                  <Label htmlFor="maxGas6kgLoad">6kg Cylinders</Label>
                   <Input
-                    id="totalCylinders6kg"
+                    id="maxGas6kgLoad"
                     type="number"
                     min="0"
-                    value={formData.totalCylinders6kg}
-                    onChange={(e) => handleInputChange("totalCylinders6kg", e.target.value)}
+                    value={formData.maxGas6kgLoad}
+                    onChange={(e) => handleInputChange("maxGas6kgLoad", e.target.value)}
                   />
                 </div>
                 <div>
-                  <Label htmlFor="totalCylinders13kg">13kg Cylinders</Label>
+                  <Label htmlFor="maxGas13kgLoad">13kg Cylinders</Label>
                   <Input
-                    id="totalCylinders13kg"
+                    id="maxGas13kgLoad"
                     type="number"
                     min="0"
-                    value={formData.totalCylinders13kg}
-                    onChange={(e) => handleInputChange("totalCylinders13kg", e.target.value)}
+                    value={formData.maxGas13kgLoad}
+                    onChange={(e) => handleInputChange("maxGas13kgLoad", e.target.value)}
                   />
                 </div>
                 <div>
-                  <Label htmlFor="totalCylinders50kg">50kg Cylinders</Label>
+                  <Label htmlFor="maxGas50kgLoad">50kg Cylinders</Label>
                   <Input
-                    id="totalCylinders50kg"
+                    id="maxGas50kgLoad"
                     type="number"
                     min="0"
-                    value={formData.totalCylinders50kg}
-                    onChange={(e) => handleInputChange("totalCylinders50kg", e.target.value)}
+                    value={formData.maxGas50kgLoad}
+                    onChange={(e) => handleInputChange("maxGas50kgLoad", e.target.value)}
                   />
                 </div>
               </div>
@@ -187,7 +210,7 @@ export default function AddTransactionForm({ customerId, customerName, onBack, o
                     />
                   </div>
                   <p className="text-xs text-gray-500">
-                    Total: {formatCurrency(formData.return6kg * formData.refillPrice6kg)}
+                    Total: {formatCurrency(formData.return6kg * 6 * formData.refillPrice6kg)}
                   </p>
                 </div>
                 <div className="space-y-2">
@@ -214,7 +237,7 @@ export default function AddTransactionForm({ customerId, customerName, onBack, o
                     />
                   </div>
                   <p className="text-xs text-gray-500">
-                    Total: {formatCurrency(formData.return13kg * formData.refillPrice13kg)}
+                    Total: {formatCurrency(formData.return13kg * 13 * formData.refillPrice13kg)}
                   </p>
                 </div>
                 <div className="space-y-2">
@@ -241,7 +264,7 @@ export default function AddTransactionForm({ customerId, customerName, onBack, o
                     />
                   </div>
                   <p className="text-xs text-gray-500">
-                    Total: {formatCurrency(formData.return50kg * formData.refillPrice50kg)}
+                    Total: {formatCurrency(formData.return50kg * 50 * formData.refillPrice50kg)}
                   </p>
                 </div>
               </div>
@@ -371,7 +394,7 @@ export default function AddTransactionForm({ customerId, customerName, onBack, o
                     />
                   </div>
                   <p className="text-xs text-gray-500">
-                    Total: {formatCurrency(formData.swipeReturn6kg * formData.swipeRefillPrice6kg)}
+                    Total: {formatCurrency(formData.swipeReturn6kg * 6 * formData.swipeRefillPrice6kg)}
                   </p>
                 </div>
                 <div className="space-y-2">
@@ -398,7 +421,7 @@ export default function AddTransactionForm({ customerId, customerName, onBack, o
                     />
                   </div>
                   <p className="text-xs text-gray-500">
-                    Total: {formatCurrency(formData.swipeReturn13kg * formData.swipeRefillPrice13kg)}
+                    Total: {formatCurrency(formData.swipeReturn13kg * 13 * formData.swipeRefillPrice13kg)}
                   </p>
                 </div>
                 <div className="space-y-2">
@@ -425,7 +448,7 @@ export default function AddTransactionForm({ customerId, customerName, onBack, o
                     />
                   </div>
                   <p className="text-xs text-gray-500">
-                    Total: {formatCurrency(formData.swipeReturn50kg * formData.swipeRefillPrice50kg)}
+                    Total: {formatCurrency(formData.swipeReturn50kg * 50 * formData.swipeRefillPrice50kg)}
                   </p>
                 </div>
               </div>
@@ -462,6 +485,34 @@ export default function AddTransactionForm({ customerId, customerName, onBack, o
                   </div>
                 </div>
                 <div>
+                  <Label htmlFor="paymentMethod">
+                    Payment Method
+                    {formData.paid === 0 && (
+                      <span className="text-sm text-gray-500 ml-2">(Not required for credit transactions)</span>
+                    )}
+                  </Label>
+                  <select
+                    id="paymentMethod"
+                    value={formData.paymentMethod}
+                    onChange={(e) => handlePaymentMethodChange(e.target.value)}
+                    disabled={formData.paid === 0}
+                    className={`w-full h-10 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500 ${
+                      formData.paid === 0 ? 'bg-gray-100 text-gray-500 cursor-not-allowed' : ''
+                    }`}
+                  >
+                    <option value="cash">Cash</option>
+                    <option value="mpesa">M-Pesa</option>
+                    <option value="transfer">Bank Transfer</option>
+                    <option value="card">Credit/Debit Card</option>
+                    <option value="credit">Credit</option>
+                  </select>
+                  {formData.paid === 0 && (
+                    <p className="text-xs text-gray-500 mt-1">
+                      Payment method will be set to "Credit" when no payment is made
+                    </p>
+                  )}
+                </div>
+                <div>
                   <Label htmlFor="notes">Notes (Optional)</Label>
                   <Input
                     id="notes"
@@ -496,6 +547,51 @@ export default function AddTransactionForm({ customerId, customerName, onBack, o
                   </p>
                 </div>
               </div>
+              
+              {/* Payment Status Information */}
+              {outstanding > 0 && (
+                <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                  <div className="flex items-start">
+                    <div className="flex-shrink-0">
+                      <svg className="h-5 w-5 text-blue-400" viewBox="0 0 20 20" fill="currentColor">
+                        <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+                      </svg>
+                    </div>
+                    <div className="ml-3">
+                      <h3 className="text-sm font-medium text-blue-800">
+                        Partial Payment Transaction
+                      </h3>
+                      <div className="mt-2 text-sm text-blue-700">
+                        <p>• Customer will owe {formatCurrency(outstanding)} after this transaction</p>
+                        <p>• Remaining balance can be paid later using the "Record Payment" feature</p>
+                        <p>• Transaction will be marked as "Credit" payment method</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+              
+              {formData.paid === 0 && (
+                <div className="mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+                  <div className="flex items-start">
+                    <div className="flex-shrink-0">
+                      <svg className="h-5 w-5 text-yellow-400" viewBox="0 0 20 20" fill="currentColor">
+                        <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                      </svg>
+                    </div>
+                    <div className="ml-3">
+                      <h3 className="text-sm font-medium text-yellow-800">
+                        Credit Transaction
+                      </h3>
+                      <div className="mt-2 text-sm text-yellow-700">
+                        <p>• No immediate payment required</p>
+                        <p>• Customer will owe {formatCurrency(total)} after this transaction</p>
+                        <p>• Payment can be recorded later using the "Record Payment" feature</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
             </CardContent>
           </Card>
 

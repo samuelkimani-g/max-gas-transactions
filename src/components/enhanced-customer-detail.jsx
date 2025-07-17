@@ -5,7 +5,9 @@ import { Button } from "./ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "./ui/card"
 import { ArrowLeft, Plus, User, Phone, Mail, MapPin, Edit, Trash2, Receipt, FileText } from "lucide-react"
 import { useStore } from "../lib/store"
+import { useRBAC } from "../lib/rbac"
 import { formatCurrency, calculateTransactionTotal, calculateOutstanding } from "../lib/calculations"
+import { toast } from "../hooks/use-toast"
 import AddTransactionForm from "./add-transaction-form"
 import TransactionHistory from "./transaction-history"
 import EditCustomerForm from "./edit-customer-form"
@@ -16,7 +18,9 @@ import ConfirmationDialog from "./confirmation-dialog"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "./ui/dialog"
 
 export default function EnhancedCustomerDetail({ customerId, onBack }) {
-  const { customers, transactions, deleteCustomer } = useStore()
+  const { customers, getCustomerTransactions, deleteCustomer, getCustomerCylinderBalance, submitApprovalRequest, user } = useStore()
+  const { permissions } = useRBAC(user)
+  const customerTransactions = getCustomerTransactions(customerId)
   const [isAddingTransaction, setIsAddingTransaction] = useState(false)
   const [isEditingCustomer, setIsEditingCustomer] = useState(false)
   const [selectedTransaction, setSelectedTransaction] = useState(null)
@@ -30,7 +34,7 @@ export default function EnhancedCustomerDetail({ customerId, onBack }) {
   }, [])
 
   const customer = customers.find((c) => c.id === customerId)
-  const customerTransactions = transactions.filter((t) => t.customerId === customerId)
+  const cylinderBalance = getCustomerCylinderBalance(customerId)
 
   if (isLoading) {
     return (
@@ -50,9 +54,37 @@ export default function EnhancedCustomerDetail({ customerId, onBack }) {
     return total + outstanding
   }, 0)
 
-  const handleDeleteCustomer = () => {
-    deleteCustomer(customerId)
-    onBack()
+  const handleDeleteCustomer = async () => {
+    try {
+      // If user is operator, submit approval request instead of direct delete
+      if (permissions?.canRequestApproval && !permissions?.canDeleteCustomer) {
+        const approvalData = {
+          requestType: 'customer_delete',
+          entityType: 'customer',
+          entityId: customerId,
+          reason: `Requesting to delete customer ${customer.name}`
+        }
+
+        await submitApprovalRequest(approvalData)
+        
+        toast({
+          title: "Approval Request Submitted",
+          description: "Your request has been sent to management for approval.",
+        })
+      } else {
+        // Direct delete for managers and admins
+        await deleteCustomer(customerId)
+      }
+      
+      onBack()
+    } catch (error) {
+      console.error('Failed to delete customer:', error)
+      toast({
+        title: "Error",
+        description: "Failed to delete customer. Please try again.",
+        variant: "destructive",
+      })
+    }
   }
 
   const handleEditSuccess = () => {
@@ -187,6 +219,175 @@ export default function EnhancedCustomerDetail({ customerId, onBack }) {
             </CardContent>
           </Card>
 
+          {/* Cylinder Balance Card */}
+          <Card className="shadow-xl border-0 bg-white/80 backdrop-blur-sm">
+            <CardHeader className="bg-gradient-to-r from-orange-500 to-orange-600 text-white">
+              <CardTitle>Cylinder Balance</CardTitle>
+            </CardHeader>
+            <CardContent className="p-6">
+              <div className="space-y-4">
+                <div className="space-y-3">
+                  <div className={`flex justify-between items-center p-3 rounded-lg ${
+                    cylinderBalance['6kg'] > 0 ? 'bg-red-50 border border-red-200' : 
+                    cylinderBalance['6kg'] < 0 ? 'bg-yellow-50 border border-yellow-200' : 
+                    'bg-green-50 border border-green-200'
+                  }`}>
+                    <span className="font-medium text-gray-700">6kg Cylinders</span>
+                    <span className={`text-lg font-bold ${
+                      cylinderBalance['6kg'] > 0 ? 'text-red-600' : 
+                      cylinderBalance['6kg'] < 0 ? 'text-yellow-600' : 
+                      'text-green-600'
+                    }`}>
+                      {cylinderBalance['6kg'] > 0 ? `+${cylinderBalance['6kg']}` : 
+                       cylinderBalance['6kg'] < 0 ? `-${Math.abs(cylinderBalance['6kg'])}` : 
+                       cylinderBalance['6kg']}
+                    </span>
+                  </div>
+                  <div className={`flex justify-between items-center p-3 rounded-lg ${
+                    cylinderBalance['13kg'] > 0 ? 'bg-red-50 border border-red-200' : 
+                    cylinderBalance['13kg'] < 0 ? 'bg-yellow-50 border border-yellow-200' : 
+                    'bg-green-50 border border-green-200'
+                  }`}>
+                    <span className="font-medium text-gray-700">13kg Cylinders</span>
+                    <span className={`text-lg font-bold ${
+                      cylinderBalance['13kg'] > 0 ? 'text-red-600' : 
+                      cylinderBalance['13kg'] < 0 ? 'text-yellow-600' : 
+                      'text-green-600'
+                    }`}>
+                      {cylinderBalance['13kg'] > 0 ? `+${cylinderBalance['13kg']}` : 
+                       cylinderBalance['13kg'] < 0 ? `-${Math.abs(cylinderBalance['13kg'])}` : 
+                       cylinderBalance['13kg']}
+                    </span>
+                  </div>
+                  <div className={`flex justify-between items-center p-3 rounded-lg ${
+                    cylinderBalance['50kg'] > 0 ? 'bg-red-50 border border-red-200' : 
+                    cylinderBalance['50kg'] < 0 ? 'bg-yellow-50 border border-yellow-200' : 
+                    'bg-green-50 border border-green-200'
+                  }`}>
+                    <span className="font-medium text-gray-700">50kg Cylinders</span>
+                    <span className={`text-lg font-bold ${
+                      cylinderBalance['50kg'] > 0 ? 'text-red-600' : 
+                      cylinderBalance['50kg'] < 0 ? 'text-yellow-600' : 
+                      'text-green-600'
+                    }`}>
+                      {cylinderBalance['50kg'] > 0 ? `+${cylinderBalance['50kg']}` : 
+                       cylinderBalance['50kg'] < 0 ? `-${Math.abs(cylinderBalance['50kg'])}` : 
+                       cylinderBalance['50kg']}
+                    </span>
+                  </div>
+                </div>
+                
+                <div className="text-center pt-2 border-t border-gray-200">
+                  <p className="text-sm text-gray-600">
+                    {cylinderBalance['6kg'] > 0 || cylinderBalance['13kg'] > 0 || cylinderBalance['50kg'] > 0 ? 
+                      "⚠️ Customer owes cylinders" : 
+                      cylinderBalance['6kg'] < 0 || cylinderBalance['13kg'] < 0 || cylinderBalance['50kg'] < 0 ? 
+                      "✅ You owe cylinders" : 
+                      "✅ Balance settled"
+                    }
+                  </p>
+                  <p className="text-xs text-gray-400 mt-1">
+                    + = Customer owes you (RED) | - = You owe customer (YELLOW) | 0 = Balance settled (GREEN)
+                  </p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Debug Info Card (temporary) - Commented out since data is now working */}
+          {/* <Card className="shadow-xl border-0 bg-white/80 backdrop-blur-sm">
+            <CardHeader className="bg-gradient-to-r from-blue-500 to-blue-600 text-white">
+              <CardTitle>Debug Info</CardTitle>
+            </CardHeader>
+            <CardContent className="p-6">
+              <div className="space-y-4">
+                <div className="text-sm">
+                  <h4 className="font-medium text-gray-700 mb-2">Transaction Data Check:</h4>
+                  {customerTransactions.map((t, index) => (
+                    <div key={t.id} className="mb-3 p-2 bg-gray-50 rounded text-xs">
+                      <div className="font-medium">Transaction #{t.id} ({new Date(t.date).toLocaleDateString()})</div>
+                      <div className="grid grid-cols-2 gap-2 mt-1">
+                        <div>Loads 6kg: {t.maxGas6kgLoad || 0}</div>
+                        <div>Loads 13kg: {t.maxGas13kgLoad || 0}</div>
+                        <div>Loads 50kg: {t.maxGas50kgLoad || 0}</div>
+                        <div>Returns 6kg: {t.return6kg || 0}</div>
+                        <div>Returns 13kg: {t.return13kg || 0}</div>
+                        <div>Returns 50kg: {t.return50kg || 0}</div>
+                        <div>Swipes 6kg: {t.swipeReturn6kg || 0}</div>
+                        <div>Swipes 13kg: {t.swipeReturn13kg || 0}</div>
+                        <div>Swipes 50kg: {t.swipeReturn50kg || 0}</div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                <div className="pt-4 border-t border-gray-200">
+                  <h4 className="font-medium text-gray-700 mb-2">Fix Missing Loads:</h4>
+                  <div className="space-y-2">
+                    <Button
+                      onClick={() => {
+                        const { addMissingLoadData } = useStore.getState()
+                        addMissingLoadData("1", {
+                          maxGas6kgLoad: 226,
+                          maxGas13kgLoad: 2,
+                          maxGas50kgLoad: 0
+                        })
+                        addMissingLoadData("7", {
+                          maxGas6kgLoad: 187,
+                          maxGas13kgLoad: 22,
+                          maxGas50kgLoad: 0
+                        })
+                        alert("Loads data added! Refresh the page to see updated balance.")
+                      }}
+                      variant="outline"
+                      size="sm"
+                      className="w-full"
+                    >
+                      Add Estimated Loads (Based on Returns + Swipes)
+                    </Button>
+
+                    <Button
+                      onClick={() => {
+                        const { addMissingLoadData } = useStore.getState()
+                        const totalReturns6kg = customerTransactions.reduce((sum, t) => sum + (t.return6kg || 0), 0)
+                        const totalSwipes6kg = customerTransactions.reduce((sum, t) => sum + (t.swipeReturn6kg || 0), 0)
+                        const totalReturns13kg = customerTransactions.reduce((sum, t) => sum + (t.return13kg || 0), 0)
+                        const totalSwipes13kg = customerTransactions.reduce((sum, t) => sum + (t.swipeReturn13kg || 0), 0)
+                        
+                        const loads6kg = totalReturns6kg + totalSwipes6kg + Math.abs(cylinderBalance['6kg'])
+                        const loads13kg = totalReturns13kg + totalSwipes13kg + Math.abs(cylinderBalance['13kg'])
+                        
+                        const transaction1Ratio = 0.5
+                        const transaction7Ratio = 0.5
+                        
+                        addMissingLoadData("1", {
+                          maxGas6kgLoad: Math.round(loads6kg * transaction1Ratio),
+                          maxGas13kgLoad: Math.round(loads13kg * transaction1Ratio),
+                          maxGas50kgLoad: 0
+                        })
+                        addMissingLoadData("7", {
+                          maxGas6kgLoad: Math.round(loads6kg * transaction7Ratio),
+                          maxGas13kgLoad: Math.round(loads13kg * transaction7Ratio),
+                          maxGas50kgLoad: 0
+                        })
+                        alert(`Loads data added! 6kg: ${loads6kg}, 13kg: ${loads13kg}. Refresh the page to see updated balance.`)
+                      }}
+                      variant="outline"
+                      size="sm"
+                      className="w-full"
+                    >
+                      Add Balanced Loads (To Zero Out Balance)
+                    </Button>
+                    
+                    <div className="text-xs text-gray-500">
+                      Option 1: Based on returns + swipes | Option 2: To balance current negative balance
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card> */}
+
           {/* Quick Actions Card */}
           <Card className="shadow-xl border-0 bg-white/80 backdrop-blur-sm">
             <CardHeader className="bg-gradient-to-r from-orange-500 to-orange-600 text-white">
@@ -217,34 +418,34 @@ export default function EnhancedCustomerDetail({ customerId, onBack }) {
               </Button>
             </CardContent>
           </Card>
-
-          {/* Summary Stats Card */}
-          <Card className="shadow-xl border-0 bg-white/80 backdrop-blur-sm">
-            <CardHeader className="bg-gradient-to-r from-orange-500 to-orange-600 text-white">
-              <CardTitle>Summary</CardTitle>
-            </CardHeader>
-            <CardContent className="p-6">
-              <div className="space-y-3">
-                <div className="flex justify-between">
-                  <span className="text-gray-600">Total Transactions</span>
-                  <span className="font-semibold">{customerTransactions.length}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-600">Total Sales</span>
-                  <span className="font-semibold">
-                    {formatCurrency(customerTransactions.reduce((total, t) => total + calculateTransactionTotal(t), 0))}
-                  </span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-600">Total Paid</span>
-                  <span className="font-semibold text-green-600">
-                    {formatCurrency(customerTransactions.reduce((total, t) => total + (t.paid || 0), 0))}
-                  </span>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
         </div>
+
+        {/* Summary Stats Card */}
+        <Card className="shadow-xl border-0 bg-white/80 backdrop-blur-sm">
+          <CardHeader className="bg-gradient-to-r from-orange-500 to-orange-600 text-white">
+            <CardTitle>Summary</CardTitle>
+          </CardHeader>
+          <CardContent className="p-6">
+            <div className="space-y-3">
+              <div className="flex justify-between">
+                <span className="text-gray-600">Total Transactions</span>
+                <span className="font-semibold">{customerTransactions.length}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-gray-600">Total Sales</span>
+                <span className="font-semibold">
+                  {formatCurrency(customerTransactions.reduce((total, t) => total + calculateTransactionTotal(t), 0))}
+                </span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-gray-600">Total Paid</span>
+                <span className="font-semibold text-green-600">
+                  {formatCurrency(customerTransactions.reduce((total, t) => total + (t.paid || 0), 0))}
+                </span>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
 
         {/* Transaction History */}
         <Card className="shadow-xl border-0 bg-white/80 backdrop-blur-sm">

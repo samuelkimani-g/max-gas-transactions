@@ -8,8 +8,15 @@ import { useStore } from "../lib/store"
 import { formatCurrency } from "../lib/calculations"
 
 export default function CustomerCards() {
-  const { getFilteredCustomers, setSelectedCustomerId, getCustomerOutstanding, getCustomerTransactions } = useStore()
+  const { getFilteredCustomers, setSelectedCustomerId, getCustomerOutstanding, getCustomerTransactions, getCustomerCylinderBalance } = useStore()
   const customers = getFilteredCustomers()
+
+  // Debug logging
+  console.log("CustomerCards: Total customers:", customers.length)
+  customers.forEach(customer => {
+    const transactions = getCustomerTransactions(customer.id)
+    console.log(`Customer ${customer.name} (ID: ${customer.id}) has ${transactions.length} transactions:`, transactions)
+  })
 
   if (customers.length === 0) {
     return (
@@ -26,6 +33,7 @@ export default function CustomerCards() {
       {customers.map((customer) => {
         const outstanding = getCustomerOutstanding(customer.id)
         const transactions = getCustomerTransactions(customer.id)
+        const cylinderBalance = getCustomerCylinderBalance(customer.id)
 
         return (
           <Card
@@ -62,6 +70,39 @@ export default function CustomerCards() {
                     <span>{customer.address}</span>
                   </div>
                 )}
+              </div>
+
+              {/* Cylinder Balance Section */}
+              <div className="pt-3 border-t border-gray-100">
+                <h4 className="text-sm font-medium text-gray-700 mb-2">Cylinder Balance</h4>
+                <div className="space-y-1">
+                  <div className="flex justify-between items-center">
+                    <span className="text-xs text-gray-500">6kg:</span>
+                    <span className={`text-xs font-medium ${cylinderBalance['6kg'] < 0 ? 'text-red-600' : cylinderBalance['6kg'] > 0 ? 'text-yellow-600' : 'text-green-600'}`}>
+                      {cylinderBalance['6kg'] < 0 ? `-${Math.abs(cylinderBalance['6kg'])}` : cylinderBalance['6kg'] > 0 ? `+${cylinderBalance['6kg']}` : cylinderBalance['6kg']}
+                    </span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-xs text-gray-500">13kg:</span>
+                    <span className={`text-xs font-medium ${cylinderBalance['13kg'] < 0 ? 'text-red-600' : cylinderBalance['13kg'] > 0 ? 'text-yellow-600' : 'text-green-600'}`}>
+                      {cylinderBalance['13kg'] < 0 ? `-${Math.abs(cylinderBalance['13kg'])}` : cylinderBalance['13kg'] > 0 ? `+${cylinderBalance['13kg']}` : cylinderBalance['13kg']}
+                    </span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-xs text-gray-500">50kg:</span>
+                    <span className={`text-xs font-medium ${cylinderBalance['50kg'] < 0 ? 'text-red-600' : cylinderBalance['50kg'] > 0 ? 'text-yellow-600' : 'text-green-600'}`}>
+                      {cylinderBalance['50kg'] < 0 ? `-${Math.abs(cylinderBalance['50kg'])}` : cylinderBalance['50kg'] > 0 ? `+${cylinderBalance['50kg']}` : cylinderBalance['50kg']}
+                    </span>
+                  </div>
+                </div>
+                <div className="mt-2 text-xs text-gray-400">
+                  {cylinderBalance['6kg'] > 0 || cylinderBalance['13kg'] > 0 || cylinderBalance['50kg'] > 0 ? 
+                    "⚠️ Customer owes cylinders" : 
+                    cylinderBalance['6kg'] < 0 || cylinderBalance['13kg'] < 0 || cylinderBalance['50kg'] < 0 ? 
+                    "✅ You owe cylinders" : 
+                    "✅ Balance settled"
+                  }
+                </div>
               </div>
 
               <div className="pt-3 border-t border-gray-100">

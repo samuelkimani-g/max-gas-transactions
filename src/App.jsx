@@ -5,17 +5,55 @@ import { Button } from "./components/ui/button"
 import { Input } from "./components/ui/input"
 import { Card, CardContent, CardHeader, CardTitle } from "./components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "./components/ui/tabs"
-import { Search, Plus, Users, BarChart3, FileText } from "lucide-react"
+import { Search, Plus, Users, BarChart3, FileText, TrendingUp, Trash2, LogOut, Shield, Clock } from "lucide-react"
 import { useStore } from "./lib/store"
+import { useRBAC } from "./lib/rbac"
 import CustomerCards from "./components/customer-cards"
 import CustomerDetail from "./components/customer-detail.jsx"
 import AddCustomerForm from "./components/add-customer-form"
-import AnalyticsDashboard from "./components/analytics-dashboard"
+import AnalyticsDashboard from "./components/enhanced-analytics-dashboard"
 import ExportImport from "./components/export-import"
+import ReportingInsights from "./components/reporting-insights"
+import UserManagement from "./components/user-management"
+import ApprovalManagement from "./components/approval-management"
+import Login from "./components/login"
+import { Toaster } from "./components/ui/toster";
+
+// import BarcodeScanner from "./components/barcode-scanner"
+
 
 export default function App() {
-  const { customers, selectedCustomerId, setSelectedCustomerId, setSearchQuery, searchQuery } = useStore()
+  const { 
+    customers, 
+    selectedCustomerId, 
+    setSelectedCustomerId, 
+    setSearchQuery, 
+    searchQuery, 
+    loadCustomers,
+    loadTransactions,
+    isLoading,
+    isAuthenticated,
+    user,
+    logout,
+    checkAuthStatus
+  } = useStore()
   const [isAddingCustomer, setIsAddingCustomer] = useState(false)
+
+  
+  const rbac = useRBAC(user)
+
+  // Check authentication status on mount
+  useEffect(() => {
+    checkAuthStatus()
+  }, [checkAuthStatus])
+
+  // Load data when authenticated
+  useEffect(() => {
+    if (isAuthenticated) {
+      loadCustomers()
+          loadTransactions()
+    }
+  }, [isAuthenticated, loadCustomers, loadTransactions])
 
   // Add debug logging
   useEffect(() => {
@@ -34,6 +72,10 @@ export default function App() {
 
   const handleAddCustomerSuccess = () => {
     setIsAddingCustomer(false)
+  }
+
+  if (!isAuthenticated) {
+    return <Login />
   }
 
   if (isAddingCustomer) {
@@ -55,14 +97,32 @@ export default function App() {
               Gas Cylinder Manager
             </h1>
             <p className="text-gray-600 mt-1">Manage your gas cylinder inventory and customer transactions</p>
+
+            {user && (
+              <p className="text-sm text-gray-500 mt-1">
+                Logged in as: <span className="font-medium">{user.fullName}</span> ({user.role})
+              </p>
+            )}
           </div>
-          <Button
-            onClick={() => setIsAddingCustomer(true)}
-            className="bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white shadow-lg"
-          >
-            <Plus className="w-4 h-4 mr-2" />
-            Add Customer
-          </Button>
+          <div className="flex gap-2">
+            {rbac?.permissions.canAddCustomer && (
+            <Button
+              onClick={() => setIsAddingCustomer(true)}
+              className="bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white shadow-lg"
+            >
+              <Plus className="w-4 h-4 mr-2" />
+              Add Customer
+              </Button>
+            )}
+            <Button
+              onClick={logout}
+              variant="outline"
+              className="border-gray-300 text-gray-600 hover:bg-gray-50"
+            >
+              <LogOut className="w-4 h-4 mr-2" />
+              Logout
+            </Button>
+          </div>
         </div>
 
         {/* Main Content */}
@@ -76,6 +136,7 @@ export default function App() {
                 <Users className="w-4 h-4 mr-2" />
                 Customers
               </TabsTrigger>
+              {rbac?.permissions.canAccessAnalytics && (
               <TabsTrigger
                 value="analytics"
                 className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-orange-500 data-[state=active]:to-orange-600 data-[state=active]:text-white"
@@ -83,6 +144,35 @@ export default function App() {
                 <BarChart3 className="w-4 h-4 mr-2" />
                 Analytics
               </TabsTrigger>
+              )}
+              {rbac?.permissions.canAccessReports && (
+              <TabsTrigger
+                value="reporting"
+                className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-orange-500 data-[state=active]:to-orange-600 data-[state=active]:text-white"
+              >
+                <TrendingUp className="w-4 h-4 mr-2" />
+                Reporting
+              </TabsTrigger>
+              )}
+              {rbac?.permissions.canAccessUsers && (
+                <TabsTrigger
+                  value="users"
+                  className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-orange-500 data-[state=active]:to-orange-600 data-[state=active]:text-white"
+                >
+                  <Shield className="w-4 h-4 mr-2" />
+                  Users
+                </TabsTrigger>
+              )}
+              {rbac?.permissions.canApproveRequests && (
+                <TabsTrigger
+                  value="approvals"
+                  className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-orange-500 data-[state=active]:to-orange-600 data-[state=active]:text-white"
+                >
+                  <Clock className="w-4 h-4 mr-2" />
+                  Approvals
+                </TabsTrigger>
+              )}
+              {rbac?.permissions.canAccessExport && (
               <TabsTrigger
                 value="export"
                 className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-orange-500 data-[state=active]:to-orange-600 data-[state=active]:text-white"
@@ -90,6 +180,7 @@ export default function App() {
                 <FileText className="w-4 h-4 mr-2" />
                 Export/Import
               </TabsTrigger>
+              )}
             </TabsList>
 
             <div className="relative w-full sm:w-auto">
@@ -126,11 +217,34 @@ export default function App() {
             <AnalyticsDashboard />
           </TabsContent>
 
+          <TabsContent value="reporting" className="m-0">
+            <ReportingInsights />
+          </TabsContent>
+
+
+
+
+
+          {rbac?.permissions.canAccessUsers && (
+            <TabsContent value="users" className="m-0">
+              <UserManagement />
+            </TabsContent>
+          )}
+          {rbac?.permissions.canApproveRequests && (
+            <TabsContent value="approvals" className="m-0">
+              <ApprovalManagement />
+            </TabsContent>
+          )}
+          {rbac?.permissions.canAccessExport && (
           <TabsContent value="export" className="m-0">
             <ExportImport />
           </TabsContent>
+          )}
         </Tabs>
       </div>
+
+
+      <Toaster />
     </div>
   )
 }

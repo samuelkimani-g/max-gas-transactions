@@ -1,6 +1,35 @@
 import { create } from "zustand"
 import { persist } from "zustand/middleware"
 
+// API base URL - adjust this to match your backend
+const API_BASE_URL = 'http://localhost:5000/api'
+
+// Helper function for API calls
+const apiCall = async (endpoint, options = {}) => {
+  const token = localStorage.getItem('authToken')
+  const url = `${API_BASE_URL}${endpoint}`
+  const headers = {
+      'Content-Type': 'application/json',
+    ...(token && { 'Authorization': `Bearer ${token}` }),
+      ...options.headers,
+  }
+  console.log('[API] Request:', url, options.method || 'GET', 'Headers:', headers)
+  if (options.body) {
+    try { console.log('[API] Body:', JSON.parse(options.body)) } catch { console.log('[API] Body:', options.body) }
+  }
+  const response = await fetch(url, {
+    headers,
+    ...options,
+  })
+  console.log('[API] Response status:', response.status)
+  if (!response.ok) {
+    const text = await response.text()
+    console.log('[API] Error response:', text)
+    throw new Error(`API call failed: ${response.status} ${response.statusText}`)
+  }
+  return response.json()
+}
+
 export const useStore = create(
   persist(
     (set, get) => ({
@@ -10,110 +39,407 @@ export const useStore = create(
       searchQuery: "",
       isAddingTransaction: false,
       isLoading: false,
+      isAuthenticated: false,
+      user: null,
+
+      // Check for existing token on startup
+      checkAuthStatus: async () => {
+        const token = localStorage.getItem('authToken')
+        if (token) {
+          try {
+            const response = await fetch(`${API_BASE_URL}/auth/me`, {
+              headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json',
+              }
+            })
+            
+            if (response.ok) {
+              const data = await response.json()
+              if (data.success) {
+                set({
+                  isAuthenticated: true,
+                  user: data.data.user
+                })
+                return true
+              }
+            }
+          } catch (error) {
+            console.error('Token validation failed:', error)
+          }
+          
+          // If token is invalid, remove it
+          localStorage.removeItem('authToken')
+        }
+        return false
+      },
 
       // Customer Actions
-      addCustomer: (customer) =>
-        set((state) => {
-          const newId = state.customers.length > 0 ? Math.max(...state.customers.map((c) => c.id)) + 1 : 1
-          return {
-            customers: [...state.customers, { ...customer, id: newId }],
-          }
-        }),
+      addCustomer: async (customer) => {
+        try {
+          const result = await apiCall('/customers', {
+            method: 'POST',
+            body: JSON.stringify(customer)
+          })
+          
+          set((state) => ({
+            customers: [...state.customers, result.data.customer],
+          }))
+          
+          return result.data.customer
+        } catch (error) {
+          console.error('Failed to add customer:', error)
+          throw error
+        }
+      },
 
-      updateCustomer: (id, customer) =>
-        set((state) => ({
-          customers: state.customers.map((c) => (c.id === id ? { ...c, ...customer } : c)),
-        })),
+      updateCustomer: async (id, customer) => {
+        try {
+          const result = await apiCall(`/customers/${id}`, {
+            method: 'PUT',
+            body: JSON.stringify(customer)
+          })
+          
+          set((state) => ({
+            customers: state.customers.map((c) => (c.id === id ? result.data.customer : c)),
+          }))
+          
+          return result.data.customer
+        } catch (error) {
+          console.error('Failed to update customer:', error)
+          throw error
+        }
+      },
 
-      deleteCustomer: (id) =>
-        set((state) => ({
-          customers: state.customers.filter((c) => c.id !== id),
-          transactions: state.transactions.filter((t) => t.customerId !== id),
-          selectedCustomerId: state.selectedCustomerId === id ? null : state.selectedCustomerId,
-        })),
+      deleteCustomer: async (id) => {
+        try {
+          await apiCall(`/customers/${id}`, {
+            method: 'DELETE'
+          })
+          
+          set((state) => ({
+            customers: state.customers.filter((c) => c.id !== id),
+            transactions: state.transactions.filter((t) => t.customerId !== id),
+            selectedCustomerId: state.selectedCustomerId === id ? null : state.selectedCustomerId,
+          }))
+        } catch (error) {
+          console.error('Failed to delete customer:', error)
+          throw error
+        }
+      },
 
       // Transaction Actions
-      addTransaction: (transaction) =>
-        set((state) => {
-          const newId =
-            state.transactions.length > 0
-              ? String(Math.max(...state.transactions.map((t) => Number.parseInt(t.id))) + 1)
-              : "1"
+      addTransaction: async (transaction) => {
+        try {
+          const result = await apiCall('/transactions', {
+            method: 'POST',
+            body: JSON.stringify(transaction)
+          })
+          
+          console.log("Store: Adding transaction:", result.data.transaction)
+          console.log("Store: Total transactions after add:", get().transactions.length + 1)
 
-          const newTransaction = {
-            ...transaction,
-            id: newId,
-            date: transaction.date || new Date().toISOString(),
-            customerId: Number(transaction.customerId),
+          set((state) => ({
+            transactions: [...state.transactions, result.data.transaction],
+          }))
+          
+          return result.data.transaction
+        } catch (error) {
+          console.error('Failed to add transaction:', error)
+          throw error
+        }
+      },
+
+      // Approval Actions
+      submitApprovalRequest: async (approvalData) => {
+        try {
+          const result = await apiCall('/approvals', {
+            method: 'POST',
+            body: JSON.stringify(approvalData)
+          })
+          
+          return result.data.approval
+        } catch (error) {
+          console.error('Failed to submit approval request:', error)
+          throw error
+        }
+      },
+
+      getApprovals: async () => {
+        try {
+          const result = await apiCall('/approvals')
+          return result.data.approvals
+        } catch (error) {
+          console.error('Failed to get approvals:', error)
+          throw error
+        }
+      },
+
+      approveRequest: async (approvalId, managerNotes = '') => {
+        try {
+          const result = await apiCall(`/approvals/${approvalId}/approve`, {
+            method: 'PUT',
+            body: JSON.stringify({ managerNotes })
+          })
+          
+          return result.data
+        } catch (error) {
+          console.error('Failed to approve request:', error)
+          throw error
+        }
+      },
+
+      rejectRequest: async (approvalId, managerNotes) => {
+        try {
+          const result = await apiCall(`/approvals/${approvalId}/reject`, {
+            method: 'PUT',
+            body: JSON.stringify({ managerNotes })
+          })
+          
+          return result.data
+        } catch (error) {
+          console.error('Failed to reject request:', error)
+          throw error
+        }
+      },
+
+      updateTransaction: async (id, transaction) => {
+        try {
+          const result = await apiCall(`/transactions/${id}`, {
+            method: 'PUT',
+            body: JSON.stringify(transaction)
+          })
+          
+          set((state) => ({
+            transactions: state.transactions.map((t) => (t.id === id ? result.data.transaction : t)),
+          }))
+          
+          return result.data.transaction
+        } catch (error) {
+          console.error('Failed to update transaction:', error)
+          throw error
+        }
+      },
+
+      deleteTransaction: async (id) => {
+        try {
+          await apiCall(`/transactions/${id}`, {
+            method: 'DELETE'
+          })
+          
+          set((state) => ({
+            transactions: state.transactions.filter((t) => t.id !== id),
+          }))
+        } catch (error) {
+          console.error('Failed to delete transaction:', error)
+          throw error
+        }
+      },
+
+      bulkDeleteTransactions: async (ids) => {
+        try {
+          await apiCall('/transactions/bulk-delete', {
+            method: 'DELETE',
+            body: JSON.stringify({ ids })
+          })
+          
+          set((state) => ({
+            transactions: state.transactions.filter((t) => !ids.includes(t.id)),
+          }))
+        } catch (error) {
+          console.error('Failed to bulk delete transactions:', error)
+          throw error
+        }
+      },
+
+      bulkUpdateTransactionPayments: async (ids, amount) => {
+        try {
+          await apiCall('/transactions/bulk-payment', {
+            method: 'PUT',
+            body: JSON.stringify({ ids, amount })
+          })
+          
+          set((state) => ({
+            transactions: state.transactions.map((t) => (ids.includes(t.id) ? { ...t, paid: amount } : t)),
+          }))
+        } catch (error) {
+          console.error('Failed to bulk update payments:', error)
+          throw error
+        }
+      },
+
+      // Authentication Actions
+      login: async (username, password) => {
+        try {
+          console.log('[LOGIN] Frontend login attempt:', username)
+          const response = await fetch(`${API_BASE_URL}/auth/login`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ username, password })
+          })
+          console.log('[LOGIN] Frontend response status:', response.status)
+          let data
+          try {
+            data = await response.json()
+          } catch {
+            data = null
           }
-
-          return {
-            transactions: [...state.transactions, newTransaction],
+          if (!response.ok) {
+            // Always show backend error message if available
+            const msg = (data && data.message) ? data.message : `Login failed: ${response.status} ${response.statusText}`
+            console.log('[LOGIN] Frontend error response:', msg)
+            throw new Error(msg)
           }
-        }),
+          console.log('[LOGIN] Frontend login success:', data)
+          if (data.success) {
+            localStorage.setItem('authToken', data.data.token)
+            set({
+              isAuthenticated: true,
+              user: data.data.user
+            })
+            return data.data
+          } else {
+            throw new Error(data.message || 'Login failed')
+          }
+        } catch (error) {
+          console.error('[LOGIN] Frontend error:', error)
+          throw error
+        }
+      },
 
-      updateTransaction: (id, transaction) =>
-        set((state) => ({
-          transactions: state.transactions.map((t) => (t.id === id ? { ...t, ...transaction } : t)),
-        })),
-
-      deleteTransaction: (id) =>
-        set((state) => ({
-          transactions: state.transactions.filter((t) => t.id !== id),
-        })),
-
-      bulkDeleteTransactions: (ids) =>
-        set((state) => ({
-          transactions: state.transactions.filter((t) => !ids.includes(t.id)),
-        })),
-
-      bulkUpdateTransactionPayments: (ids, amount) =>
-        set((state) => ({
-          transactions: state.transactions.map((t) => (ids.includes(t.id) ? { ...t, paid: amount } : t)),
-        })),
+      logout: () => {
+        localStorage.removeItem('authToken')
+        set({
+          isAuthenticated: false,
+          user: null,
+          customers: [],
+          transactions: []
+        })
+      },
 
       // Bulk payment for customer - pay all outstanding transactions
-      recordBulkPayment: (customerId, amount, note = "") =>
-        set((state) => {
-          const customerTransactions = state.transactions
-            .filter((t) => t.customerId === customerId)
-            .sort((a, b) => new Date(a.date) - new Date(b.date)) // Oldest first
+      recordBulkPayment: async (customerId, amount, note = "") => {
+        try {
+          await apiCall('/transactions/bulk-customer-payment', {
+            method: 'PUT',
+            body: JSON.stringify({ customerId, amount, note })
+          })
+          
+          set((state) => {
+            const customerTransactions = state.transactions
+              .filter((t) => t.customerId === customerId)
+              .sort((a, b) => new Date(a.date) - new Date(b.date)) // Oldest first
 
-          let remainingAmount = amount
-          const updatedTransactions = state.transactions.map((transaction) => {
-            if (transaction.customerId !== customerId || remainingAmount <= 0) {
-              return transaction
-            }
+            let remainingAmount = amount
+            const updatedTransactions = state.transactions.map((transaction) => {
+              if (transaction.customerId !== customerId || remainingAmount <= 0) {
+                return transaction
+              }
 
-            const total = calculateTransactionTotal(transaction)
-            const currentPaid = transaction.paid || 0
-            const outstanding = total - currentPaid
+              const total = calculateTransactionTotal(transaction)
+              const currentPaid = transaction.paid || 0
+              const outstanding = total - currentPaid
 
-            if (outstanding <= 0) {
-              return transaction
-            }
+              if (outstanding <= 0) {
+                return transaction
+              }
 
-            const paymentForThis = Math.min(outstanding, remainingAmount)
-            remainingAmount -= paymentForThis
+              const paymentForThis = Math.min(outstanding, remainingAmount)
+              remainingAmount -= paymentForThis
+
+              return {
+                ...transaction,
+                paid: currentPaid + paymentForThis,
+                notes: transaction.notes ? `${transaction.notes}\n${note}` : note,
+              }
+            })
 
             return {
-              ...transaction,
-              paid: currentPaid + paymentForThis,
-              notes: transaction.notes ? `${transaction.notes}\n${note}` : note,
+              transactions: updatedTransactions,
             }
           })
+        } catch (error) {
+          console.error('Failed to record bulk payment:', error)
+          throw error
+        }
+      },
 
-          return {
-            transactions: updatedTransactions,
-          }
-        }),
+      // Data Loading Actions
+      loadCustomers: async () => {
+        try {
+          set({ isLoading: true })
+          const result = await apiCall('/customers')
+          set({ customers: result.data.customers, isLoading: false })
+        } catch (error) {
+          console.error('Failed to load customers:', error)
+          set({ isLoading: false })
+          throw error
+        }
+      },
+
+      loadTransactions: async () => {
+        try {
+          set({ isLoading: true })
+          const result = await apiCall('/transactions')
+          console.log("Store: Loaded transactions:", result.data.transactions.length, "transactions")
+          console.log("Store: Sample transaction:", result.data.transactions[0])
+          set({ transactions: result.data.transactions, isLoading: false })
+        } catch (error) {
+          console.error('Failed to load transactions:', error)
+          set({ isLoading: false })
+          throw error
+        }
+      },
+
+      // Analytics Actions
+      saveAnalytics: async (analyticsData) => {
+        try {
+          const savedAnalytics = await apiCall('/analytics', {
+            method: 'POST',
+            body: JSON.stringify(analyticsData)
+          })
+          return savedAnalytics
+        } catch (error) {
+          console.error('Failed to save analytics:', error)
+          throw error
+        }
+      },
+
+      saveForecast: async (forecastData) => {
+        try {
+          const savedForecast = await apiCall('/forecasts', {
+            method: 'POST',
+            body: JSON.stringify(forecastData)
+          })
+          return savedForecast
+        } catch (error) {
+          console.error('Failed to save forecast:', error)
+          throw error
+        }
+      },
+
+      // Payment Actions
+      savePayment: async (paymentData) => {
+        try {
+          const savedPayment = await apiCall('/payments', {
+            method: 'POST',
+            body: JSON.stringify(paymentData)
+          })
+          return savedPayment
+        } catch (error) {
+          console.error('Failed to save payment:', error)
+          throw error
+        }
+      },
 
       // UI State Actions
       setSelectedCustomerId: (id) => set({ selectedCustomerId: id }),
       setSearchQuery: (query) => set({ searchQuery: query }),
       setIsAddingTransaction: (isAdding) => set({ isAddingTransaction: isAdding }),
 
-      // Helper Functions
+      // Utility functions
       getCustomerTransactions: (customerId) => {
         const state = get()
         return state.transactions.filter((t) => t.customerId === customerId)
@@ -130,43 +456,111 @@ export const useStore = create(
 
       getFilteredCustomers: () => {
         const state = get()
-        if (!state.searchQuery) return state.customers
+        let filteredCustomers = state.customers
 
-        return state.customers.filter(
-          (customer) =>
-            customer.name.toLowerCase().includes(state.searchQuery.toLowerCase()) ||
-            customer.phone.includes(state.searchQuery) ||
-            (customer.email && customer.email.toLowerCase().includes(state.searchQuery.toLowerCase())),
-        )
+        // Apply search filter
+        if (state.searchQuery) {
+          filteredCustomers = filteredCustomers.filter(
+            (customer) =>
+              customer.name.toLowerCase().includes(state.searchQuery.toLowerCase()) ||
+              customer.phone.includes(state.searchQuery) ||
+              (customer.email && customer.email.toLowerCase().includes(state.searchQuery.toLowerCase())),
+          )
+        }
+
+        return filteredCustomers
+      },
+
+      getFilteredTransactions: () => {
+        const state = get()
+        return state.transactions
+      },
+
+      getCustomerCylinderBalance: (customerId) => {
+        const state = get()
+        const customerTransactions = state.transactions.filter((t) => t.customerId === customerId)
+        
+        let balance = {
+          '6kg': 0,
+          '13kg': 0,
+          '50kg': 0,
+        }
+
+        customerTransactions.forEach((transaction) => {
+          // CORRECTED FORMULA: Balance = Load - Max Returns - Swipes - Outright
+          
+          // LOAD (Cylinders given to customer for the day)
+          const load6kg = (transaction.maxGas6kgLoad || 0)
+          const load13kg = (transaction.maxGas13kgLoad || 0)
+          const load50kg = (transaction.maxGas50kgLoad || 0)
+
+          // MAX RETURNS (Our company cylinders returned for refill)
+          const maxReturns6kg = (transaction.return6kg || 0)
+          const maxReturns13kg = (transaction.return13kg || 0)
+          const maxReturns50kg = (transaction.return50kg || 0)
+
+          // SWIPES (Other company cylinders returned)
+          const swipes6kg = (transaction.swipeReturn6kg || 0)
+          const swipes13kg = (transaction.swipeReturn13kg || 0)
+          const swipes50kg = (transaction.swipeReturn50kg || 0)
+
+          // OUTRIGHT (Full cylinders sold - customer keeps these)
+          const outright6kg = (transaction.outright6kg || 0)
+          const outright13kg = (transaction.outright13kg || 0)
+          const outright50kg = (transaction.outright50kg || 0)
+          
+
+          
+          // CALCULATE BALANCE: Load - Max Returns - Swipes - Outright
+          balance['6kg'] += load6kg - maxReturns6kg - swipes6kg - outright6kg
+          balance['13kg'] += load13kg - maxReturns13kg - swipes13kg - outright13kg
+          balance['50kg'] += load50kg - maxReturns50kg - swipes50kg - outright50kg
+        })
+
+
+        return balance
       },
     }),
     {
       name: "gas-cylinder-store",
-      version: 1,
-    },
-  ),
+      partialize: (state) => ({
+        customers: state.customers,
+        transactions: state.transactions,
+        selectedCustomerId: state.selectedCustomerId,
+        searchQuery: state.searchQuery,
+        isAuthenticated: state.isAuthenticated,
+        user: state.user,
+      }),
+    }
+  )
 )
 
-// Helper function to calculate transaction total
+// Helper function for transaction calculations (moved from calculations.js)
 function calculateTransactionTotal(transaction) {
-  if (!transaction) return 0
+  // MaxGas Refills - Price is per kg
+  const refillTotal =
+    (transaction.return6kg || 0) * 6 * (transaction.refillPrice6kg || 135) +
+    (transaction.return13kg || 0) * 13 * (transaction.refillPrice13kg || 135) +
+    (transaction.return50kg || 0) * 50 * (transaction.refillPrice50kg || 135)
 
-  // MaxGas Refills (Returns)
-  const refill6kg = (transaction.return6kg || 0) * (transaction.refillPrice6kg || 135)
-  const refill13kg = (transaction.return13kg || 0) * (transaction.refillPrice13kg || 135)
-  const refill50kg = (transaction.return50kg || 0) * (transaction.refillPrice50kg || 135)
+  // MaxGas Outright - Price is per cylinder
+  const outrightTotal =
+    (transaction.outright6kg || 0) * (transaction.outrightPrice6kg || 3200) +
+    (transaction.outright13kg || 0) * (transaction.outrightPrice13kg || 3500) +
+    (transaction.outright50kg || 0) * (transaction.outrightPrice50kg || 8500)
 
-  // MaxGas Outright Sales (Full cylinders)
-  const outright6kg = (transaction.outright6kg || 0) * (transaction.outrightPrice6kg || 3200)
-  const outright13kg = (transaction.outright13kg || 0) * (transaction.outrightPrice13kg || 3500)
-  const outright50kg = (transaction.outright50kg || 0) * (transaction.outrightPrice50kg || 8500)
+  // Swipes - Price is per kg
+  const swipeTotal =
+    (transaction.swipeReturn6kg || 0) * 6 * (transaction.swipeRefillPrice6kg || 160) +
+    (transaction.swipeReturn13kg || 0) * 13 * (transaction.swipeRefillPrice13kg || 160) +
+    (transaction.swipeReturn50kg || 0) * 50 * (transaction.swipeRefillPrice50kg || 160)
 
-  // Other Company Swipes
-  const swipe6kg = (transaction.swipeReturn6kg || 0) * (transaction.swipeRefillPrice6kg || 160)
-  const swipe13kg = (transaction.swipeReturn13kg || 0) * (transaction.swipeRefillPrice13kg || 160)
-  const swipe50kg = (transaction.swipeReturn50kg || 0) * (transaction.swipeRefillPrice50kg || 160)
+  return refillTotal + outrightTotal + swipeTotal
+}
 
-  return (
-    refill6kg + refill13kg + refill50kg + outright6kg + outright13kg + outright50kg + swipe6kg + swipe13kg + swipe50kg
-  )
+// Helper function to calculate outstanding amount
+function calculateOutstanding(transaction) {
+  const total = calculateTransactionTotal(transaction)
+  const paid = transaction.paid || 0
+  return total - paid
 }

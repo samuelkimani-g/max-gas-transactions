@@ -1,5 +1,6 @@
 {
   "version": 2,
+  "name": "gas-cylinder-dashboard",
   "builds": [
     {
       "src": "package.json",
@@ -7,6 +8,28 @@
       "config": {
         "distDir": "dist"
       }
+    },
+    {
+      "src": "backend/server.js",
+      "use": "@vercel/node"
     }
-  ]
+  ],
+  "routes": [
+    {
+      "src": "/api/(.*)",
+      "dest": "backend/server.js"
+    },
+    {
+      "src": "/(.*)",
+      "dest": "/index.html"
+    }
+  ],
+  "env": {
+    "NODE_ENV": "production"
+  },
+  "functions": {
+    "backend/server.js": {
+      "maxDuration": 30
+    }
+  }
 }

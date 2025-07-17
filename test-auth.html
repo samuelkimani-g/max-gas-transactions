@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Auth Test</title>
+</head>
+<body>
+    <h1>Authentication Test</h1>
+    <div id="result"></div>
+    
+    <script>
+        async function testAuth() {
+            const resultDiv = document.getElementById('result');
+            
+            try {
+                // Test login
+                const loginResponse = await fetch('http://localhost:5000/api/auth/login', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        username: 'admin@maxgas.com',
+                        password: 'admin123'
+                    })
+                });
+                
+                const loginData = await loginResponse.json();
+                
+                if (loginData.success) {
+                    resultDiv.innerHTML += '<p style="color: green;">✅ Login successful!</p>';
+                    resultDiv.innerHTML += `<p>Token: ${loginData.data.token.substring(0, 50)}...</p>`;
+                    
+                    // Test protected endpoint
+                    const customersResponse = await fetch('http://localhost:5000/api/customers', {
+                        headers: {
+                            'Authorization': `Bearer ${loginData.data.token}`,
+                            'Content-Type': 'application/json',
+                        }
+                    });
+                    
+                    const customersData = await customersResponse.json();
+                    
+                    if (customersData.success) {
+                        resultDiv.innerHTML += '<p style="color: green;">✅ Protected endpoint accessible!</p>';
+                        resultDiv.innerHTML += `<p>Found ${customersData.data.customers.length} customers</p>`;
+                    } else {
+                        resultDiv.innerHTML += '<p style="color: red;">❌ Protected endpoint failed</p>';
+                    }
+                    
+                } else {
+                    resultDiv.innerHTML += '<p style="color: red;">❌ Login failed</p>';
+                    resultDiv.innerHTML += `<p>Error: ${loginData.message}</p>`;
+                }
+                
+            } catch (error) {
+                resultDiv.innerHTML += `<p style="color: red;">❌ Error: ${error.message}</p>`;
+            }
+        }
+        
+        // Run test when page loads
+        testAuth();
+    </script>
+</body>
+</html> 

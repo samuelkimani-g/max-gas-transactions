@@ -1,48 +1,170 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Button } from "./ui/button"
 import { Input } from "./ui/input"
 import { Label } from "./ui/label"
 import { Card, CardContent, CardHeader, CardTitle } from "./ui/card"
-import { ArrowLeft, Save, User } from "lucide-react"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select"
+import { ArrowLeft, Save, User, AlertTriangle } from "lucide-react"
 import { useStore } from "../lib/store"
+import { useToast } from "../hooks/use-toast"
+
+// Kenyan Counties and their locations
+const kenyanCounties = {
+  "Mombasa County": [
+    "Bamburi", "Bamburi Beach", "Belewa", "Bwagamoyo", "Changamwe", "Frere Town", 
+    "Golo", "Jomvu", "Jomvu Kuu", "Jumba la Mtwana", "Kashani", "Kengeleni", 
+    "Kilindini", "Kongowea", "Kisauni", "Kwa Bechombo", "Kwa Jomvu", "Likoni", 
+    "Markupa", "Maunguja", "Mirarani", "Miritini", "Mitsolokani", "Mkunguni", 
+    "Mombasa (city)", "Mtongwe", "Mwakirunge", "Mwandoni", "Mto Panga", "Nyali", 
+    "Old Town", "Pendeza", "Shanzu", "Shimanzi", "Shimo la Tewa", "Utange", "Vifanjoni"
+  ],
+  "Kwale County": [
+    "Kwale", "Ukunda", "Msambweni", "Kinango", "Lunga Lunga", "Bazo", "Bwaga Cheti", 
+    "Chingwede", "Dololo", "Dundani", "Dzirive", "Golini", "Jambole", "Jego", 
+    "Livundoni", "Vikinduni", "Wasin", "Majoreni"
+  ],
+  "Kilifi County": [
+    "Kilifi", "Mariakani", "Takaungu", "Kikambala", "Mtwapa", "Ganze", "Malindi", 
+    "Baolala", "Chakama", "Kaloleni", "Matano Manne", "Meraf", "Watamu", "Jilore", 
+    "Kakuyuni", "Ganda", "Shella", "Maarafa", "Magarini", "Gongoni", "Sabaki", "Mnarani"
+  ],
+  "Taita‑Taveta County": [
+    "Bura", "Mwatate", "Taveta", "Voi", "Wundanyi"
+  ]
+}
 
 export default function AddCustomerForm({ onBack, onSuccess }) {
-  const { addCustomer } = useStore()
+  const { customers, addCustomer } = useStore()
   const [formData, setFormData] = useState({
     name: "",
     phone: "",
     email: "",
-    address: "",
+    county: "",
+    location: "",
   })
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [duplicateError, setDuplicateError] = useState("")
+  const { toast } = useToast()
+
+  // Get available locations based on selected county
+  const availableLocations = formData.county ? kenyanCounties[formData.county] || [] : []
 
   const handleChange = (e) => {
     const { name, value } = e.target
-    setFormData((prev) => ({ ...prev, [name]: value }))
+    setFormData((prev) => ({ 
+      ...prev, 
+      [name]: value,
+      // Reset location when county changes
+      ...(name === 'county' && { location: '' })
+    }))
+    // Clear duplicate error when user starts typing
+    if (duplicateError) setDuplicateError("")
   }
 
-  const handleSubmit = (e) => {
+  const handleSelectChange = (name, value) => {
+    setFormData((prev) => ({ 
+      ...prev, 
+      [name]: value,
+      // Reset location when county changes
+      ...(name === 'county' && { location: '' })
+    }))
+    if (duplicateError) setDuplicateError("")
+  }
+
+  // Check for duplicates
+  const checkForDuplicates = () => {
+    const normalizedName = formData.name.trim().toLowerCase()
+    const normalizedPhone = formData.phone.trim().replace(/\s/g, '')
+    
+    const nameDuplicate = customers.find(c => 
+      c.name.trim().toLowerCase() === normalizedName
+    )
+    
+    const phoneDuplicate = customers.find(c => 
+      c.phone.trim().replace(/\s/g, '') === normalizedPhone
+    )
+
+    if (nameDuplicate && phoneDuplicate) {
+      return "A customer with this name and phone number already exists."
+    } else if (nameDuplicate) {
+      return "A customer with this name already exists."
+    } else if (phoneDuplicate) {
+      return "A customer with this phone number already exists."
+    }
+    
+    return null
+  }
+
+  const handleSubmit = async (e) => {
     e.preventDefault()
     setIsSubmitting(true)
 
+    // Validation
     if (!formData.name.trim()) {
-      alert("Customer name is required.")
+      toast({ title: "Missing Name", description: "Customer name is required.", variant: "error" })
       setIsSubmitting(false)
       return
     }
 
     if (!formData.phone.trim()) {
-      alert("Phone number is required.")
+      toast({ title: "Missing Phone Number", description: "Phone number is required.", variant: "error" })
       setIsSubmitting(false)
       return
     }
 
-    addCustomer(formData)
-    alert("Customer added successfully.")
-    setIsSubmitting(false)
-    onSuccess()
+    if (!formData.county) {
+      toast({ title: "Missing County", description: "Please select a county.", variant: "error" })
+      setIsSubmitting(false)
+      return
+    }
+
+    if (!formData.location) {
+      toast({ title: "Missing Location", description: "Please select a specific location.", variant: "error" })
+      setIsSubmitting(false)
+      return
+    }
+
+    // Check for duplicates
+    const duplicateError = checkForDuplicates()
+    if (duplicateError) {
+      setDuplicateError(duplicateError)
+      setIsSubmitting(false)
+      return
+    }
+
+    // Create address string
+    const address = `${formData.location}, ${formData.county}`
+
+    try {
+      // Add customer via API
+      await addCustomer({
+        name: formData.name.trim(),
+        phone: formData.phone.trim(),
+        email: formData.email.trim(),
+        address: address,
+        county: formData.county,
+        location: formData.location,
+      })
+
+      toast({ 
+        title: "Customer Added", 
+        description: `${formData.name} has been added successfully.`,
+        variant: "success"
+      })
+
+      onSuccess()
+    } catch (error) {
+      console.error('Failed to add customer:', error)
+      toast({ 
+        title: "Error", 
+        description: "Failed to add customer. Please try again.",
+        variant: "error"
+      })
+    } finally {
+      setIsSubmitting(false)
+    }
   }
 
   return (
@@ -69,6 +191,13 @@ export default function AddCustomerForm({ onBack, onSuccess }) {
             </CardTitle>
           </CardHeader>
           <CardContent className="p-6">
+            {duplicateError && (
+              <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg flex items-center gap-2">
+                <AlertTriangle className="w-4 h-4 text-red-500" />
+                <span className="text-red-700 text-sm">{duplicateError}</span>
+              </div>
+            )}
+
             <form onSubmit={handleSubmit} className="space-y-6">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
@@ -112,15 +241,39 @@ export default function AddCustomerForm({ onBack, onSuccess }) {
                 </div>
 
                 <div>
-                  <Label htmlFor="address">Address</Label>
-                  <Input
-                    id="address"
-                    name="address"
-                    value={formData.address}
-                    onChange={handleChange}
-                    placeholder="Customer address"
-                    className="mt-1"
-                  />
+                  <Label htmlFor="county">County *</Label>
+                  <Select value={formData.county} onValueChange={(value) => handleSelectChange('county', value)}>
+                    <SelectTrigger className="mt-1">
+                      <SelectValue placeholder="Select a county" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {Object.keys(kenyanCounties).map((county) => (
+                        <SelectItem key={county} value={county}>
+                          {county}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="md:col-span-2">
+                  <Label htmlFor="location">Specific Location *</Label>
+                  <Select 
+                    value={formData.location} 
+                    onValueChange={(value) => handleSelectChange('location', value)}
+                    disabled={!formData.county}
+                  >
+                    <SelectTrigger className="mt-1">
+                      <SelectValue placeholder={formData.county ? "Select a location" : "Select a county first"} />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {availableLocations.map((location) => (
+                        <SelectItem key={location} value={location}>
+                          {location}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
               </div>
 

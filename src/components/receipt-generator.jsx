@@ -3,7 +3,7 @@
 import { useState, useRef } from "react"
 import { Button } from "./ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "./ui/card"
-import { Printer, Building2 } from "lucide-react"
+import { Printer, Building } from "lucide-react"
 import { formatCurrency, formatDate, calculateTransactionTotal } from "../lib/calculations"
 
 export default function ReceiptGenerator({ transaction, customer }) {
@@ -370,19 +370,19 @@ export default function ReceiptGenerator({ transaction, customer }) {
   if (transaction.return6kg > 0) {
     maxGasReturns.push({
       description: `6kg Refill × ${transaction.return6kg}`,
-      amount: transaction.return6kg * (transaction.refillPrice6kg || 0),
+              amount: transaction.return6kg * 6 * (transaction.refillPrice6kg || 0),
     })
   }
   if (transaction.return13kg > 0) {
     maxGasReturns.push({
       description: `13kg Refill × ${transaction.return13kg}`,
-      amount: transaction.return13kg * (transaction.refillPrice13kg || 0),
+              amount: transaction.return13kg * 13 * (transaction.refillPrice13kg || 0),
     })
   }
   if (transaction.return50kg > 0) {
     maxGasReturns.push({
       description: `50kg Refill × ${transaction.return50kg}`,
-      amount: transaction.return50kg * (transaction.refillPrice50kg || 0),
+              amount: transaction.return50kg * 50 * (transaction.refillPrice50kg || 0),
     })
   }
 
@@ -408,118 +408,121 @@ export default function ReceiptGenerator({ transaction, customer }) {
   if (transaction.swipeReturn6kg > 0) {
     otherCompanySwipes.push({
       description: `6kg Swipe × ${transaction.swipeReturn6kg}`,
-      amount: transaction.swipeReturn6kg * (transaction.swipeRefillPrice6kg || 0),
+              amount: transaction.swipeReturn6kg * 6 * (transaction.swipeRefillPrice6kg || 0),
     })
   }
   if (transaction.swipeReturn13kg > 0) {
     otherCompanySwipes.push({
       description: `13kg Swipe × ${transaction.swipeReturn13kg}`,
-      amount: transaction.swipeReturn13kg * (transaction.swipeRefillPrice13kg || 0),
+              amount: transaction.swipeReturn13kg * 13 * (transaction.swipeRefillPrice13kg || 0),
     })
   }
   if (transaction.swipeReturn50kg > 0) {
     otherCompanySwipes.push({
       description: `50kg Swipe × ${transaction.swipeReturn50kg}`,
-      amount: transaction.swipeReturn50kg * (transaction.swipeRefillPrice50kg || 0),
+              amount: transaction.swipeReturn50kg * 50 * (transaction.swipeRefillPrice50kg || 0),
     })
   }
 
   return (
-    <Card className="shadow-xl border-0 bg-white max-w-md mx-auto">
-      <CardHeader className="bg-gradient-to-r from-orange-500 to-orange-600 text-white">
-        <div className="flex justify-between items-center">
-          <CardTitle className="flex items-center gap-2">
-            <Building2 className="w-5 h-5" />
-            Receipt
-          </CardTitle>
-          <div className="flex gap-2">
+    <div className="space-y-4">
+      {/* Action Buttons */}
+      <div className="flex justify-end">
             <Button
               onClick={handlePrint}
               disabled={isPrinting}
-              variant="ghost"
+          variant="outline"
               size="sm"
-              className="text-white hover:bg-white/20"
             >
               <Printer className="w-4 h-4 mr-1" />
               Print
             </Button>
           </div>
-        </div>
-      </CardHeader>
-      <CardContent className="p-0">
-        <div ref={receiptRef} className="print-area bg-white">
+
+      {/* Receipt Content */}
+      <div ref={receiptRef} className="bg-white rounded-lg border max-w-md mx-auto">
           {/* Header */}
-          <div className="header">
-            <div className="company-logo">MaxGas</div>
-            <div className="company-tagline">Premium Gas Cylinder Solutions</div>
-            <div className="receipt-title">OFFICIAL RECEIPT</div>
+        <div className="bg-gradient-to-r from-slate-800 to-slate-700 text-white p-6 text-center relative">
+          <div className="text-3xl font-bold mb-2">MaxGas</div>
+          <div className="text-sm opacity-90 mb-4">Premium Gas Cylinder Solutions</div>
+          <div className="bg-orange-500/20 text-orange-300 px-4 py-2 rounded-full text-sm font-semibold border border-orange-300/30">
+            OFFICIAL RECEIPT
+          </div>
           </div>
 
           {/* Receipt Body */}
-          <div className="receipt-body">
+        <div className="p-6 space-y-6">
             {/* Info Grid */}
-            <div className="info-grid">
-              <div className="info-card">
-                <div className="info-label">Receipt #</div>
-                <div className="info-value">#{transaction.id.toString().padStart(6, "0")}</div>
+          <div className="grid grid-cols-2 gap-3">
+            <div className="bg-slate-50 p-3 rounded-lg border">
+              <div className="text-xs font-semibold text-slate-600 uppercase tracking-wide mb-1">Receipt #</div>
+              <div className="text-sm font-semibold text-slate-800">#{transaction.id.toString().padStart(6, "0")}</div>
               </div>
-              <div className="info-card">
-                <div className="info-label">Date</div>
-                <div className="info-value">{formatDate(transaction.date || new Date())}</div>
+            <div className="bg-slate-50 p-3 rounded-lg border">
+              <div className="text-xs font-semibold text-slate-600 uppercase tracking-wide mb-1">Date</div>
+              <div className="text-sm font-semibold text-slate-800">{formatDate(transaction.date || new Date())}</div>
               </div>
-              <div className="info-card customer">
-                <div className="info-label">Customer</div>
-                <div className="info-value">{customer.name}</div>
-                <div className="info-label" style={{ marginTop: "8px" }}>
-                  Phone
-                </div>
-                <div className="info-value">{customer.phone}</div>
-                <div style={{ marginTop: "12px" }}>
-                  <span className={`status-badge ${outstanding <= 0 ? "status-paid" : "status-outstanding"}`}>
+            <div className="bg-gradient-to-r from-orange-50 to-amber-50 p-3 rounded-lg border border-orange-200 col-span-2">
+              <div className="text-xs font-semibold text-slate-600 uppercase tracking-wide mb-1">Customer</div>
+              <div className="text-sm font-semibold text-slate-800 mb-2">{customer.name}</div>
+              <div className="text-xs font-semibold text-slate-600 uppercase tracking-wide mb-1">Phone</div>
+              <div className="text-sm font-semibold text-slate-800 mb-3">{customer.phone}</div>
+              <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-semibold ${
+                outstanding <= 0 
+                  ? "bg-green-100 text-green-800 border border-green-200" 
+                  : "bg-red-100 text-red-800 border border-red-200"
+              }`}>
                     {outstanding <= 0 ? "✓ Paid" : "⚠ Outstanding"}
                   </span>
-                </div>
               </div>
             </div>
 
             {/* Items */}
-            <div className="items-section">
-              <div className="section-title">
-                <span className="section-icon">📦</span>
-                Items & Services
+          <div>
+            <div className="flex items-center mb-4 pb-2 border-b-2 border-slate-200">
+              <div className="w-8 h-8 bg-gradient-to-r from-orange-500 to-orange-600 rounded-lg flex items-center justify-center text-white font-bold mr-3">
+                📦
+              </div>
+              <h3 className="text-lg font-bold text-slate-800">Items & Services</h3>
               </div>
 
               {maxGasReturns.length > 0 && (
-                <div className="item-group">
-                  <div className="item-group-title">MaxGas Refills</div>
+              <div className="bg-white border border-slate-200 rounded-lg p-4 mb-3 shadow-sm">
+                <div className="font-bold text-slate-700 text-sm uppercase tracking-wide mb-2 pb-1 border-b border-slate-100">
+                  MaxGas Refills
+                </div>
                   {maxGasReturns.map((item, index) => (
-                    <div key={index} className="item-row">
-                      <span className="item-description">{item.description}</span>
-                      <span className="item-amount">{formatCurrency(item.amount)}</span>
+                  <div key={index} className="flex justify-between items-center py-2 border-b border-dotted border-slate-200 last:border-b-0">
+                    <span className="text-slate-700 text-sm font-medium">{item.description}</span>
+                    <span className="font-bold text-slate-800 text-sm">{formatCurrency(item.amount)}</span>
                     </div>
                   ))}
                 </div>
               )}
 
               {maxGasOutright.length > 0 && (
-                <div className="item-group">
-                  <div className="item-group-title">MaxGas Outright Sales</div>
+              <div className="bg-white border border-slate-200 rounded-lg p-4 mb-3 shadow-sm">
+                <div className="font-bold text-slate-700 text-sm uppercase tracking-wide mb-2 pb-1 border-b border-slate-100">
+                  MaxGas Outright Sales
+                </div>
                   {maxGasOutright.map((item, index) => (
-                    <div key={index} className="item-row">
-                      <span className="item-description">{item.description}</span>
-                      <span className="item-amount">{formatCurrency(item.amount)}</span>
+                  <div key={index} className="flex justify-between items-center py-2 border-b border-dotted border-slate-200 last:border-b-0">
+                    <span className="text-slate-700 text-sm font-medium">{item.description}</span>
+                    <span className="font-bold text-slate-800 text-sm">{formatCurrency(item.amount)}</span>
                     </div>
                   ))}
                 </div>
               )}
 
               {otherCompanySwipes.length > 0 && (
-                <div className="item-group">
-                  <div className="item-group-title">Other Company Swipes</div>
+              <div className="bg-white border border-slate-200 rounded-lg p-4 mb-3 shadow-sm">
+                <div className="font-bold text-slate-700 text-sm uppercase tracking-wide mb-2 pb-1 border-b border-slate-100">
+                  Other Company Swipes
+                </div>
                   {otherCompanySwipes.map((item, index) => (
-                    <div key={index} className="item-row">
-                      <span className="item-description">{item.description}</span>
-                      <span className="item-amount">{formatCurrency(item.amount)}</span>
+                  <div key={index} className="flex justify-between items-center py-2 border-b border-dotted border-slate-200 last:border-b-0">
+                    <span className="text-slate-700 text-sm font-medium">{item.description}</span>
+                    <span className="font-bold text-slate-800 text-sm">{formatCurrency(item.amount)}</span>
                     </div>
                   ))}
                 </div>
@@ -527,43 +530,46 @@ export default function ReceiptGenerator({ transaction, customer }) {
             </div>
 
             {/* Totals */}
-            <div className="totals-section">
-              <div className="total-row">
-                <span className="total-label">Subtotal:</span>
-                <span className="total-amount">{formatCurrency(total)}</span>
+          <div className="bg-gradient-to-r from-slate-50 to-slate-100 p-4 rounded-lg border border-slate-200">
+            <div className="flex justify-between items-center mb-2">
+              <span className="text-slate-600 font-semibold">Subtotal:</span>
+              <span className="font-bold text-slate-800">{formatCurrency(total)}</span>
               </div>
-              <div className="total-row">
-                <span className="total-label">Amount Paid:</span>
-                <span className="total-amount positive">{formatCurrency(paid)}</span>
+            <div className="flex justify-between items-center mb-2">
+              <span className="text-slate-600 font-semibold">Amount Paid:</span>
+              <span className="font-bold text-green-600">{formatCurrency(paid)}</span>
               </div>
-              <div className="total-row">
-                <span className="total-label">Outstanding:</span>
-                <span className={`total-amount ${outstanding > 0 ? "negative" : "positive"}`}>
+            <div className="flex justify-between items-center pt-2 border-t-2 border-slate-300">
+              <span className="text-slate-600 font-semibold">Outstanding:</span>
+              <span className={`font-bold text-lg ${outstanding > 0 ? "text-red-600" : "text-green-600"}`}>
                   {formatCurrency(outstanding)}
                 </span>
               </div>
             </div>
 
             {transaction.notes && (
-              <div className="info-card" style={{ marginBottom: "32px" }}>
-                <div className="info-label">Notes</div>
-                <div style={{ marginTop: "8px", fontSize: "14px", color: "#4b5563" }}>{transaction.notes}</div>
+            <div className="bg-slate-50 p-3 rounded-lg border">
+              <div className="text-xs font-semibold text-slate-600 uppercase tracking-wide mb-1">Notes</div>
+              <div className="text-sm text-slate-700">{transaction.notes}</div>
               </div>
             )}
           </div>
 
           {/* Footer */}
-          <div className="footer">
-            <div className="footer-message">Thank you for your business!</div>
-            <div className="footer-company">MaxGas - Premium Gas Cylinder Solutions</div>
-            <div className="footer-contact">
+        <div className="bg-gradient-to-r from-slate-800 to-slate-700 text-white text-center p-6">
+          <div className="text-xl font-bold mb-2">Thank you for your business!</div>
+          <div className="text-base mb-4 opacity-90">MaxGas - Premium Gas Cylinder Solutions</div>
+          <div className="text-xs opacity-80 leading-relaxed">
               📧 info@maxgas.co.ke | 📞 +254 700 000 000
               <br />🌐 www.maxgas.co.ke
             </div>
-            <div className="qr-placeholder">QR Code</div>
+          {/* QR Code section commented out
+          <div className="w-20 h-20 bg-white/10 rounded-lg border border-white/20 mx-auto mt-4 flex items-center justify-center text-xs">
+            QR Code
           </div>
+          */}
         </div>
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   )
 }

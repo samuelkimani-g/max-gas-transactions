@@ -35,7 +35,7 @@ export default function BulkPaymentForm({ customerId, customerName, outstandingA
     }
   }, [isOpen])
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault()
     const amount = Number.parseFloat(paymentAmount)
 
@@ -48,27 +48,36 @@ export default function BulkPaymentForm({ customerId, customerName, outstandingA
       return
     }
 
-    const paymentDetails = {
-      amount,
-      date: paymentDate,
-      method: paymentMethod,
-      note: paymentNote || `Bulk payment of ${formatCurrency(amount)}`,
+    try {
+      const paymentDetails = {
+        amount,
+        date: paymentDate,
+        method: paymentMethod,
+        note: paymentNote || `Bulk payment of ${formatCurrency(amount)}`,
+      }
+
+      await recordBulkPayment(
+        customerId,
+        amount,
+        `${paymentMethod.toUpperCase()}: ${paymentNote || `Bulk payment of ${formatCurrency(amount)}`} (${paymentDate})`,
+      )
+
+      toast({
+        title: "Payment Recorded",
+        description: `Payment of ${formatCurrency(amount)} has been recorded for ${customerName}.`,
+      })
+
+      setPaymentAmount("")
+      setPaymentNote("")
+      setIsOpen(false)
+    } catch (error) {
+      console.error('Failed to record bulk payment:', error)
+      toast({
+        title: "Error",
+        description: "Failed to record payment. Please try again.",
+        variant: "destructive",
+      })
     }
-
-    recordBulkPayment(
-      customerId,
-      amount,
-      `${paymentMethod.toUpperCase()}: ${paymentNote || `Bulk payment of ${formatCurrency(amount)}`} (${paymentDate})`,
-    )
-
-    toast({
-      title: "Payment Recorded",
-      description: `Payment of ${formatCurrency(amount)} has been recorded for ${customerName}.`,
-    })
-
-    setPaymentAmount("")
-    setPaymentNote("")
-    setIsOpen(false)
   }
 
   return (
@@ -197,7 +206,11 @@ export default function BulkPaymentForm({ customerId, customerName, outstandingA
                         return (
                           <div key={t.id} className="flex justify-between text-xs">
                             <span>
-                              Transaction #{t.id} ({new Date(t.date).toLocaleDateString()})
+                              Transaction #{t.id} ({new Date(t.date).toLocaleDateString("en-GB", {
+                  day: "2-digit",
+                  month: "2-digit", 
+                  year: "2-digit"
+                })})
                             </span>
                             <span className="font-medium text-red-600">{formatCurrency(outstanding)}</span>
                           </div>

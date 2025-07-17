@@ -21,10 +21,12 @@
     "backend:seed": "cd backend && npm run seed",
     "db:setup": "cd backend && npm run setup",
     "db:seed": "cd backend && npm run seed",
+    "db:setup-prod": "cd backend && node scripts/setup-production.js",
     "install:all": "npm install && cd backend && npm install && cd ../electron && npm install",
     "dev:full": "concurrently \"npm run dev\" \"npm run backend:dev\"",
     "build:all": "npm run build && cd backend && npm run build",
-    "deploy:vercel": "vercel --prod"
+    "deploy:vercel": "vercel --prod",
+    "deploy:setup": "npm run install:all && npm run build && npm run db:setup-prod"
   },
   "dependencies": {
     "@radix-ui/react-checkbox": "^1.0.4",

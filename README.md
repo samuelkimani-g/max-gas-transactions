@@ -1,163 +1,105 @@
-# Gas Cylinder Management Dashboard
+# Max Gas Transactions
 
-A comprehensive gas cylinder management system with web and desktop applications for tracking customers, transactions, inventory, and analytics.
+A comprehensive gas cylinder management dashboard with web and desktop applications for tracking transactions, customers, and business analytics.
 
-## 🚀 Quick Start
+## 🚀 Features
+
+### Core Functionality
+- **Customer Management**: Add, edit, and track customer information
+- **Transaction Tracking**: Record gas cylinder sales and returns
+- **Payment Processing**: Handle payments and credit management
+- **Inventory Management**: Track cylinder stock levels
+- **Reporting & Analytics**: Generate reports and business insights
+- **Forecasting**: Predict future demand using ARIMA models
+
+### User Roles & Access Control
+- **Admin**: Full system access and user management
+- **Manager**: Business operations and approval workflows
+- **Operator**: Transaction processing and customer service
+
+### Multi-Platform Support
+- 🌐 **Web Application**: React-based dashboard accessible from any browser
+- 🖥️ **Desktop Application**: Electron-based native app for Windows, Mac, and Linux
+- 📱 **Mobile Responsive**: Optimized for tablet and mobile use
+
+## 🛠️ Technology Stack
+
+### Frontend
+- **React 18** with Vite for fast development
+- **Tailwind CSS** for modern, responsive design
+- **Chart.js** and **Recharts** for data visualization
+- **Zustand** for state management
+- **Radix UI** for accessible components
+
+### Backend
+- **Node.js** with Express.js
+- **SQLite** database (easily upgradable to PostgreSQL)
+- **Sequelize ORM** for database management
+- **JWT** for authentication
+- **bcrypt** for password hashing
+
+### Desktop App
+- **Electron** for cross-platform desktop application
+- **Electron Builder** for automated builds and distribution
+
+## 📦 Installation
 
 ### Prerequisites
-- Node.js (v16 or higher)
-- npm (v8 or higher)
-- PostgreSQL database
+- Node.js 16+ 
+- npm or yarn
+- Git
 
-### Automated Setup
+### Quick Start
 ```bash
-# On macOS/Linux
-chmod +x quick-start.sh
-./quick-start.sh
+# Clone the repository
+git clone https://github.com/samuelkimani-g/max-gas-transactions.git
+cd max-gas-transactions
 
-# On Windows
-quick-start.bat
-```
-
-### Manual Setup
-```bash
-# 1. Install dependencies
+# Install all dependencies
 npm run install:all
 
-# 2. Copy environment file
-cp env.example .env
+# Setup database and seed initial data
+npm run db:setup-prod
 
-# 3. Edit .env with your database credentials
-# DATABASE_URL=postgresql://username:password@localhost:5432/gas_cylinder_db
-
-# 4. Setup database
-npm run db:setup
-
-# 5. Seed with sample data
-npm run db:seed
-
-# 6. Start development
+# Start development servers
 npm run dev:full
 ```
 
-## 🌟 Features
-
-### Core Functionality
-- **Customer Management**: Add, edit, and track customers with detailed information
-- **Transaction Tracking**: Record loads, returns, swipes, and outright sales
-- **Inventory Management**: Track cylinder balances by size (6kg, 13kg, 50kg)
-- **Payment Processing**: Record payments and track outstanding balances
-- **Reporting & Analytics**: Comprehensive reports and forecasting
-
-### Advanced Features
-- **Duplicate Prevention**: Smart duplicate checking for customers
-- **Address System**: Kenyan county and location dropdown system
-- **Data Import/Export**: Excel/CSV import and export functionality
-- **Bulk Operations**: Bulk payments and transaction management
-- **Offline Mode**: Works without internet connection
-- **Mobile Responsive**: Optimized for mobile devices
-
-### Analytics & Reporting
-- **Real-time Dashboard**: Live metrics and KPIs
-- **Forecasting Engine**: AI-powered sales and demand forecasting
-- **Risk Analysis**: Customer risk assessment and volatility metrics
-- **Cylinder Analytics**: Detailed breakdown by cylinder size
-- **Financial Reports**: Comprehensive financial analysis
-
-## 🏗️ Architecture
-
-### Frontend (React + Vite)
-- **React 18**: Modern React with hooks and functional components
-- **Vite**: Fast build tool and development server
-- **Tailwind CSS**: Utility-first CSS framework
-- **Zustand**: Lightweight state management
-- **Recharts**: Beautiful and responsive charts
-- **Radix UI**: Accessible UI components
-
-### Backend (Node.js + Express)
-- **Express.js**: Fast, unopinionated web framework
-- **Sequelize**: Promise-based ORM for PostgreSQL
-- **JWT**: Secure authentication
-- **Helmet**: Security middleware
-- **Rate Limiting**: API protection
-
-### Database (PostgreSQL)
-- **PostgreSQL**: Robust, open-source database
-- **Sequelize ORM**: Database abstraction layer
-- **Migrations**: Version-controlled database schema
-- **Seeding**: Sample data for development
-
-### Desktop App (Electron)
-- **Electron**: Cross-platform desktop application
-- **Native Menus**: Platform-specific application menus
-- **File System Access**: Local file operations
-- **Auto-updates**: Automatic application updates
-
-## 📱 Platforms
-
-### Web Application
-- **Modern Browsers**: Chrome, Firefox, Safari, Edge
-- **Mobile Responsive**: Works on tablets and phones
-- **PWA Ready**: Progressive Web App capabilities
-
-### Desktop Application
-- **Windows**: .exe installer with auto-updates
-- **macOS**: .dmg package with native integration
-- **Linux**: .AppImage for easy distribution
-
-## 🗄️ Database Setup
-
-### Option 1: Railway (Recommended)
-1. Create account at [railway.app](https://railway.app)
-2. Add PostgreSQL service
-3. Copy connection string to `.env`
-
-### Option 2: Supabase
-1. Create account at [supabase.com](https://supabase.com)
-2. Create new project
-3. Get connection string from Settings → Database
-
-### Option 3: Local PostgreSQL
+### Development Commands
 ```bash
-# Install PostgreSQL
-# macOS: brew install postgresql
-# Ubuntu: sudo apt install postgresql
-# Windows: Download from postgresql.org
+# Install dependencies
+npm run install:all
 
-# Create database
-sudo -u postgres psql
-CREATE DATABASE gas_cylinder_db;
-CREATE USER gas_user WITH PASSWORD 'your_password';
-GRANT ALL PRIVILEGES ON DATABASE gas_cylinder_db TO gas_user;
-\q
+# Start frontend development server
+npm run dev
+
+# Start backend development server
+npm run backend:dev
+
+# Start both frontend and backend
+npm run dev:full
+
+# Build for production
+npm run build
+
+# Build desktop application
+npm run desktop:dist:win
 ```
+
+## 🔐 Default Login Credentials
+
+⚠️ **Important**: Change these passwords after first login!
+
+- **Admin**: `admin` / `admin123`
+- **Manager**: `manager` / `manager123`
+- **Operator**: `operator` / `operator123`
 
 ## 🚀 Deployment
 
-### Web Application
-
-#### Vercel (Recommended)
+### Web Application (Vercel)
 ```bash
-# Install Vercel CLI
-npm i -g vercel
-
-# Deploy
-vercel --prod
-```
-
-#### Netlify
-```bash
-# Build and deploy
-npm run build
-# Drag dist folder to Netlify
-```
-
-#### GitHub Pages
-```bash
-npm run build
-git add dist
-git commit -m "Deploy to GitHub Pages"
-git subtree push --prefix dist origin gh-pages
+# Deploy to Vercel
+npm run deploy:vercel
 ```
 
 ### Desktop Application
@@ -170,120 +112,106 @@ npm run desktop:dist:mac
 
 # Build for Linux
 npm run desktop:dist:linux
-
-# Build for all platforms
-npm run desktop:dist
 ```
 
-## 📊 Available Scripts
+### Automated Deployment
+Use the provided deployment scripts:
+- **Windows**: `deploy.bat`
+- **Linux/Mac**: `deploy.sh`
 
-### Development
-```bash
-npm run dev              # Start frontend development server
-npm run backend:dev      # Start backend development server
-npm run dev:full         # Start both frontend and backend
-npm run desktop:dev      # Start desktop app development
-```
+## 📊 Key Features
 
-### Building
-```bash
-npm run build            # Build web application
-npm run desktop:build    # Build desktop application
-npm run build:all        # Build both web and desktop
-```
+### Dashboard Analytics
+- Real-time transaction monitoring
+- Revenue tracking and trends
+- Customer activity insights
+- Inventory status overview
 
-### Database
-```bash
-npm run db:setup         # Setup database tables
-npm run db:seed          # Seed with sample data
-npm run backend:setup    # Setup backend database
-npm run backend:seed     # Seed backend database
-```
+### Customer Management
+- Customer profiles with contact information
+- Transaction history per customer
+- Credit limit management
+- Customer categorization
 
-### Deployment
-```bash
-npm run deploy:vercel    # Deploy to Vercel
-npm run desktop:dist     # Build desktop distributions
-```
+### Transaction Processing
+- Gas cylinder sales and returns
+- Payment processing
+- Credit transactions
+- Receipt generation
+
+### Reporting System
+- Sales reports
+- Customer reports
+- Inventory reports
+- Financial summaries
+- Export to Excel/PDF
+
+### Approval Workflow
+- Manager approval for certain operations
+- Audit trail for all changes
+- Role-based access control
 
 ## 🔧 Configuration
 
 ### Environment Variables
-```bash
-# Database
-DATABASE_URL=postgresql://username:password@host:port/database
-
-# JWT
-JWT_SECRET=your-super-secret-jwt-key
-JWT_EXPIRES_IN=7d
-
-# Server
-PORT=5000
+Create a `.env` file in the root directory:
+```env
 NODE_ENV=development
-FRONTEND_URL=http://localhost:3000
+PORT=5000
+JWT_SECRET=your-super-secret-jwt-key
+DB_TYPE=sqlite
+DB_PATH=./database.sqlite
 ```
 
-### Database Schema
-- **Users**: Authentication and user management
-- **Customers**: Customer information and addresses
-- **Transactions**: All transaction types and payments
-- **Branches**: Multi-branch support
+### Database Setup
+The application uses SQLite by default for simplicity. For production, consider:
+- PostgreSQL for better performance
+- Regular database backups
+- Connection pooling
 
-## 📈 Analytics Features
+## 📱 Desktop Application
 
-### Real-time Metrics
-- Total sales and revenue
-- Customer count and growth
-- Transaction volume
-- Payment collection rates
-- Inventory levels
+The desktop app provides:
+- Offline capability
+- Native system integration
+- Automatic updates
+- Local data storage
 
-### Forecasting
-- Sales forecasting (12 months)
-- Demand prediction
-- Seasonal analysis
-- Risk assessment
-- Volatility metrics
-
-### Reports
-- Customer payment reports
-- Transaction history
-- Inventory movement
-- Financial statements
-- Cylinder balance reports
-
-## 🔒 Security Features
-
-- **JWT Authentication**: Secure token-based authentication
-- **Password Hashing**: bcrypt password encryption
-- **CORS Protection**: Cross-origin resource sharing
-- **Rate Limiting**: API request throttling
-- **Input Validation**: Comprehensive data validation
-- **SQL Injection Protection**: ORM-based queries
+### Building Desktop App
+```bash
+cd electron
+npm run dist:win    # Windows
+npm run dist:mac    # macOS
+npm run dist:linux  # Linux
+```
 
 ## 🤝 Contributing
 
 1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Add tests if applicable
-5. Submit a pull request
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
 
 ## 📄 License
 
-This project is licensed under the MIT License - see the LICENSE file for details.
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
 ## 🆘 Support
 
-- **Documentation**: See `DEPLOYMENT_GUIDE.md` for detailed deployment instructions
-- **API Docs**: See `API_DOCUMENTATION.md` for API reference
-- **Issues**: Report bugs and feature requests on GitHub
+For support and questions:
+- Create an issue on GitHub
+- Check the documentation in `/docs`
+- Review the deployment guide in `DEPLOYMENT_GUIDE.md`
 
-## 🎯 Roadmap
+## 🔄 Version History
 
-- [ ] Multi-language support
-- [ ] Advanced reporting
-- [ ] Mobile app
-- [ ] API integrations
-- [ ] Advanced analytics
-- [ ] Multi-tenant support
+- **v1.0.0**: Initial release with core functionality
+- Web and desktop applications
+- Multi-role user system
+- Complete transaction management
+- Analytics and reporting
+
+---
+
+**Built with ❤️ for efficient gas cylinder business management**

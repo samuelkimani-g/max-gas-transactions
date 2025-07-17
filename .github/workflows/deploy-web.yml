@@ -1,34 +1,41 @@
-name: Deploy Web App
+# name: Deploy Web App
+# 
+# on:
+#   push:
+#     branches: [ main ]
+#   pull_request:
+#     branches: [ main ]
+# 
+# jobs:
+#   deploy:
+#     runs-on: ubuntu-latest
+#     
+#     steps:
+#     - uses: actions/checkout@v3
+#     
+#     - name: Setup Node.js
+#       uses: actions/setup-node@v3
+#       with:
+#         node-version: '18'
+#         cache: 'npm'
+#     
+#     - name: Install dependencies
+#       run: npm run install:all
+#     
+#     - name: Build application
+#       run: npm run build
+#     
+#     - name: Deploy to Vercel
+#       uses: amondnet/vercel-action@v25
+#       with:
+#         vercel-token: ${{ secrets.VERCEL_TOKEN }}
+#         vercel-org-id: ${{ secrets.ORG_ID }}
+#         vercel-project-id: ${{ secrets.PROJECT_ID }}
+#         vercel-args: '--prod'
 
-on:
-  push:
-    branches: [ main ]
-  pull_request:
-    branches: [ main ]
-
-jobs:
-  deploy:
-    runs-on: ubuntu-latest
-    
-    steps:
-    - uses: actions/checkout@v3
-    
-    - name: Setup Node.js
-      uses: actions/setup-node@v3
-      with:
-        node-version: '18'
-        cache: 'npm'
-    
-    - name: Install dependencies
-      run: npm run install:all
-    
-    - name: Build application
-      run: npm run build
-    
-    - name: Deploy to Vercel
-      uses: amondnet/vercel-action@v25
-      with:
-        vercel-token: ${{ secrets.VERCEL_TOKEN }}
-        vercel-org-id: ${{ secrets.ORG_ID }}
-        vercel-project-id: ${{ secrets.PROJECT_ID }}
-        vercel-args: '--prod' 
+# This workflow is disabled because manual deployment is being used
+# To enable automatic deployment, you need to:
+# 1. Get Vercel token from: https://vercel.com/account/tokens
+# 2. Get Org ID and Project ID from Vercel dashboard
+# 3. Add these as secrets in GitHub repository settings
+# 4. Uncomment this workflow 

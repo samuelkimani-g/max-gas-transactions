@@ -2,10 +2,9 @@ const CACHE_NAME = 'gas-cylinder-v1.0.0';
 const urlsToCache = [
   '/',
   '/index.html',
-  '/src/main.jsx',
   '/manifest.json',
   '/icons/icon.svg',
-  '/vite.png'
+  '/vite.svg'
 ];
 
 // Install event - cache resources

@@ -18,9 +18,9 @@
       "purpose": "maskable any"
     },
     {
-      "src": "/vite.png",
+      "src": "/vite.svg",
       "sizes": "32x32",
-      "type": "image/png"
+      "type": "image/svg+xml"
     }
   ],
   "shortcuts": [

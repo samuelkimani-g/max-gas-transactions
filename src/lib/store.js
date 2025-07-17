@@ -5,7 +5,7 @@ import { persist } from "zustand/middleware"
 const API_BASE_URL = process.env.NODE_ENV === 'production' ? 'https://your-backend-url.com/api' : 'http://localhost:5000/api'
 
 // Demo mode for frontend-only deployment
-const DEMO_MODE = process.env.NODE_ENV === 'production' && !API_BASE_URL.includes('localhost')
+const DEMO_MODE = true // Force demo mode for now - can be made dynamic later
 
 // Demo users for frontend-only deployment
 const DEMO_USERS = {

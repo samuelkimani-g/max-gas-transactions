@@ -2,10 +2,10 @@ import { create } from "zustand"
 import { persist } from "zustand/middleware"
 
 // API base URL - adjust this to match your backend
-const API_BASE_URL = process.env.NODE_ENV === 'production' ? 'https://your-backend-url.com/api' : 'http://localhost:5000/api'
+const API_BASE_URL = process.env.NODE_ENV === 'production' ? 'https://max-gas-transactions-backend.vercel.app/api' : 'http://localhost:5000/api'
 
 // Demo mode for frontend-only deployment
-const DEMO_MODE = true // Force demo mode for now - can be made dynamic later
+const DEMO_MODE = false // Use real backend and database
 
 // Demo users for frontend-only deployment
 const DEMO_USERS = {

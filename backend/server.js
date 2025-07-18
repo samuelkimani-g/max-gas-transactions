@@ -31,7 +31,7 @@ if (!process.env.JWT_SECRET) {
   process.env.JWT_SECRET = 'your-super-secret-jwt-key-change-this-in-production';
 }
 
-// CORS configuration - allow localhost ports for development
+// CORS configuration - allow localhost ports for development and production URLs
 app.use(cors({
   origin: [
     'http://localhost:3000', 
@@ -48,7 +48,10 @@ app.use(cors({
     'http://127.0.0.1:5176',
     'http://127.0.0.1:5177',
     'http://127.0.0.1:5178',
-    'http://127.0.0.1:5181'
+    'http://127.0.0.1:5181',
+    'https://max-gas-transactions.vercel.app',
+    'https://max-gas-transactions-git-main-samuels-projects-a44fd59b.vercel.app',
+    'https://max-gas-transactions-n83ibkmnl-samuels-projects-a44fd59b.vercel.app'
   ],
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],

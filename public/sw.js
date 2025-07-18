@@ -1,5 +1,5 @@
 // Service Worker for Gas Cylinder Manager PWA
-const CACHE_NAME = 'gas-cylinder-v4';
+const CACHE_NAME = 'gas-cylinder-v5';
 const urlsToCache = [
   '/',
   '/index.html',
@@ -11,7 +11,7 @@ self.addEventListener('install', event => {
   event.waitUntil(
     caches.open(CACHE_NAME)
       .then(cache => {
-        console.log('Opened cache v4');
+        console.log('Opened cache v5');
         return cache.addAll(urlsToCache);
       })
       .then(() => self.skipWaiting())

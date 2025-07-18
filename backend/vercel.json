@@ -1,4 +1,14 @@
 {
+  "version": 2,
+  "builds": [
+    {
+      "src": "api/index.js",
+      "use": "@vercel/node",
+      "config": {
+        "includeFiles": ["**"]
+      }
+    }
+  ],
   "functions": {
     "api/index.js": {
       "memory": 1024,
@@ -10,5 +20,8 @@
       "source": "/(.*)",
       "destination": "/api"
     }
-  ]
+  ],
+  "env": {
+    "NODE_ENV": "production"
+  }
 } 

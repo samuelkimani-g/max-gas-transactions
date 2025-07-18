@@ -5,7 +5,7 @@ import { persist } from "zustand/middleware"
 const API_BASE_URL = process.env.NODE_ENV === 'production' ? 'https://max-gas-transactions-backend.vercel.app/api' : 'http://localhost:5000/api'
 
 // Demo mode for frontend-only deployment
-const DEMO_MODE = false // Use real backend and database
+const DEMO_MODE = true // Temporarily use demo mode until backend is fixed
 
 // Demo users for frontend-only deployment
 const DEMO_USERS = {

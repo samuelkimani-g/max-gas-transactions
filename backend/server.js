@@ -181,6 +181,23 @@ async function startServer() {
   }
 }
 
+// Initialize database connection for serverless
+async function initializeDatabase() {
+  try {
+    await sequelize.authenticate();
+    console.log('✅ Database connection established successfully');
+    
+    // Sync database (create tables if they don't exist)
+    await sequelize.sync({ alter: true });
+    console.log('✅ Database synchronized successfully');
+    
+    return true;
+  } catch (error) {
+    console.error('❌ Unable to connect to the database:', error);
+    return false;
+  }
+}
+
 // Handle graceful shutdown
 process.on('SIGTERM', async () => {
   console.log('🛑 SIGTERM received, shutting down gracefully');
@@ -194,5 +211,13 @@ process.on('SIGINT', async () => {
   process.exit(0);
 });
 
-// Start the server
-startServer(); 
+// Export the app for Vercel serverless
+module.exports = app;
+
+// Start the server only if not in serverless environment
+if (process.env.NODE_ENV !== 'production' || !process.env.VERCEL) {
+  startServer();
+} else {
+  // Initialize database for serverless
+  initializeDatabase().catch(console.error);
+} 

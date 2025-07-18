@@ -559,6 +559,91 @@ router.get('/debug-users', async (req, res) => {
   }
 });
 
+// @route   GET /api/auth/fix-users
+// @desc    Fix operator and manager users (temporary debug endpoint)
+// @access  Public (for debugging only)
+router.get('/fix-users', async (req, res) => {
+  try {
+    console.log('🔧 Fixing operator and manager users...');
+    
+    // Delete existing problematic users
+    await User.destroy({ where: { email: 'operator1@maxgas.com' } });
+    await User.destroy({ where: { email: 'manager1@maxgas.com' } });
+    
+    console.log('✅ Deleted existing users');
+    
+    // Get main branch
+    let mainBranch = await Branch.findOne({ where: { name: 'Main Branch' } });
+    if (!mainBranch) {
+      mainBranch = await Branch.create({
+        name: 'Main Branch',
+        type: 'main',
+        address: '123 Main Street, Lagos',
+        city: 'Lagos',
+        state: 'Lagos',
+        country: 'Nigeria',
+        phone: '+2348012345678',
+        email: 'main@maxgas.com',
+        manager: 'John Doe',
+        status: 'active'
+      });
+    }
+    
+    // Create new users with the same method as admin
+    const managerUser = await User.create({
+      username: 'manager1',
+      email: 'manager1@maxgas.com',
+      password: 'manager123',
+      fullName: 'Jane Smith',
+      role: 'manager',
+      branchId: mainBranch.id,
+      permissions: ['customers', 'transactions', 'reports'],
+      status: 'active'
+    });
+    
+    const operatorUser = await User.create({
+      username: 'operator1',
+      email: 'operator1@maxgas.com',
+      password: 'operator123',
+      fullName: 'Michael Brown',
+      role: 'operator',
+      branchId: mainBranch.id,
+      permissions: ['customers', 'transactions'],
+      status: 'active'
+    });
+    
+    console.log('✅ Created new users');
+    
+    // Test passwords
+    const managerTest = await managerUser.comparePassword('manager123');
+    const operatorTest = await operatorUser.comparePassword('operator123');
+    
+    console.log(`Manager password test: ${managerTest ? 'PASS' : 'FAIL'}`);
+    console.log(`Operator password test: ${operatorTest ? 'PASS' : 'FAIL'}`);
+    
+    res.json({
+      success: true,
+      message: 'Users recreated successfully',
+      tests: {
+        manager: managerTest,
+        operator: operatorTest
+      },
+      credentials: {
+        manager: 'manager1@maxgas.com / manager123',
+        operator: 'operator1@maxgas.com / operator123'
+      }
+    });
+    
+  } catch (error) {
+    console.error('Fix users error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error fixing users',
+      error: error.message
+    });
+  }
+});
+
 // @route   POST /api/auth/force-reset
 // @desc    Force reset a user's password (temporary debug endpoint)
 // @access  Public (for debugging only)

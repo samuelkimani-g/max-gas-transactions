@@ -78,6 +78,25 @@ if (process.env.NODE_ENV === 'development') {
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
+// Initialize database connection for serverless on first request
+let dbInitialized = false;
+
+app.use(async (req, res, next) => {
+  if (!dbInitialized && (process.env.NODE_ENV === 'production' && process.env.VERCEL)) {
+    try {
+      await initializeDatabase();
+      dbInitialized = true;
+    } catch (error) {
+      console.error('Database initialization failed:', error);
+      return res.status(500).json({
+        success: false,
+        message: 'Database connection failed'
+      });
+    }
+  }
+  next();
+});
+
 // Health check endpoint
 app.get('/health', (req, res) => {
   res.json({
@@ -217,7 +236,4 @@ module.exports = app;
 // Start the server only if not in serverless environment
 if (process.env.NODE_ENV !== 'production' || !process.env.VERCEL) {
   startServer();
-} else {
-  // Initialize database for serverless
-  initializeDatabase().catch(console.error);
 } 

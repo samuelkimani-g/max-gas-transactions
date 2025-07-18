@@ -269,20 +269,47 @@ router.post('/', [
       });
     }
 
-    // Calculate total
-    const total = (
-      (return6kg * 6 * refillPrice6kg) +
-      (return13kg * 13 * refillPrice13kg) +
-      (return50kg * 50 * refillPrice50kg) +
-      (outright6kg * outrightPrice6kg) +
-      (outright13kg * outrightPrice13kg) +
-      (outright50kg * outrightPrice50kg) +
-      (swipeReturn6kg * 6 * swipeRefillPrice6kg) +
-      (swipeReturn13kg * 13 * swipeRefillPrice13kg) +
-      (swipeReturn50kg * 50 * swipeRefillPrice50kg)
-    );
+    // Convert all values to numbers to prevent string concatenation
+    const numReturn6kg = Number(return6kg) || 0;
+    const numReturn13kg = Number(return13kg) || 0;
+    const numReturn50kg = Number(return50kg) || 0;
+    const numOutright6kg = Number(outright6kg) || 0;
+    const numOutright13kg = Number(outright13kg) || 0;
+    const numOutright50kg = Number(outright50kg) || 0;
+    const numSwipeReturn6kg = Number(swipeReturn6kg) || 0;
+    const numSwipeReturn13kg = Number(swipeReturn13kg) || 0;
+    const numSwipeReturn50kg = Number(swipeReturn50kg) || 0;
+    const numRefillPrice6kg = Number(refillPrice6kg) || 135;
+    const numRefillPrice13kg = Number(refillPrice13kg) || 135;
+    const numRefillPrice50kg = Number(refillPrice50kg) || 135;
+    const numOutrightPrice6kg = Number(outrightPrice6kg) || 3200;
+    const numOutrightPrice13kg = Number(outrightPrice13kg) || 3500;
+    const numOutrightPrice50kg = Number(outrightPrice50kg) || 8500;
+    const numSwipeRefillPrice6kg = Number(swipeRefillPrice6kg) || 160;
+    const numSwipeRefillPrice13kg = Number(swipeRefillPrice13kg) || 160;
+    const numSwipeRefillPrice50kg = Number(swipeRefillPrice50kg) || 160;
+    const numPaid = Number(paid) || 0;
 
-    const balance = total - paid;
+    // Calculate total with proper numeric operations
+    const refillTotal = 
+      (numReturn6kg * 6 * numRefillPrice6kg) +
+      (numReturn13kg * 13 * numRefillPrice13kg) +
+      (numReturn50kg * 50 * numRefillPrice50kg);
+
+    const outrightTotal = 
+      (numOutright6kg * numOutrightPrice6kg) +
+      (numOutright13kg * numOutrightPrice13kg) +
+      (numOutright50kg * numOutrightPrice50kg);
+
+    const swipeTotal = 
+      (numSwipeReturn6kg * 6 * numSwipeRefillPrice6kg) +
+      (numSwipeReturn13kg * 13 * numSwipeRefillPrice13kg) +
+      (numSwipeReturn50kg * 50 * numSwipeRefillPrice50kg);
+
+    const total = parseFloat((refillTotal + outrightTotal + swipeTotal).toFixed(2));
+    const balance = parseFloat((total - numPaid).toFixed(2));
+
+    console.log('[DEBUG] Calculated total:', total, 'balance:', balance);
 
     // Credit limit check removed - allow all transactions regardless of payment
 
@@ -291,33 +318,33 @@ router.post('/', [
 
     // Create transaction
     const transaction = await Transaction.create({
-      customerId,
+      customerId: Number(customerId),
       userId: req.user.id,
       branchId: req.user.branchId,
       date: new Date(date),
-      maxGas6kgLoad,
-      maxGas13kgLoad,
-      maxGas50kgLoad,
-      return6kg,
-      return13kg,
-      return50kg,
-      outright6kg,
-      outright13kg,
-      outright50kg,
-      swipeReturn6kg,
-      swipeReturn13kg,
-      swipeReturn50kg,
-      refillPrice6kg,
-      refillPrice13kg,
-      refillPrice50kg,
-      outrightPrice6kg,
-      outrightPrice13kg,
-      outrightPrice50kg,
-      swipeRefillPrice6kg,
-      swipeRefillPrice13kg,
-      swipeRefillPrice50kg,
+      maxGas6kgLoad: Number(maxGas6kgLoad) || 0,
+      maxGas13kgLoad: Number(maxGas13kgLoad) || 0,
+      maxGas50kgLoad: Number(maxGas50kgLoad) || 0,
+      return6kg: numReturn6kg,
+      return13kg: numReturn13kg,
+      return50kg: numReturn50kg,
+      outright6kg: numOutright6kg,
+      outright13kg: numOutright13kg,
+      outright50kg: numOutright50kg,
+      swipeReturn6kg: numSwipeReturn6kg,
+      swipeReturn13kg: numSwipeReturn13kg,
+      swipeReturn50kg: numSwipeReturn50kg,
+      refillPrice6kg: numRefillPrice6kg,
+      refillPrice13kg: numRefillPrice13kg,
+      refillPrice50kg: numRefillPrice50kg,
+      outrightPrice6kg: numOutrightPrice6kg,
+      outrightPrice13kg: numOutrightPrice13kg,
+      outrightPrice50kg: numOutrightPrice50kg,
+      swipeRefillPrice6kg: numSwipeRefillPrice6kg,
+      swipeRefillPrice13kg: numSwipeRefillPrice13kg,
+      swipeRefillPrice50kg: numSwipeRefillPrice50kg,
       total,
-      paid,
+      paid: numPaid,
       balance,
       paymentMethod: 'credit', // Always default to credit - payments can be recorded later
       notes,

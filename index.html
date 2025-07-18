@@ -18,61 +18,39 @@
     <div id="root"></div>
     <script type="module" src="/src/main.jsx"></script>
     <script>
-      // Register service worker for PWA (only in production)
-      if ('serviceWorker' in navigator && window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') {
-        window.addEventListener('load', () => {
-          // Check if sw.js exists before registering
-          fetch('/sw.js', { method: 'HEAD' })
-            .then(response => {
-              if (response.ok && response.headers.get('content-type')?.includes('javascript')) {
-                return navigator.serviceWorker.register('/sw.js');
-              } else {
-                console.log('SW not available or incorrect MIME type');
-                return null;
-              }
-            })
-            .then((registration) => {
-              if (registration) {
-                console.log('SW registered: ', registration);
-              }
-            })
-            .catch((registrationError) => {
-              console.log('SW registration failed: ', registrationError);
-            });
+      // Force clear old service workers and caches
+      if ('serviceWorker' in navigator) {
+        // Unregister all service workers first
+        navigator.serviceWorker.getRegistrations().then(function(registrations) {
+          for(let registration of registrations) {
+            registration.unregister();
+          }
         });
-      }
-
-      // Install prompt for PWA
-      let deferredPrompt;
-      window.addEventListener('beforeinstallprompt', (e) => {
-        e.preventDefault();
-        deferredPrompt = e;
         
-        // Store the prompt for later use
-        window.deferredPrompt = e;
-        
-        // Show install button if available
-        const installButton = document.getElementById('install-pwa');
-        if (installButton) {
-          installButton.style.display = 'block';
-        }
-      });
-      
-      // Handle install button click
-      window.addEventListener('load', () => {
-        const installButton = document.getElementById('install-pwa');
-        if (installButton) {
-          installButton.addEventListener('click', async () => {
-            if (window.deferredPrompt) {
-              window.deferredPrompt.prompt();
-              const { outcome } = await window.deferredPrompt.userChoice;
-              console.log(`User response to the install prompt: ${outcome}`);
-              window.deferredPrompt = null;
-              installButton.style.display = 'none';
+        // Clear all caches
+        if ('caches' in window) {
+          caches.keys().then(function(names) {
+            for (let name of names) {
+              caches.delete(name);
             }
           });
         }
-      });
+        
+        // Register new service worker after clearing
+        window.addEventListener('load', () => {
+          setTimeout(() => {
+            navigator.serviceWorker.register('/sw.js')
+              .then((registration) => {
+                console.log('SW registered: ', registration);
+                // Force update
+                registration.update();
+              })
+              .catch((error) => {
+                console.log('SW registration failed: ', error);
+              });
+          }, 1000);
+        });
+      }
     </script>
   </body>
 </html>

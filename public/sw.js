@@ -1,5 +1,5 @@
 // Service Worker for Gas Cylinder Manager PWA
-const CACHE_NAME = 'gas-cylinder-v2';
+const CACHE_NAME = 'gas-cylinder-v3';
 const urlsToCache = [
   '/',
   '/index.html',
@@ -11,7 +11,7 @@ self.addEventListener('install', event => {
   event.waitUntil(
     caches.open(CACHE_NAME)
       .then(cache => {
-        console.log('Opened cache');
+        console.log('Opened cache v3');
         return cache.addAll(urlsToCache);
       })
       .then(() => self.skipWaiting())
@@ -34,47 +34,40 @@ self.addEventListener('activate', event => {
   );
 });
 
-// Fetch event - network first for assets
+// Fetch event - always network first for everything
 self.addEventListener('fetch', event => {
-  if (event.request.url.includes('/assets/')) {
-    // Network first for assets
-    event.respondWith(
-      fetch(event.request)
-        .then(response => {
-          if (!response || response.status !== 200) {
-            return response;
-          }
+  // Always try network first
+  event.respondWith(
+    fetch(event.request)
+      .then(response => {
+        // Only cache successful responses
+        if (response.status === 200) {
           const responseToCache = response.clone();
           caches.open(CACHE_NAME)
             .then(cache => {
               cache.put(event.request, responseToCache);
             });
-          return response;
-        })
-        .catch(() => {
-          return caches.match(event.request);
-        })
-    );
-  } else if (event.request.url.includes('/api/')) {
-    // Always network for API calls
-    event.respondWith(fetch(event.request));
-  } else {
-    // Cache first for other resources
-    event.respondWith(
-      caches.match(event.request)
-        .then(response => {
-          return response || fetch(event.request);
-        })
-    );
-  }
+        }
+        return response;
+      })
+      .catch(() => {
+        // Only fallback to cache if network fails
+        return caches.match(event.request);
+      })
+  );
 });
 
 // Background sync for offline data
-self.addEventListener('sync', (event) => {
+self.addEventListener('sync', event => {
   if (event.tag === 'background-sync') {
     event.waitUntil(doBackgroundSync());
   }
 });
+
+function doBackgroundSync() {
+  // Handle background sync
+  return Promise.resolve();
+}
 
 // Push notifications
 self.addEventListener('push', (event) => {
@@ -115,27 +108,4 @@ self.addEventListener('notificationclick', (event) => {
       clients.openWindow('/')
     );
   }
-});
-
-// Background sync function
-async function doBackgroundSync() {
-  try {
-    // Sync offline data when connection is restored
-    const offlineData = localStorage.getItem('offlineData');
-    if (offlineData) {
-      // Send offline data to server
-      await fetch('/api/sync', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: offlineData
-      });
-      
-      // Clear offline data after successful sync
-      localStorage.removeItem('offlineData');
-    }
-  } catch (error) {
-    console.error('Background sync failed:', error);
-  }
-} 
+}); 

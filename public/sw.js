@@ -1,5 +1,5 @@
 // Service Worker for Gas Cylinder Manager PWA
-const CACHE_NAME = 'gas-cylinder-v3';
+const CACHE_NAME = 'gas-cylinder-v4';
 const urlsToCache = [
   '/',
   '/index.html',
@@ -11,7 +11,7 @@ self.addEventListener('install', event => {
   event.waitUntil(
     caches.open(CACHE_NAME)
       .then(cache => {
-        console.log('Opened cache v3');
+        console.log('Opened cache v4');
         return cache.addAll(urlsToCache);
       })
       .then(() => self.skipWaiting())
@@ -36,11 +36,18 @@ self.addEventListener('activate', event => {
 
 // Fetch event - always network first for everything
 self.addEventListener('fetch', event => {
-  // Always try network first
+  // Only handle GET requests for caching
+  if (event.request.method !== 'GET') {
+    // For non-GET requests, just fetch normally without caching
+    event.respondWith(fetch(event.request));
+    return;
+  }
+
+  // Always try network first for GET requests
   event.respondWith(
     fetch(event.request)
       .then(response => {
-        // Only cache successful responses
+        // Only cache successful GET responses
         if (response.status === 200) {
           const responseToCache = response.clone();
           caches.open(CACHE_NAME)

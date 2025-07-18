@@ -207,7 +207,8 @@ const Transaction = sequelize.define('Transaction', {
       if (customer) {
         await customer.updateBalance(transaction.balance);
         customer.totalTransactions += 1;
-        customer.totalSpent += transaction.total;
+        // Ensure both values are numbers to prevent string concatenation
+        customer.totalSpent = Number(customer.totalSpent || 0) + Number(transaction.total || 0);
         customer.lastTransactionDate = transaction.date;
         await customer.save();
       }

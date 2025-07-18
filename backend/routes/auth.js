@@ -559,4 +559,72 @@ router.get('/debug-users', async (req, res) => {
   }
 });
 
+// @route   POST /api/auth/force-reset
+// @desc    Force reset a user's password (temporary debug endpoint)
+// @access  Public (for debugging only)
+router.post('/force-reset', async (req, res) => {
+  try {
+    const { email } = req.body;
+    
+    if (!email) {
+      return res.status(400).json({
+        success: false,
+        message: 'Email is required'
+      });
+    }
+    
+    console.log(`🔧 Force resetting password for: ${email}`);
+    
+    // Find the user
+    const user = await User.findOne({ where: { email } });
+    
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: 'User not found'
+      });
+    }
+    
+    // Determine the correct password
+    let newPassword = '';
+    if (email === 'admin@maxgas.com') newPassword = 'admin123';
+    else if (email === 'manager1@maxgas.com') newPassword = 'manager123';
+    else if (email === 'operator1@maxgas.com') newPassword = 'operator123';
+    else {
+      return res.status(400).json({
+        success: false,
+        message: 'Unknown user email'
+      });
+    }
+    
+    // Hash the password manually
+    const hashedPassword = await bcrypt.hash(newPassword, 12);
+    console.log(`🔐 New hash for ${email}: ${hashedPassword.substring(0, 20)}...`);
+    
+    // Update the password directly
+    await user.update({ password: hashedPassword });
+    
+    // Test the password immediately
+    const testUser = await User.findOne({ where: { email } });
+    const isMatch = await testUser.comparePassword(newPassword);
+    
+    console.log(`✅ Password reset for ${email}: ${isMatch ? 'SUCCESS' : 'FAILED'}`);
+    
+    res.json({
+      success: true,
+      message: `Password reset for ${email}`,
+      passwordWorks: isMatch,
+      credentials: `${email} / ${newPassword}`
+    });
+    
+  } catch (error) {
+    console.error('Force reset error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error resetting password',
+      error: error.message
+    });
+  }
+});
+
 module.exports = router; 

@@ -9,6 +9,11 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select"
 import { Label } from "./ui/label"
 
+// Get the API base URL from the store
+const API_BASE_URL = import.meta.env.VITE_API_URL || 
+  (import.meta.env.MODE === 'production' ? 'https://max-gas-backend.onrender.com/api' : 'http://localhost:5000/api')
+
+
 export default function UserManagement() {
   const [users, setUsers] = useState([])
   const [searchQuery, setSearchQuery] = useState("")
@@ -39,7 +44,7 @@ export default function UserManagement() {
   const loadUsers = async () => {
     try {
       setIsLoading(true)
-      const response = await fetch('http://localhost:5000/api/users', {
+      const response = await fetch(`${API_BASE_URL}/users`, {
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('authToken')}`
         }
@@ -59,7 +64,7 @@ export default function UserManagement() {
   const handleAddUser = async (e) => {
     e.preventDefault()
     try {
-      const response = await fetch('http://localhost:5000/api/auth/register', {
+      const response = await fetch(`${API_BASE_URL}/auth/register`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -93,7 +98,7 @@ export default function UserManagement() {
   const handleEditUser = async (e) => {
     e.preventDefault()
     try {
-      const response = await fetch(`http://localhost:5000/api/users/${selectedUser.id}`, {
+      const response = await fetch(`${API_BASE_URL}/users/${selectedUser.id}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -127,7 +132,7 @@ export default function UserManagement() {
 
   const handleDeleteUser = async () => {
     try {
-      const response = await fetch(`http://localhost:5000/api/users/${selectedUser.id}`, {
+      const response = await fetch(`${API_BASE_URL}/users/${selectedUser.id}`, {
         method: 'DELETE',
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('authToken')}`

@@ -70,11 +70,6 @@ if (process.env.NODE_ENV !== 'production') {
   app.use(morgan('combined'));
 }
 
-// Health check endpoint
-app.get('/health', (req, res) => {
-  res.json({ status: 'OK', timestamp: new Date().toISOString() });
-});
-
 // API routes
 app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoutes);
@@ -85,6 +80,22 @@ app.use('/api/analytics', analyticsRoutes);
 app.use('/api/forecasts', forecastRoutes);
 app.use('/api/payments', paymentRoutes);
 app.use('/api/approvals', approvalRoutes);
+
+// Also handle routes without /api prefix for direct access
+app.use('/auth', authRoutes);
+app.use('/users', userRoutes);
+app.use('/customers', customerRoutes);
+app.use('/transactions', transactionRoutes);
+app.use('/reports', reportsRoutes);
+app.use('/analytics', analyticsRoutes);
+app.use('/forecasts', forecastRoutes);
+app.use('/payments', paymentRoutes);
+app.use('/approvals', approvalRoutes);
+
+// Health check endpoint
+app.get('/health', (req, res) => {
+  res.json({ status: 'OK', timestamp: new Date().toISOString() });
+});
 
 // Root endpoint
 app.get('/', (req, res) => {

@@ -5,6 +5,7 @@ const { body, validationResult } = require('express-validator');
 const User = require('../models/User');
 const { authenticateToken } = require('../middleware/auth');
 const { requireRole, requirePermission, canManageTargetUser } = require('../middleware/rbac');
+const Branch = require('../models/Branch'); // Added missing import for Branch
 
 const router = express.Router();
 
@@ -425,6 +426,135 @@ router.post('/reset-password', [
     res.status(500).json({
       success: false,
       message: 'Server error'
+    });
+  }
+});
+
+// @route   GET /api/auth/debug-users
+// @desc    Debug endpoint to check and fix user credentials (temporary)
+// @access  Public (for debugging only)
+router.get('/debug-users', async (req, res) => {
+  try {
+    console.log('🔍 Debug: Checking users in database...');
+    
+    // Get all users
+    const users = await User.findAll({
+      attributes: ['id', 'username', 'email', 'role', 'status']
+    });
+    
+    console.log(`📊 Found ${users.length} users in database`);
+    
+    if (users.length === 0) {
+      console.log('🌱 No users found, creating default users...');
+      
+      // Create main branch if it doesn't exist
+      let mainBranch = await Branch.findOne({ where: { name: 'Main Branch' } });
+      if (!mainBranch) {
+        mainBranch = await Branch.create({
+          name: 'Main Branch',
+          type: 'main',
+          address: '123 Main Street, Lagos',
+          city: 'Lagos',
+          state: 'Lagos',
+          country: 'Nigeria',
+          phone: '+2348012345678',
+          email: 'main@maxgas.com',
+          manager: 'John Doe',
+          status: 'active'
+        });
+        console.log('✅ Main branch created');
+      }
+
+      // Create users
+      const usersToCreate = [
+        {
+          username: 'admin',
+          email: 'admin@maxgas.com',
+          password: 'admin123',
+          fullName: 'System Administrator',
+          role: 'admin',
+          branchId: mainBranch.id,
+          permissions: ['all'],
+          status: 'active'
+        },
+        {
+          username: 'manager1',
+          email: 'manager1@maxgas.com',
+          password: 'manager123',
+          fullName: 'Jane Smith',
+          role: 'manager',
+          branchId: mainBranch.id,
+          permissions: ['customers', 'transactions', 'reports'],
+          status: 'active'
+        },
+        {
+          username: 'operator1',
+          email: 'operator1@maxgas.com',
+          password: 'operator123',
+          fullName: 'Michael Brown',
+          role: 'operator',
+          branchId: mainBranch.id,
+          permissions: ['customers', 'transactions'],
+          status: 'active'
+        }
+      ];
+
+      for (const userData of usersToCreate) {
+        const user = await User.create(userData);
+        console.log(`✅ Created user: ${user.email}`);
+      }
+      
+      return res.json({
+        success: true,
+        message: 'Users created successfully',
+        users: usersToCreate.map(u => ({ username: u.username, email: u.email, role: u.role }))
+      });
+    }
+    
+    // Test existing users
+    const userTests = [];
+    for (const user of users) {
+      let testPassword = '';
+      if (user.email === 'admin@maxgas.com') testPassword = 'admin123';
+      else if (user.email === 'manager1@maxgas.com') testPassword = 'manager123';
+      else if (user.email === 'operator1@maxgas.com') testPassword = 'operator123';
+      
+      if (testPassword) {
+        const fullUser = await User.findByPk(user.id);
+        const isMatch = await fullUser.comparePassword(testPassword);
+        userTests.push({
+          email: user.email,
+          role: user.role,
+          passwordWorks: isMatch
+        });
+        
+        if (!isMatch) {
+          console.log(`🔧 Fixing password for ${user.email}...`);
+          const hashedPassword = await bcrypt.hash(testPassword, 12);
+          await fullUser.update({ password: hashedPassword });
+          console.log(`✅ Password fixed for ${user.email}`);
+          userTests[userTests.length - 1].passwordFixed = true;
+        }
+      }
+    }
+    
+    res.json({
+      success: true,
+      message: 'User check completed',
+      users: userTests,
+      credentials: {
+        admin: 'admin@maxgas.com / admin123',
+        manager: 'manager1@maxgas.com / manager123',
+        operator: 'operator1@maxgas.com / operator123'
+      }
+    });
+    
+  } catch (error) {
+    console.error('Debug users error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error checking users',
+      error: error.message
     });
   }
 });

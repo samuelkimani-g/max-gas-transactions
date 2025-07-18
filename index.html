@@ -21,9 +21,20 @@
       // Register service worker for PWA (only in production)
       if ('serviceWorker' in navigator && window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') {
         window.addEventListener('load', () => {
-          navigator.serviceWorker.register('/sw.js')
+          // Check if sw.js exists before registering
+          fetch('/sw.js', { method: 'HEAD' })
+            .then(response => {
+              if (response.ok && response.headers.get('content-type')?.includes('javascript')) {
+                return navigator.serviceWorker.register('/sw.js');
+              } else {
+                console.log('SW not available or incorrect MIME type');
+                return null;
+              }
+            })
             .then((registration) => {
-              console.log('SW registered: ', registration);
+              if (registration) {
+                console.log('SW registered: ', registration);
+              }
             })
             .catch((registrationError) => {
               console.log('SW registration failed: ', registrationError);

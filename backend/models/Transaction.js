@@ -190,26 +190,59 @@ const Transaction = sequelize.define('Transaction', {
   tableName: 'transactions',
   timestamps: true,
   hooks: {
-    beforeCreate: async (transaction) => {
-      // Calculate total
+    beforeCreate: (transaction) => {
       transaction.total = calculateTransactionTotal(transaction);
       transaction.balance = transaction.total - transaction.paid;
     },
-    beforeUpdate: async (transaction) => {
-      if (transaction.changed('total') || transaction.changed('paid')) {
-        transaction.balance = transaction.total - transaction.paid;
-      }
+    beforeUpdate: async (transaction, options) => {
+      // Recalculate total if any relevant field is being updated
+      transaction.total = calculateTransactionTotal(transaction);
+      transaction.balance = transaction.total - transaction.paid;
     },
     afterCreate: async (transaction) => {
       // Update customer balance and stats
       const Customer = require('./Customer');
       const customer = await Customer.findByPk(transaction.customerId);
       if (customer) {
-        await customer.updateBalance(transaction.balance);
-        customer.totalTransactions += 1;
-        // Ensure both values are numbers to prevent string concatenation
-        customer.totalSpent = Number(customer.totalSpent || 0) + Number(transaction.total || 0);
+        // Ensure all values are treated as numbers
+        const currentBalance = parseFloat(customer.balance || 0);
+        const transactionBalance = parseFloat(transaction.balance || 0);
+        const currentTotalSpent = parseFloat(customer.totalSpent || 0);
+        const transactionTotal = parseFloat(transaction.total || 0);
+
+        customer.balance = currentBalance + transactionBalance;
+        customer.totalTransactions = (customer.totalTransactions || 0) + 1;
+        customer.totalSpent = currentTotalSpent + transactionTotal;
         customer.lastTransactionDate = transaction.date;
+        await customer.save();
+      }
+    },
+    beforeDestroy: async (transaction) => {
+      // Revert customer balance and stats
+      const { sequelize } = require('../config/database');
+      const Customer = require('./Customer');
+      const customer = await Customer.findByPk(transaction.customerId);
+      if (customer) {
+        // Ensure all values are treated as numbers
+        const currentBalance = parseFloat(customer.balance || 0);
+        const transactionBalance = parseFloat(transaction.balance || 0);
+        const currentTotalSpent = parseFloat(customer.totalSpent || 0);
+        const transactionTotal = parseFloat(transaction.total || 0);
+
+        customer.balance = currentBalance - transactionBalance;
+        customer.totalTransactions = Math.max(0, (customer.totalTransactions || 0) - 1);
+        customer.totalSpent = Math.max(0, currentTotalSpent - transactionTotal);
+        
+        // Find previous transaction to set last_transaction_date
+        const lastTransaction = await sequelize.models.Transaction.findOne({
+          where: { 
+            customerId: transaction.customerId,
+            id: { [sequelize.Op.ne]: transaction.id } 
+          },
+          order: [['date', 'DESC']]
+        });
+        customer.lastTransactionDate = lastTransaction ? lastTransaction.date : null;
+
         await customer.save();
       }
     }

@@ -1,8 +1,9 @@
 import { create } from "zustand"
 import { persist } from "zustand/middleware"
 
-// API base URL - Now using Render backend
-const API_BASE_URL = process.env.NODE_ENV === 'production' ? 'https://max-gas-backend.onrender.com/api' : 'http://localhost:5000/api'
+// API base URL - Using environment variable or fallback
+const API_BASE_URL = import.meta.env.VITE_API_URL || 
+  (import.meta.env.MODE === 'production' ? 'https://max-gas-backend.onrender.com/api' : 'http://localhost:5000/api')
 
 // Demo mode disabled - using real backend and database
 const DEMO_MODE = false

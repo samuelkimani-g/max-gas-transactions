@@ -133,6 +133,23 @@ export const useStore = create(
       // Customer Actions
       addCustomer: async (customer) => {
         try {
+          if (DEMO_MODE) {
+            // Demo mode - add customer locally
+            const newCustomer = {
+              id: Date.now(), // Use timestamp as ID
+              ...customer,
+              status: 'active',
+              createdAt: new Date().toISOString()
+            }
+            
+            set((state) => ({
+              customers: [...state.customers, newCustomer],
+            }))
+            
+            console.log('[DEMO] Added customer:', newCustomer)
+            return newCustomer
+          }
+          
           const result = await apiCall('/customers', {
             method: 'POST',
             body: JSON.stringify(customer)
@@ -151,6 +168,18 @@ export const useStore = create(
 
       updateCustomer: async (id, customer) => {
         try {
+          if (DEMO_MODE) {
+            // Demo mode - update customer locally
+            const updatedCustomer = { ...customer, id, updatedAt: new Date().toISOString() }
+            
+            set((state) => ({
+              customers: state.customers.map((c) => (c.id === id ? { ...c, ...updatedCustomer } : c)),
+            }))
+            
+            console.log('[DEMO] Updated customer:', updatedCustomer)
+            return updatedCustomer
+          }
+          
           const result = await apiCall(`/customers/${id}`, {
             method: 'PUT',
             body: JSON.stringify(customer)
@@ -169,6 +198,18 @@ export const useStore = create(
 
       deleteCustomer: async (id) => {
         try {
+          if (DEMO_MODE) {
+            // Demo mode - delete customer locally
+            set((state) => ({
+              customers: state.customers.filter((c) => c.id !== id),
+              transactions: state.transactions.filter((t) => t.customerId !== id),
+              selectedCustomerId: state.selectedCustomerId === id ? null : state.selectedCustomerId,
+            }))
+            
+            console.log('[DEMO] Deleted customer:', id)
+            return
+          }
+          
           await apiCall(`/customers/${id}`, {
             method: 'DELETE'
           })
@@ -187,6 +228,26 @@ export const useStore = create(
       // Transaction Actions
       addTransaction: async (transaction) => {
         try {
+          if (DEMO_MODE) {
+            // Demo mode - add transaction locally
+            const newTransaction = {
+              id: Date.now(), // Use timestamp as ID
+              ...transaction,
+              userId: get().user?.id || 1,
+              date: new Date().toISOString(),
+              status: 'completed',
+              createdAt: new Date().toISOString()
+            }
+            
+            set((state) => ({
+              transactions: [...state.transactions, newTransaction],
+            }))
+            
+            console.log('[DEMO] Added transaction:', newTransaction)
+            console.log('[DEMO] Total transactions after add:', get().transactions.length)
+            return newTransaction
+          }
+          
           const result = await apiCall('/transactions', {
             method: 'POST',
             body: JSON.stringify(transaction)
@@ -395,8 +456,8 @@ export const useStore = create(
         set({
           isAuthenticated: false,
           user: null,
-          customers: [],
-          transactions: []
+          // Don't clear customers and transactions in demo mode so data persists
+          ...(DEMO_MODE ? {} : { customers: [], transactions: [] })
         })
       },
 

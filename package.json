@@ -3,6 +3,7 @@
   "private": true,
   "version": "0.0.0",
   "type": "module",
+  "buildTimestamp": "2025-01-18T18:30:00Z",
   "scripts": {
     "dev": "vite",
     "build": "vite build",

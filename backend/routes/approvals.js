@@ -75,7 +75,7 @@ router.post('/', [
   body('requestType').isIn(['customer_edit', 'customer_delete', 'transaction_edit', 'transaction_delete']),
   body('entityType').isIn(['customer', 'transaction']),
   body('entityId').isInt({ min: 1 }),
-  body('requestedChanges').isObject(),
+  body('requestedChanges').optional().isObject(), // Make optional for delete operations
   body('reason').optional().isString().isLength({ max: 500 })
 ], async (req, res) => {
   try {
@@ -95,6 +95,14 @@ router.post('/', [
       requestedChanges,
       reason
     } = req.body;
+
+    // For edit operations, requestedChanges is required
+    if ((requestType === 'customer_edit' || requestType === 'transaction_edit') && !requestedChanges) {
+      return res.status(400).json({
+        success: false,
+        message: 'requestedChanges is required for edit operations'
+      });
+    }
 
     // Get the original entity data
     let originalData;
@@ -125,7 +133,7 @@ router.post('/', [
       entityId,
       requestedBy: req.user.id,
       originalData,
-      requestedChanges,
+      requestedChanges: requestedChanges || {}, // Default to empty object for delete operations
       reason,
       status: 'pending'
     });

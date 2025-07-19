@@ -472,12 +472,12 @@ router.delete('/:id', [
       });
     }
 
-    // Check if transaction is recent (within 24 hours)
+    // Check if transaction is recent (within 7 days for business flexibility)
     const hoursSinceCreation = (new Date() - transaction.createdAt) / (1000 * 60 * 60);
-    if (hoursSinceCreation > 24) {
+    if (hoursSinceCreation > 168) { // 7 days = 168 hours
       return res.status(400).json({
         success: false,
-        message: 'Cannot delete transactions older than 24 hours'
+        message: 'Cannot delete transactions older than 7 days'
       });
     }
 

@@ -93,6 +93,7 @@ const Customer = sequelize.define('Customer', {
 }, {
   tableName: 'customers',
   timestamps: true,
+  underscored: true,
   hooks: {
     beforeCreate: async (customer) => {
       if (!customer.balance) customer.balance = 0.00;

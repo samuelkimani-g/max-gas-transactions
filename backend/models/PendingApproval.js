@@ -66,7 +66,8 @@ const PendingApproval = sequelize.define('PendingApproval', {
   }
 }, {
   tableName: 'pending_approvals',
-  timestamps: true
+  timestamps: true,
+  underscored: true
 });
 
 module.exports = PendingApproval; 

@@ -30,8 +30,7 @@ const User = sequelize.define('User', {
   },
   fullName: {
     type: DataTypes.STRING(100),
-    allowNull: false,
-    field: 'full_name' // Map to snake_case database column
+    allowNull: false
   },
   role: {
     type: DataTypes.ENUM('admin', 'manager', 'operator'),
@@ -46,7 +45,6 @@ const User = sequelize.define('User', {
   branchId: {
     type: DataTypes.INTEGER,
     allowNull: true,
-    field: 'branch_id', // Map to snake_case database column
     references: {
       model: 'branches',
       key: 'id'
@@ -58,8 +56,7 @@ const User = sequelize.define('User', {
   },
   lastLogin: {
     type: DataTypes.DATE,
-    allowNull: true,
-    field: 'last_login' // Map to snake_case database column
+    allowNull: true
   },
   phone: {
     type: DataTypes.STRING(20),
@@ -76,6 +73,11 @@ const User = sequelize.define('User', {
 }, {
   tableName: 'users',
   timestamps: true,
+  // Configure Sequelize to use snake_case for timestamps
+  createdAt: 'created_at',
+  updatedAt: 'updated_at',
+  // Use snake_case for all fields automatically
+  underscored: true,
   hooks: {
     beforeCreate: async (user) => {
       if (user.password) {

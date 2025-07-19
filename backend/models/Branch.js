@@ -87,7 +87,8 @@ const Branch = sequelize.define('Branch', {
   }
 }, {
   tableName: 'branches',
-  timestamps: true
+  timestamps: true,
+  underscored: true
 });
 
 // Instance methods

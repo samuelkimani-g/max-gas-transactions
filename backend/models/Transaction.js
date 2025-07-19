@@ -189,6 +189,7 @@ const Transaction = sequelize.define('Transaction', {
 }, {
   tableName: 'transactions',
   timestamps: true,
+  underscored: true,
   hooks: {
     beforeCreate: (transaction) => {
       transaction.total = calculateTransactionTotal(transaction);

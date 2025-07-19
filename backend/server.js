@@ -23,8 +23,26 @@ const approvalRoutes = require('./routes/approvals');
 const app = express();
 const PORT = process.env.PORT || 5000;
 
+// Trust proxy for production deployment (fixes rate limiting warnings)
+app.set('trust proxy', 1);
+
 // Security middleware
-app.use(helmet());
+app.use(helmet({
+  crossOriginEmbedderPolicy: false,
+  contentSecurityPolicy: {
+    directives: {
+      defaultSrc: ["'self'"],
+      scriptSrc: ["'self'", "'unsafe-inline'", "'unsafe-eval'"],
+      styleSrc: ["'self'", "'unsafe-inline'"],
+      imgSrc: ["'self'", "data:", "https:"],
+      connectSrc: ["'self'", "https:"],
+      fontSrc: ["'self'"],
+      objectSrc: ["'none'"],
+      mediaSrc: ["'self'"],
+      frameSrc: ["'none'"],
+    },
+  },
+}));
 
 // Set JWT secret if not provided
 if (!process.env.JWT_SECRET) {

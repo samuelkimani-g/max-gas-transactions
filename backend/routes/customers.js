@@ -321,8 +321,9 @@ router.delete('/:id', [
       });
     }
 
-    // Check if customer has outstanding balance
-    if (customer.balance > 0) {
+    // Check if customer has significant outstanding balance (allow for rounding errors)
+    const balance = parseFloat(customer.balance || 0);
+    if (Math.abs(balance) > 0.01) {
       return res.status(400).json({
         success: false,
         message: 'Cannot delete customer with outstanding balance'

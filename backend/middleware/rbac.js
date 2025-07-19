@@ -31,7 +31,7 @@ const PERMISSIONS = {
   'transactions:read': ['admin', 'manager', 'operator'],
   'transactions:create': ['admin', 'manager', 'operator'],
   'transactions:update': ['admin', 'manager', 'operator'],
-  'transactions:delete': ['admin', 'manager'], // Operators need approval
+  'transactions:delete': ['admin', 'manager', 'operator'], // Allow operators to delete recent transactions
   
   // Analytics & Reports
   'analytics:read': ['admin', 'manager'],

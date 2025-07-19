@@ -5,28 +5,23 @@ const sequelize = new Sequelize(process.env.DATABASE_URL, {
   dialect: 'postgres',
   protocol: 'postgres',
   logging: process.env.NODE_ENV === 'development' ? console.log : false,
-  dialectOptions: {
-    ssl: process.env.NODE_ENV === 'production' ? {
-      require: true,
-      rejectUnauthorized: false
-    } : false,
-    // Optimize connection settings
-    keepAlive: true,
-    keepAliveInitialDelayMillis: 0,
-  },
+  
+  // Connection pooling (optimized for fewer connections)
   pool: {
-    max: 10,          // Maximum number of connections
-    min: 2,           // Minimum number of connections
+    max: 5,           // Reduced maximum connections
+    min: 1,           // Reduced minimum connections
     acquire: 30000,   // Maximum time to get connection (30s)
-    idle: 10000,      // Maximum time connection can be idle (10s)
-    evict: 60000,     // Check for idle connections every minute
+    idle: 15000,      // Increased idle time (15s)
+    evict: 30000,     // Check for idle connections every 30s
   },
+  
   // Retry failed connections
   retry: {
     max: 3,
     timeout: 10000,
   },
-  // Connection timeout
+  
+  // Connection settings
   dialectOptions: {
     ...((process.env.NODE_ENV === 'production') && {
       ssl: {

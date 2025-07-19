@@ -26,8 +26,8 @@
   "license": "MIT",
   "devDependencies": {
     "concurrently": "^8.2.2",
-    "electron": "^27.1.0",
-    "electron-builder": "^24.6.4",
+    "electron": "^37.2.3",
+    "electron-builder": "^24.13.3",
     "wait-on": "^7.0.1"
   },
   "build": {
@@ -46,7 +46,9 @@
       "target": [
         {
           "target": "nsis",
-          "arch": ["x64"]
+          "arch": [
+            "x64"
+          ]
         }
       ],
       "icon": "assets/icon.ico"
@@ -55,7 +57,10 @@
       "target": [
         {
           "target": "dmg",
-          "arch": ["x64", "arm64"]
+          "arch": [
+            "x64",
+            "arm64"
+          ]
         }
       ],
       "icon": "assets/icon.icns"
@@ -64,7 +69,9 @@
       "target": [
         {
           "target": "AppImage",
-          "arch": ["x64"]
+          "arch": [
+            "x64"
+          ]
         }
       ],
       "icon": "assets/icon.png"
@@ -76,4 +83,4 @@
       "createStartMenuShortcut": true
     }
   }
-} 
+}

@@ -99,4 +99,16 @@ router.get('/type/:type', async (req, res) => {
   }
 });
 
+// @route   GET /api/analytics/ping
+// @desc    Simple ping endpoint for keep-alive services
+// @access  Public
+router.get('/ping', async (req, res) => {
+  res.json({
+    success: true,
+    message: 'Server is alive',
+    timestamp: new Date().toISOString(),
+    uptime: process.uptime()
+  });
+});
+
 module.exports = router; 

@@ -358,6 +358,66 @@ router.delete('/:id', [
   }
 });
 
+// @route   GET /api/customers/:id/debug
+// @desc    Debug customer data for deletion issues (temporary)
+// @access  Public (for debugging only)
+router.get('/:id/debug', async (req, res) => {
+  try {
+    const customer = await Customer.findByPk(req.params.id);
+    if (!customer) {
+      return res.status(404).json({
+        success: false,
+        message: 'Customer not found'
+      });
+    }
+
+    // Get transaction count
+    const transactionCount = await Transaction.count({
+      where: { customerId: customer.id }
+    });
+
+    // Get actual transactions
+    const transactions = await Transaction.findAll({
+      where: { customerId: customer.id },
+      attributes: ['id', 'total', 'paid', 'balance', 'date', 'status']
+    });
+
+    // Parse balance
+    const balance = parseFloat(customer.balance || 0);
+    const absBalance = Math.abs(balance);
+
+    res.json({
+      success: true,
+      data: {
+        customer: {
+          id: customer.id,
+          name: customer.name,
+          balance: customer.balance,
+          parsedBalance: balance,
+          absBalance: absBalance,
+          balanceCheck: absBalance > 0.01,
+          status: customer.status
+        },
+        transactionCount,
+        transactions,
+        deletionChecks: {
+          hasSignificantBalance: absBalance > 0.01,
+          hasTransactions: transactionCount > 0,
+          canDelete: absBalance <= 0.01 && transactionCount === 0
+        }
+      }
+    });
+
+  } catch (error) {
+    console.error('Debug customer error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error',
+      error: error.message
+    });
+  }
+});
+
 // @route   GET /api/customers/:id/transactions
 // @desc    Get customer transactions
 // @access  Private

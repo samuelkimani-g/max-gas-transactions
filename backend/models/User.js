@@ -30,7 +30,8 @@ const User = sequelize.define('User', {
   },
   fullName: {
     type: DataTypes.STRING(100),
-    allowNull: false
+    allowNull: false,
+    field: 'full_name' // Map to snake_case database column
   },
   role: {
     type: DataTypes.ENUM('admin', 'manager', 'operator'),
@@ -45,6 +46,7 @@ const User = sequelize.define('User', {
   branchId: {
     type: DataTypes.INTEGER,
     allowNull: true,
+    field: 'branch_id', // Map to snake_case database column
     references: {
       model: 'branches',
       key: 'id'
@@ -56,7 +58,8 @@ const User = sequelize.define('User', {
   },
   lastLogin: {
     type: DataTypes.DATE,
-    allowNull: true
+    allowNull: true,
+    field: 'last_login' // Map to snake_case database column
   },
   phone: {
     type: DataTypes.STRING(20),

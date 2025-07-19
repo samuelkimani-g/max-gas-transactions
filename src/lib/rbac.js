@@ -20,7 +20,7 @@ export const PERMISSIONS = {
   'customers:read': ['admin', 'manager', 'operator'],
   'customers:create': ['admin', 'manager', 'operator'],
   'customers:update': ['admin', 'manager', 'operator'],
-  'customers:delete': ['admin'],
+  'customers:delete': ['admin', 'manager'], // Operators need approval
   
   // Approval System
   'approvals:read': ['admin', 'manager', 'operator'],
@@ -31,7 +31,7 @@ export const PERMISSIONS = {
   'transactions:read': ['admin', 'manager', 'operator'],
   'transactions:create': ['admin', 'manager', 'operator'],
   'transactions:update': ['admin', 'manager', 'operator'],
-  'transactions:delete': ['admin', 'manager', 'operator'],
+  'transactions:delete': ['admin', 'manager'], // Operators need approval
   
   // Analytics & Reports
   'analytics:read': ['admin', 'manager'],

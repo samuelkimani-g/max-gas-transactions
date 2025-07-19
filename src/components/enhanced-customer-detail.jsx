@@ -15,7 +15,7 @@ import BulkPaymentForm from "./bulk-payment-form"
 import ReceiptGenerator from "./receipt-generator"
 import CustomerReportGenerator from "./customer-report-generator"
 import ConfirmationDialog from "./confirmation-dialog"
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "./ui/dialog"
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "./ui/dialog"
 
 export default function EnhancedCustomerDetail({ customerId, onBack }) {
   const { customers, getCustomerTransactions, deleteCustomer, getCustomerCylinderBalance, submitApprovalRequest, user } = useStore()
@@ -74,6 +74,11 @@ export default function EnhancedCustomerDetail({ customerId, onBack }) {
       } else {
         // Direct delete for managers and admins
         await deleteCustomer(customerId)
+        
+        toast({
+          title: "Customer Deleted",
+          description: `${customer.name} has been deleted successfully.`,
+        })
       }
       
       onBack()
@@ -469,6 +474,9 @@ export default function EnhancedCustomerDetail({ customerId, onBack }) {
         <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Receipt</DialogTitle>
+            <DialogDescription>
+              Transaction receipt for {customer?.name}
+            </DialogDescription>
           </DialogHeader>
           {selectedTransaction && <ReceiptGenerator transaction={selectedTransaction} customer={customer} />}
         </DialogContent>
@@ -479,6 +487,9 @@ export default function EnhancedCustomerDetail({ customerId, onBack }) {
         <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Customer Report</DialogTitle>
+            <DialogDescription>
+              Detailed report and analytics for {customer?.name}
+            </DialogDescription>
           </DialogHeader>
           <CustomerReportGenerator customerId={customerId} customerName={customer.name} />
         </DialogContent>

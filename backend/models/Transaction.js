@@ -237,7 +237,7 @@ const Transaction = sequelize.define('Transaction', {
         const lastTransaction = await sequelize.models.Transaction.findOne({
           where: { 
             customerId: transaction.customerId,
-            id: { [sequelize.Op.ne]: transaction.id } 
+            id: { [Op.ne]: transaction.id } 
           },
           order: [['date', 'DESC']]
         });

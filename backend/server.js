@@ -270,6 +270,34 @@ process.on('SIGINT', async () => {
   process.exit(0);
 });
 
+// Keep-alive mechanism to prevent Render free tier from sleeping
+const KEEP_ALIVE_INTERVAL = 10 * 60 * 1000; // 10 minutes
+const SERVER_URL = process.env.RENDER_EXTERNAL_URL || 'https://max-gas-backend.onrender.com';
+
+function keepAlive() {
+  console.log('[KEEP-ALIVE] Pinging server to prevent sleep...');
+  fetch(`${SERVER_URL}/health`)
+    .then(res => {
+      if (res.ok) {
+        console.log('[KEEP-ALIVE] Server ping successful');
+      } else {
+        console.log('[KEEP-ALIVE] Server ping failed:', res.status);
+      }
+    })
+    .catch(err => {
+      console.log('[KEEP-ALIVE] Server ping error:', err.message);
+    });
+}
+
+// Start keep-alive only in production
+if (process.env.NODE_ENV === 'production') {
+  console.log('[KEEP-ALIVE] Starting keep-alive mechanism...');
+  setInterval(keepAlive, KEEP_ALIVE_INTERVAL);
+  
+  // Initial ping after 1 minute
+  setTimeout(keepAlive, 60000);
+}
+
 // Export the app for Vercel serverless
 module.exports = app;
 

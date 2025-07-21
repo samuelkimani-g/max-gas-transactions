@@ -218,12 +218,11 @@ export default function App() {
             <Card className="shadow-xl border-0 bg-white/80 backdrop-blur-sm">
               <CardHeader className="bg-gradient-to-r from-orange-500 to-orange-600 text-white">
                 <div className="flex items-center justify-between">
-                  <CardTitle className="flex items-center gap-2">
-                    <Users className="w-5 h-5" />
+                  <h2 className="text-2xl font-bold text-gray-900">
                     Customers
-                  </CardTitle>
-                  <div className="text-sm bg-white/20 px-3 py-1 rounded-full">
-                    {customers.length} {customers.length === 1 ? "customer" : "customers"}
+                  </h2>
+                  <div className="text-sm text-gray-500">
+                    {(customers || []).length} {(customers || []).length === 1 ? "customer" : "customers"}
                   </div>
                 </div>
               </CardHeader>

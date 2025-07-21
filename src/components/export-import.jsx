@@ -1014,14 +1014,14 @@ export default function ExportImport() {
                 const customers = state.customers
                 
                 console.log("Current data state:")
-                console.log("Customers:", customers.length)
+                console.log("Customers:", (customers || []).length)
                 console.log("Transactions:", transactions.length)
                 
                 if (transactions.length > 0) {
                   console.log("Sample transaction:", transactions[0])
                 }
                 
-                alert(`Current data: ${customers.length} customers, ${transactions.length} transactions. Check console for details.`)
+                alert(`Current data: ${(customers || []).length} customers, ${transactions.length} transactions. Check console for details.`)
               }}
               variant="outline"
               className="w-full"

@@ -423,7 +423,7 @@ export default function ReportingInsights() {
   return (
     <div className="space-y-6">
       {/* Initialize Sample Data if Empty */}
-      {transactions.length === 0 && customers.length === 0 && (
+      {transactions.length === 0 && (customers || []).length === 0 && (
         <Card className="shadow-xl border-0 bg-yellow-50 border-yellow-200">
           <CardContent className="p-6">
             <div className="text-center">
@@ -691,7 +691,7 @@ export default function ReportingInsights() {
                     Active filters: 
                     {dateRange.start && ` Date from ${dateRange.start}`}
                     {dateRange.end && ` to ${dateRange.end}`}
-                    {customerFilter !== 'all' && ` Customer: ${customers.find(c => c.id.toString() === customerFilter)?.name}`}
+                    {customerFilter !== 'all' && ` Customer: ${safeCustomers.find(c => c.id.toString() === customerFilter)?.name}`}
                     {transactionTypeFilter !== 'all' && ` Type: ${transactionTypeFilter}`}
                     {statusFilter !== 'all' && ` Status: ${statusFilter}`}
                     {minAmount && ` Min: ${formatCurrency(parseFloat(minAmount))}`}

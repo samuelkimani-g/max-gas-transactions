@@ -23,7 +23,9 @@ export default function CustomerReportGenerator({ customerId, customerName }) {
   const [minAmount, setMinAmount] = useState('')
   const [maxAmount, setMaxAmount] = useState('')
 
-  const customer = customers.find((c) => c.id === customerId)
+  // Safety check
+  const safeCustomers = customers || []
+  const customer = safeCustomers.find((c) => c.id === customerId)
   
   // Apply filters to customer transactions
   const filteredTransactions = useMemo(() => {

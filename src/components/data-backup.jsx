@@ -64,17 +64,15 @@ export default function DataBackup() {
       // Simulate backup process
       await new Promise(resolve => setTimeout(resolve, 3000 + Math.random() * 2000))
       
-      const backup = {
-        id: Date.now().toString(),
-        provider: selectedProvider,
+      // Create backup data
+      const backupData = {
         timestamp: new Date().toISOString(),
-        status: "completed",
-        size: `${(Math.random() * 3 + 1).toFixed(1)} MB`,
-        type: "manual",
-        dataPoints: { customers: customers.length, transactions: transactions.length }
+        version: '1.0.0',
+        compressionLevel,
+        dataPoints: { customers: safeCustomers.length, transactions: safeTransactions.length }
       }
 
-      setBackupHistory(prev => [backup, ...prev])
+      setBackupHistory(prev => [backupData, ...prev])
       toast({ title: "Backup Complete", description: `Backup completed successfully! Size: ${backup.size}`, variant: "success" })
     } catch (error) {
       console.error('Error creating backup:', error)

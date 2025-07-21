@@ -33,7 +33,9 @@ export default function EnhancedCustomerDetail({ customerId, onBack }) {
     setIsLoading(false)
   }, [])
 
-  const customer = customers.find((c) => c.id === customerId)
+  // Safety check
+  const safeCustomers = customers || []
+  const customer = safeCustomers.find((c) => c.id === customerId)
   const cylinderBalance = getCustomerCylinderBalance(customerId)
 
   if (isLoading) {

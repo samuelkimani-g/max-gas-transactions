@@ -32,7 +32,12 @@ export default function App() {
     loadCustomers, 
     loadTransactions,
     login,
-    user
+    logout,
+    user,
+    customers,
+    transactions,
+    searchQuery,
+    setSearchQuery
   } = useStore()
   
   const [currentView, setCurrentView] = useState('customers')

@@ -103,4 +103,51 @@ router.post('/migrate-db', authenticateToken, requirePermission('users:create'),
   }
 });
 
+// Clear branches table data
+router.post('/clear-branches', authenticateToken, requirePermission('users:create'), async (req, res) => {
+  try {
+    // Double-check admin role
+    if (req.user.role !== 'admin') {
+      return res.status(403).json({
+        success: false,
+        message: 'Only administrators can clear branches data'
+      });
+    }
+    
+    console.log('🗑️ Clearing branches table data...');
+    
+    // Clear all branches data
+    const deletedCount = await sequelize.query('DELETE FROM branches;', { type: QueryTypes.DELETE });
+    
+    // Reset sequence if PostgreSQL
+    const isPostgreSQL = sequelize.getDialect() === 'postgres';
+    if (isPostgreSQL) {
+      try {
+        await sequelize.query('ALTER SEQUENCE branches_id_seq RESTART WITH 1;', { type: QueryTypes.RAW });
+      } catch (error) {
+        console.log('ℹ️ Branch sequence reset not needed or failed (non-critical)');
+      }
+    }
+    
+    console.log('✅ Branches data cleared successfully');
+    
+    res.json({
+      success: true,
+      message: 'Branches data cleared successfully',
+      details: {
+        deleted_count: deletedCount,
+        table_preserved: true
+      }
+    });
+    
+  } catch (error) {
+    console.error('❌ Failed to clear branches:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to clear branches data',
+      error: error.message
+    });
+  }
+});
+
 module.exports = router; 

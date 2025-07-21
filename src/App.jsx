@@ -52,9 +52,9 @@ export default function App() {
       setDeviceInfo(deviceConfig)
       
       // Check for existing authentication
-      const hasExistingAuth = await checkAuthStatus()
+      await checkAuthStatus()
       
-      if (!hasExistingAuth) {
+      if (!isAuthenticated) {
         // Try auto-login for desktop devices
         const autoCredentials = getAutoLoginCredentials()
         if (autoCredentials && window.electron) { // Only for desktop app
@@ -69,15 +69,19 @@ export default function App() {
           }
         }
       }
-      
-      if (isAuthenticated) {
-        await loadCustomers()
-        await loadTransactions()
-      }
     }
     
     initializeApp()
   }, [])
+
+  // Load data whenever authentication status changes
+  useEffect(() => {
+    if (isAuthenticated) {
+      console.log('[APP] User authenticated, loading data...')
+      loadCustomers()
+      loadTransactions()
+    }
+  }, [isAuthenticated])
 
   const rbac = useRBAC(user)
 

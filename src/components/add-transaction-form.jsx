@@ -11,42 +11,45 @@ import { ArrowLeft, Save, AlertTriangle, ChevronsRight, Minus, Plus } from "luci
 // --- Helper Components for a cleaner structure ---
 
 const SectionCard = ({ title, description, children }) => (
-  <Card className="shadow-md border-gray-200 bg-white/80 backdrop-blur-sm">
-    <CardHeader>
-      <CardTitle>{title}</CardTitle>
-      {description && <CardDescription>{description}</CardDescription>}
+  <Card className="shadow-lg border-orange-200 bg-gradient-to-br from-white to-orange-50 backdrop-blur-sm hover:shadow-xl transition-shadow duration-300">
+    <CardHeader className="pb-4">
+      <CardTitle className="text-orange-800 text-lg font-semibold">{title}</CardTitle>
+      {description && <CardDescription className="text-orange-600">{description}</CardDescription>}
     </CardHeader>
-    <CardContent>{children}</CardContent>
+    <CardContent className="pt-2">{children}</CardContent>
   </Card>
 )
 
 const BreakdownInput = ({ name, value, price, onCountChange, onPriceChange }) => (
-  <div className="flex items-center gap-2">
-    <Label htmlFor={`${name}-count`} className="w-24">{name}</Label>
+  <div className="flex items-center gap-3 p-3 rounded-lg bg-white/70 border border-orange-100 hover:bg-white/90 transition-colors">
+    <Label htmlFor={`${name}-count`} className="w-20 text-sm font-medium text-orange-700">{name}</Label>
     <Input
       id={`${name}-count`}
       type="number"
       placeholder="0"
-      value={value}
+      value={value || ''}
       onChange={(e) => onCountChange(parseInt(e.target.value, 10) || 0)}
-      className="text-right flex-1"
+      className="text-right flex-1 border-orange-200 focus:border-orange-400 focus:ring-orange-200"
     />
-    <Label htmlFor={`${name}-price`}>@</Label>
+    <Label htmlFor={`${name}-price`} className="text-orange-600 font-medium">@</Label>
     <Input
       id={`${name}-price`}
       type="number"
       placeholder="0.00"
-      value={price}
+      value={price || ''}
       onChange={(e) => onPriceChange(parseFloat(e.target.value) || 0)}
-      className="text-right w-24"
+      className="text-right w-24 border-orange-200 focus:border-orange-400 focus:ring-orange-200"
     />
   </div>
 )
 
 const LiveSummary = ({ summary }) => (
-  <Card className="shadow-lg border-2 border-blue-200 bg-blue-50/50 sticky top-4 z-10">
-    <CardHeader>
-      <CardTitle className="text-blue-800">Live Transaction Summary</CardTitle>
+  <Card className="shadow-xl border-2 border-orange-300 bg-gradient-to-br from-orange-50 to-orange-100 sticky top-4 z-10">
+    <CardHeader className="pb-4">
+      <CardTitle className="text-orange-900 text-xl font-bold flex items-center gap-2">
+        <div className="w-3 h-3 bg-orange-500 rounded-full animate-pulse"></div>
+        Live Transaction Summary
+      </CardTitle>
     </CardHeader>
     <CardContent className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
       <div className="bg-white p-3 rounded-lg shadow">
@@ -112,21 +115,25 @@ export default function AddTransactionForm({ customerId, customerName, onBack, o
     let totalBill = 0
     let totalOutrightCount = 0
     
-    // Calculate from returns/swaps
-    Object.values(returnsBreakdown.max_empty).forEach((val, i) => {
-      const size = ['kg6', 'kg13', 'kg50'][i];
-      if(size) totalBill += returnsBreakdown.max_empty[size] * returnsBreakdown.max_empty[`price${size.substring(2)}`];
-    });
-     Object.values(returnsBreakdown.swap_empty).forEach((val, i) => {
-      const size = ['kg6', 'kg13', 'kg50'][i];
-      if(size) totalBill += returnsBreakdown.swap_empty[size] * returnsBreakdown.swap_empty[`price${size.substring(2)}`];
-    });
+    // Calculate from returns - Max Empty
+    totalBill += (returnsBreakdown.max_empty.kg6 * returnsBreakdown.max_empty.price6) +
+                 (returnsBreakdown.max_empty.kg13 * returnsBreakdown.max_empty.price13) +
+                 (returnsBreakdown.max_empty.kg50 * returnsBreakdown.max_empty.price50)
+    
+    // Calculate from returns - Swap Empty  
+    totalBill += (returnsBreakdown.swap_empty.kg6 * returnsBreakdown.swap_empty.price6) +
+                 (returnsBreakdown.swap_empty.kg13 * returnsBreakdown.swap_empty.price13) +
+                 (returnsBreakdown.swap_empty.kg50 * returnsBreakdown.swap_empty.price50)
+    
+    // Return Full cylinders don't generate revenue (customer returning our cylinders)
+    // No calculation needed for return_full
     
     // Calculate from outright purchases
-    Object.values(outrightBreakdown).forEach(item => {
-      totalBill += item.count * item.price
-      totalOutrightCount += item.count
-    })
+    totalBill += (outrightBreakdown.kg6.count * outrightBreakdown.kg6.price) +
+                 (outrightBreakdown.kg13.count * outrightBreakdown.kg13.price) +
+                 (outrightBreakdown.kg50.count * outrightBreakdown.kg50.price)
+    
+    totalOutrightCount = outrightBreakdown.kg6.count + outrightBreakdown.kg13.count + outrightBreakdown.kg50.count
 
     const financialBalance = totalBill - amountPaid
     const cylinderBalance = totalLoad - (totalReturns + totalOutrightCount)
@@ -136,10 +143,12 @@ export default function AddTransactionForm({ customerId, customerName, onBack, o
 
   const validateAndSubmit = async () => {
     setError('');
+    
+    // Calculate actual returns sum from breakdown
     const returnsSum = 
-      Object.values(returnsBreakdown.max_empty).reduce((a, b) => typeof b === 'number' ? a + b : a, 0) +
-      Object.values(returnsBreakdown.swap_empty).reduce((a, b) => typeof b === 'number' ? a + b : a, 0) +
-      Object.values(returnsBreakdown.return_full).reduce((a, b) => typeof b === 'number' ? a + b : a, 0);
+      returnsBreakdown.max_empty.kg6 + returnsBreakdown.max_empty.kg13 + returnsBreakdown.max_empty.kg50 +
+      returnsBreakdown.swap_empty.kg6 + returnsBreakdown.swap_empty.kg13 + returnsBreakdown.swap_empty.kg50 +
+      returnsBreakdown.return_full.kg6 + returnsBreakdown.return_full.kg13 + returnsBreakdown.return_full.kg50;
 
     if (returnsSum !== totalReturns) {
       setError(`The sum of the returns breakdown (${returnsSum}) does not match the Total Returns count (${totalReturns}).`);
@@ -167,41 +176,66 @@ export default function AddTransactionForm({ customerId, customerName, onBack, o
   }
 
   return (
-    <div className="max-w-4xl mx-auto space-y-6 p-4">
-      <div className="flex items-center gap-4">
-        <Button onClick={onBack} variant="outline" size="sm">
+    <div className="min-h-screen bg-gradient-to-br from-orange-25 to-white p-6 space-y-8">
+      <div className="flex items-center gap-4 mb-8">
+        <Button onClick={onBack} variant="outline" size="sm" className="border-orange-300 text-orange-700 hover:bg-orange-50">
           <ArrowLeft className="w-4 h-4 mr-2" />
           Back
         </Button>
         <div>
-          <h1 className="text-2xl font-bold">Add Transaction</h1>
-          <p className="text-gray-500">Customer: {customerName}</p>
+          <h1 className="text-3xl font-bold text-orange-900">Add Transaction</h1>
+          <p className="text-orange-600 text-lg">Customer: <span className="font-semibold">{customerName}</span></p>
         </div>
       </div>
 
       <LiveSummary summary={summary} />
       
       {error && (
-        <div className="p-4 bg-red-50 border border-red-200 text-red-800 rounded-lg flex items-center gap-2">
-          <AlertTriangle className="w-5 h-5" />
-          <div>{error}</div>
+        <div className="p-4 bg-red-50 border border-red-300 text-red-800 rounded-lg flex items-center gap-3 shadow-md">
+          <AlertTriangle className="w-5 h-5 flex-shrink-0" />
+          <div className="font-medium">{error}</div>
         </div>
       )}
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         <SectionCard title="Step 1: Cylinders IN" description="What the customer brought into the compound.">
-          <div className="space-y-4">
+          <div className="space-y-6">
             <div>
-              <Label htmlFor="total-returns">Total Returns (Cylinders)</Label>
-              <Input id="total-returns" type="number" value={totalReturns} onChange={e => setTotalReturns(parseInt(e.target.value, 10) || 0)} placeholder="Total cylinders brought in" />
+              <Label htmlFor="total-returns" className="text-orange-700 font-medium">Total Returns (Cylinders)</Label>
+              <Input 
+                id="total-returns" 
+                type="number" 
+                value={totalReturns || ''} 
+                onChange={e => setTotalReturns(parseInt(e.target.value, 10) || 0)} 
+                placeholder="Total cylinders brought in" 
+                className="mt-2 border-orange-200 focus:border-orange-400 focus:ring-orange-200 text-lg font-semibold"
+              />
             </div>
-            <div className="space-y-2 pl-4 border-l-2">
-              <h4 className="font-semibold">Returns Breakdown</h4>
-              <BreakdownInput name="Max Empty" value={returnsBreakdown.max_empty.kg6} price={returnsBreakdown.max_empty.price6} onCountChange={v => handleBreakdownChange(setReturnsBreakdown, 'max_empty', 'kg6', 'count', v)} onPriceChange={v => handleBreakdownChange(setReturnsBreakdown, 'max_empty', 'kg6', 'price', v)} />
-              <BreakdownInput name="Swap Empty" value={returnsBreakdown.swap_empty.kg6} price={returnsBreakdown.swap_empty.price6} onCountChange={v => handleBreakdownChange(setReturnsBreakdown, 'swap_empty', 'kg6', 'count', v)} onPriceChange={v => handleBreakdownChange(setReturnsBreakdown, 'swap_empty', 'kg6', 'price', v)} />
-              <div>
-                <Label>Return Full</Label>
-                <Input type="number" value={returnsBreakdown.return_full.kg6} onChange={e => handleBreakdownChange(setReturnsBreakdown, 'return_full', 'kg6', 'count', parseInt(e.target.value, 10) || 0)} />
+            <div className="space-y-3 pl-4 border-l-4 border-orange-200">
+              <h4 className="font-semibold text-orange-800 text-lg">Returns Breakdown</h4>
+              <BreakdownInput 
+                name="Max Empty" 
+                value={returnsBreakdown.max_empty.kg6} 
+                price={returnsBreakdown.max_empty.price6} 
+                onCountChange={v => handleBreakdownChange(setReturnsBreakdown, 'max_empty', 'kg6', v)} 
+                onPriceChange={v => handleBreakdownChange(setReturnsBreakdown, 'max_empty', 'price6', v)} 
+              />
+              <BreakdownInput 
+                name="Swap Empty" 
+                value={returnsBreakdown.swap_empty.kg6} 
+                price={returnsBreakdown.swap_empty.price6} 
+                onCountChange={v => handleBreakdownChange(setReturnsBreakdown, 'swap_empty', 'kg6', v)} 
+                onPriceChange={v => handleBreakdownChange(setReturnsBreakdown, 'swap_empty', 'price6', v)} 
+              />
+              <div className="p-3 rounded-lg bg-white/70 border border-orange-100">
+                <Label className="text-orange-700 font-medium">Return Full</Label>
+                <Input 
+                  type="number" 
+                  value={returnsBreakdown.return_full.kg6 || ''} 
+                  onChange={e => handleBreakdownChange(setReturnsBreakdown, 'return_full', 'kg6', parseInt(e.target.value, 10) || 0)} 
+                  className="mt-2 border-orange-200 focus:border-orange-400 focus:ring-orange-200"
+                  placeholder="0"
+                />
               </div>
             </div>
           </div>
@@ -246,9 +280,11 @@ export default function AddTransactionForm({ customerId, customerName, onBack, o
         </div>
       </SectionCard>
 
-      <div className="flex justify-end gap-4 pt-4">
-        <Button variant="outline" onClick={onBack}>Cancel</Button>
-        <Button onClick={validateAndSubmit}>
+      <div className="flex justify-end gap-4 pt-8 border-t border-orange-200">
+        <Button variant="outline" onClick={onBack} className="border-orange-300 text-orange-700 hover:bg-orange-50 px-6 py-2">
+          Cancel
+        </Button>
+        <Button onClick={validateAndSubmit} className="bg-orange-600 hover:bg-orange-700 text-white px-8 py-2 shadow-lg">
           <Save className="w-4 h-4 mr-2" />
           Save Transaction
         </Button>

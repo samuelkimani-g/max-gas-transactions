@@ -126,6 +126,44 @@ export const useStore = create()(
           return ensureSafeCustomers(state)
         },
 
+        // Auto-refresh data periodically (every 30 seconds) to keep devices in sync
+        startAutoRefresh: () => {
+          const refreshInterval = setInterval(async () => {
+            try {
+              const state = get()
+              if (state.token && !DEMO_MODE) {
+                await state.loadCustomers()
+                await state.loadTransactions()
+              }
+            } catch (error) {
+              console.error('[AUTO-REFRESH] Failed to refresh data:', error)
+            }
+          }, 30000) // 30 seconds
+          
+          // Store interval ID so we can clear it later
+          set({ refreshInterval })
+        },
+        
+        stopAutoRefresh: () => {
+          const state = get()
+          if (state.refreshInterval) {
+            clearInterval(state.refreshInterval)
+            set({ refreshInterval: null })
+          }
+        },
+        
+        // Manual refresh function
+        refreshAllData: async () => {
+          try {
+            await get().loadCustomers()
+            await get().loadTransactions()
+            console.log('[MANUAL-REFRESH] Data refreshed successfully')
+          } catch (error) {
+            console.error('[MANUAL-REFRESH] Failed to refresh data:', error)
+            throw error
+          }
+        },
+
         // Check for existing token on startup
         checkAuthStatus: async () => {
           const token = localStorage.getItem('authToken')
@@ -201,9 +239,8 @@ export const useStore = create()(
               body: JSON.stringify(customer)
             })
             
-            set((state) => ({
-              customers: [...state.customers, result.data.customer],
-            }))
+            // IMPORTANT: Reload customers from server to ensure sync across devices
+            await get().loadCustomers()
             
             return result.data.customer
           } catch (error) {
@@ -480,8 +517,13 @@ export const useStore = create()(
               localStorage.setItem('authToken', data.data.token)
               set({
                 isAuthenticated: true,
-                user: data.data.user
+                user: data.data.user,
+                token: data.data.token
               })
+              
+              // Start auto-refresh to keep data in sync across devices
+              get().startAutoRefresh()
+              
               return data.data
             } else {
               throw new Error(data.message || 'Login failed')
@@ -493,10 +535,14 @@ export const useStore = create()(
         },
 
         logout: () => {
+          // Stop auto-refresh
+          get().stopAutoRefresh()
+          
           localStorage.removeItem('authToken')
           set({
             isAuthenticated: false,
             user: null,
+            token: null,
             // Don't clear customers and transactions in demo mode so data persists
             ...(DEMO_MODE ? {} : { customers: [], transactions: [] })
           })

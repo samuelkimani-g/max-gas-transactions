@@ -75,23 +75,30 @@ const hasPermission = (userRole, permission) => {
   return allowedRoles && allowedRoles.includes(userRole);
 };
 
-// Middleware to check role level
+// Role checking middleware
 const requireRole = (requiredRole) => {
   return (req, res, next) => {
     if (!req.user) {
-      console.log('[RBAC] No user in request for role check');
+      if (process.env.NODE_ENV === 'development') {
+        console.log('[RBAC] No user in request for role check');
+      }
       return res.status(401).json({
         success: false,
         message: 'Authentication required'
       });
     }
 
-    console.log('[RBAC] Checking role:', req.user.role, 'required:', requiredRole);
+    if (process.env.NODE_ENV === 'development') {
+      console.log('[RBAC] Checking role:', req.user.role, 'required:', requiredRole);
+    }
+    
     if (!hasRoleLevel(req.user.role, requiredRole)) {
-      console.log('[RBAC] Role check failed');
+      if (process.env.NODE_ENV === 'development') {
+        console.log('[RBAC] Role check failed');
+      }
       return res.status(403).json({
         success: false,
-        message: `Access denied. ${requiredRole} role required.`
+        message: `Access denied. Required role: ${requiredRole}`
       });
     }
 
@@ -99,23 +106,30 @@ const requireRole = (requiredRole) => {
   };
 };
 
-// Middleware to check specific permission
+// Permission checking middleware
 const requirePermission = (permission) => {
   return (req, res, next) => {
     if (!req.user) {
-      console.log('[RBAC] No user in request for permission check');
+      if (process.env.NODE_ENV === 'development') {
+        console.log('[RBAC] No user in request for permission check');
+      }
       return res.status(401).json({
         success: false,
         message: 'Authentication required'
       });
     }
 
-    console.log('[RBAC] Checking permission:', permission, 'for user:', req.user.username, 'role:', req.user.role);
+    if (process.env.NODE_ENV === 'development') {
+      console.log('[RBAC] Checking permission:', permission, 'for user:', req.user.username, 'role:', req.user.role);
+    }
+    
     if (!hasPermission(req.user.role, permission)) {
-      console.log('[RBAC] Permission check failed');
+      if (process.env.NODE_ENV === 'development') {
+        console.log('[RBAC] Permission check failed');
+      }
       return res.status(403).json({
         success: false,
-        message: `Access denied. Permission '${permission}' required.`
+        message: `Access denied. Required permission: ${permission}`
       });
     }
 

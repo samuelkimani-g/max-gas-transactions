@@ -37,16 +37,22 @@ const paymentStatuses = {
 
 export default function InvoiceGenerator() {
   const { customers, transactions } = useStore()
-  const [selectedCustomer, setSelectedCustomer] = useState("")
+  const [selectedCustomer, setSelectedCustomer] = useState('')
   const [selectedTransactions, setSelectedTransactions] = useState([])
-  const [invoiceNumber, setInvoiceNumber] = useState("")
+  const [invoiceNumber, setInvoiceNumber] = useState('')
   const [invoiceDate, setInvoiceDate] = useState("")
-  const [dueDate, setDueDate] = useState("")
-  const [notes, setNotes] = useState("")
+  const [dueDate, setDueDate] = useState('')
+  const [notes, setNotes] = useState('')
   const [paymentStatus, setPaymentStatus] = useState("pending")
   const [isGenerating, setIsGenerating] = useState(false)
   const [generatedInvoices, setGeneratedInvoices] = useState([])
-  const { toast } = useToast()
+  const [showPreview, setShowPreview] = useState(false)
+
+  // Safety checks
+  const safeCustomers = customers || []
+  const safeTransactions = transactions || []
+
+  const selectedCustomerData = safeCustomers.find(c => c.id === selectedCustomer)
 
   useEffect(() => {
     // Generate invoice number
@@ -63,8 +69,6 @@ export default function InvoiceGenerator() {
     dueDate.setDate(dueDate.getDate() + 30)
     setDueDate(dueDate.toISOString().split('T')[0])
   }, [])
-
-  const selectedCustomerData = customers.find(c => c.id === selectedCustomer)
 
   const calculateSubtotal = () => {
     return selectedTransactions.reduce((sum, transaction) => {
@@ -135,7 +139,7 @@ export default function InvoiceGenerator() {
   }
 
   const customerTransactions = selectedCustomer 
-    ? transactions.filter(t => t.customerId === selectedCustomer)
+    ? safeTransactions.filter(t => t.customerId === selectedCustomer)
     : []
 
   return (
@@ -169,7 +173,7 @@ export default function InvoiceGenerator() {
                   <SelectValue placeholder="Choose a customer" />
                 </SelectTrigger>
                 <SelectContent>
-                  {(customers || []).map(customer => {
+                  {safeCustomers.map(customer => {
                     const category = customerCategories[customer.category || 'regular']
                     const CategoryIcon = category.icon
                     return (

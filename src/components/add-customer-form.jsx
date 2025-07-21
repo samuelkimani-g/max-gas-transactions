@@ -41,12 +41,16 @@ export default function AddCustomerForm({ onBack, onSuccess }) {
     name: "",
     phone: "",
     email: "",
+    address: "",
     county: "",
-    location: "",
+    category: "regular"
   })
   const [isSubmitting, setIsSubmitting] = useState(false)
-  const [duplicateError, setDuplicateError] = useState("")
+  const [errors, setErrors] = useState({})
   const { toast } = useToast()
+
+  // Safety check
+  const safeCustomers = customers || []
 
   // Get available locations based on selected county
   const availableLocations = formData.county ? kenyanCounties[formData.county] || [] : []

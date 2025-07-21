@@ -70,21 +70,25 @@ export default function PaymentReminders() {
   })
   const { toast } = useToast()
 
+  // Safety checks
+  const safeCustomers = customers || []
+  const safeTransactions = transactions || []
+
   // Get customers with pending payments
-  const customersWithPendingPayments = customers.filter(customer => {
-    const customerTransactions = transactions.filter(t => t.customerId === customer.id)
+  const customersWithPendingPayments = safeCustomers.filter(customer => {
+    const customerTransactions = safeTransactions.filter(t => t.customerId === customer.id)
     return customerTransactions.some(t => t.status === 'pending' || t.status === 'overdue')
   })
 
   const getCustomerOutstandingAmount = (customerId) => {
-    const customerTransactions = transactions.filter(t => t.customerId === customerId)
+    const customerTransactions = safeTransactions.filter(t => t.customerId === customerId)
     return customerTransactions
       .filter(t => t.status === 'pending' || t.status === 'overdue')
       .reduce((sum, t) => sum + (t.amount || 0), 0)
   }
 
   const getCustomerPaymentStatus = (customerId) => {
-    const customerTransactions = transactions.filter(t => t.customerId === customerId)
+    const customerTransactions = safeTransactions.filter(t => t.customerId === customerId)
     const hasOverdue = customerTransactions.some(t => t.status === 'overdue')
     const hasPending = customerTransactions.some(t => t.status === 'pending')
     
@@ -97,7 +101,7 @@ export default function PaymentReminders() {
     setIsSending(true)
     try {
       const promises = selectedCustomers.map(async (customerId) => {
-        const customer = customers.find(c => c.id === customerId)
+        const customer = safeCustomers.find(c => c.id === customerId)
         const amount = getCustomerOutstandingAmount(customerId)
         const template = reminderTemplates[selectedTemplate]
         

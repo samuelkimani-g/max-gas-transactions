@@ -240,6 +240,39 @@ export default function IntegrationServices() {
     }
   }
 
+  // Integration status
+  const integrationData = {
+    sms: {
+      connected: smsStatus === 'connected',
+      messagesSent: 247,
+      deliveryRate: 98.5
+    },
+    email: {
+      connected: emailStatus === 'connected',
+      emailsSent: 189,
+      openRate: 87.3
+    },
+    cloud: {
+      connected: cloudStatus === 'connected',
+      lastSync: new Date().toISOString(),
+      dataPoints: { customers: safeCustomers.length, transactions: safeTransactions.length }
+    },
+    api: {
+      connected: apiStatus === 'connected',
+      requests: 1247,
+      uptime: 99.8
+    },
+    webhooks: {
+      connected: webhookStatus === 'connected',
+      events: safeTransactions.map(t => ({
+        type: 'transaction_created',
+        timestamp: t.date,
+        customer: safeCustomers.find(c => c.id === t.customerId)?.name,
+        amount: t.total
+      })).slice(0, 10)
+    }
+  }
+
   return (
     <div className="space-y-6">
       {/* SMS Gateway */}

@@ -46,20 +46,16 @@ const backupStatuses = {
 
 export default function DataBackup() {
   const { customers, transactions } = useStore()
-  const [selectedProvider, setSelectedProvider] = useState("google")
-  const [backupFrequency, setBackupFrequency] = useState("daily")
-  const [isBackingUp, setIsBackingUp] = useState(false)
-  const [isRestoring, setIsRestoring] = useState(false)
+  const [isCreatingBackup, setIsCreatingBackup] = useState(false)
+  const [isRestoringBackup, setIsRestoringBackup] = useState(false)
   const [backupHistory, setBackupHistory] = useState([])
-  const [backupSettings, setBackupSettings] = useState({
-    autoBackup: true,
-    encryptBackups: true,
-    keepVersions: 10,
-    compression: true,
-    includeAttachments: true
-  })
-  const [connectionStatus, setConnectionStatus] = useState("connected")
+  const [selectedBackup, setSelectedBackup] = useState(null)
+  const [compressionLevel, setCompressionLevel] = useState('standard')
   const { toast } = useToast()
+
+  // Safety checks
+  const safeCustomers = customers || []
+  const safeTransactions = transactions || []
 
 
   const createBackup = async () => {

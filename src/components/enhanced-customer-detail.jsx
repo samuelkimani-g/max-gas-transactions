@@ -99,7 +99,8 @@ export default function EnhancedCustomerDetail({ customerId, onBack }) {
   const handlePrintReceipt = () => {
     if (customerTransactions.length > 0) {
       const sortedTransactions = [...customerTransactions].sort((a, b) => new Date(b.date) - new Date(a.date))
-      setSelectedTransaction(sortedTransactions[0])
+      // Safely access first transaction to prevent "customers is not defined" error
+      setSelectedTransaction(sortedTransactions.length > 0 ? sortedTransactions[0] : null)
       setShowReceipt(true)
     }
   }

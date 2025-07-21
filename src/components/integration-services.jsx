@@ -19,6 +19,14 @@ export default function IntegrationServices() {
   const [apiStatus, setApiStatus] = useState('disconnected')
   const [webhookStatus, setWebhookStatus] = useState('connected')
 
+  // Safety checks for data
+  const safeCustomers = customers || []
+  const safeTransactions = transactions || []
+  const hasCustomers = safeCustomers.length > 0
+  const hasTransactions = safeTransactions.length > 0
+  const firstCustomer = hasCustomers ? safeCustomers[0] : null
+  const firstTransaction = hasTransactions ? safeTransactions[0] : null
+
   // SMS Gateway Functions
   const sendSMS = async (phoneNumber, message) => {
     try {
@@ -254,14 +262,14 @@ export default function IntegrationServices() {
               <h3 className="text-lg font-semibold mb-4">Automated Messages</h3>
               <div className="space-y-3">
                 <Button 
-                  onClick={() => sendPaymentReminder(customers[0])}
+                  onClick={() => sendPaymentReminder(firstCustomer)}
                   className="w-full bg-green-600 hover:bg-green-700"
                 >
                   <Send className="w-4 h-4 mr-2" />
                   Send Payment Reminder
                 </Button>
                 <Button 
-                  onClick={() => sendBulkSMS(customers.slice(0, 3), "Thank you for choosing MaxGas!")}
+                  onClick={() => sendBulkSMS(safeCustomers.slice(0, 3), "Thank you for choosing MaxGas!")}
                   variant="outline"
                   className="w-full"
                 >
@@ -275,11 +283,11 @@ export default function IntegrationServices() {
               <div className="space-y-2 text-sm">
                 <div className="p-3 bg-gray-50 rounded-lg">
                   <div className="font-semibold">Payment Reminder</div>
-                  <div className="text-gray-600">Hi {customers[0]?.name}, you have an outstanding balance...</div>
+                  <div className="text-gray-600">Hi {firstCustomer?.name}, you have an outstanding balance...</div>
                 </div>
                 <div className="p-3 bg-gray-50 rounded-lg">
                   <div className="font-semibold">Order Confirmation</div>
-                  <div className="text-gray-600">Your order #{transactions[0]?.id} has been confirmed...</div>
+                  <div className="text-gray-600">Your order #{firstTransaction?.id} has been confirmed...</div>
                 </div>
                 <div className="p-3 bg-gray-50 rounded-lg">
                   <div className="font-semibold">Delivery Update</div>
@@ -311,7 +319,7 @@ export default function IntegrationServices() {
               <h3 className="text-lg font-semibold mb-4">Email Automation</h3>
               <div className="space-y-3">
                 <Button 
-                  onClick={() => sendReceipt(transactions[0], customers[0])}
+                  onClick={() => sendReceipt(firstTransaction, firstCustomer)}
                   className="w-full bg-blue-600 hover:bg-blue-700"
                 >
                   <Mail className="w-4 h-4 mr-2" />
@@ -490,14 +498,14 @@ export default function IntegrationServices() {
               <h3 className="text-lg font-semibold mb-4">Real-time Notifications</h3>
               <div className="space-y-3">
                 <Button 
-                  onClick={() => notifyNewTransaction(transactions[0])}
+                  onClick={() => notifyNewTransaction(firstTransaction)}
                   className="w-full bg-indigo-600 hover:bg-indigo-700"
                 >
                   <Bell className="w-4 h-4 mr-2" />
                   Test Transaction Webhook
                 </Button>
                 <Button 
-                  onClick={() => notifyPaymentReceived(transactions[0])}
+                  onClick={() => notifyPaymentReceived(firstTransaction)}
                   variant="outline"
                   className="w-full"
                 >

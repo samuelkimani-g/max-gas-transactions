@@ -195,7 +195,7 @@ router.post('/', [
     const cleanEmail = email === '' ? null : email;
 
     // Check if phone number already exists
-    const existingCustomer = await Customer.findByPhone(phone);
+    const existingCustomer = await Customer.findOne({ where: { phone } });
     if (existingCustomer) {
       return res.status(400).json({
         success: false,
@@ -272,7 +272,7 @@ router.put('/:id', [
 
     // Check if phone number is being changed and if it already exists
     if (req.body.phone && req.body.phone !== customer.phone) {
-      const existingCustomer = await Customer.findByPhone(req.body.phone);
+      const existingCustomer = await Customer.findOne({ where: { phone: req.body.phone } });
       if (existingCustomer) {
         return res.status(400).json({
           success: false,

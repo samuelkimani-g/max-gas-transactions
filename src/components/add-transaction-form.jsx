@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useMemo } from "react"
+import { useState, useMemo, useEffect } from "react"
 import { useStore } from "../lib/store"
 import { Button } from "./ui/button"
 import { Input } from "./ui/input"
@@ -20,15 +20,16 @@ const SectionCard = ({ title, description, children }) => (
   </Card>
 )
 
-const BreakdownInput = ({ name, value, price, onCountChange, onPriceChange }) => (
+const BreakdownInput = ({ name, value, price, onCountChange, onPriceChange, placeholder = "0" }) => (
   <div className="flex items-center gap-3 p-3 rounded-lg bg-white/70 border border-orange-100 hover:bg-white/90 transition-colors">
     <Label htmlFor={`${name}-count`} className="w-20 text-sm font-medium text-orange-700">{name}</Label>
     <Input
       id={`${name}-count`}
       type="number"
-      placeholder="0"
-      value={value || ''}
-      onChange={(e) => onCountChange(parseInt(e.target.value, 10) || 0)}
+      placeholder={placeholder}
+      value={value === 0 ? '' : value}
+      onChange={(e) => onCountChange(e.target.value === '' ? 0 : parseInt(e.target.value, 10) || 0)}
+      onFocus={(e) => e.target.select()}
       className="text-right flex-1 border-orange-200 focus:border-orange-400 focus:ring-orange-200"
     />
     <Label htmlFor={`${name}-price`} className="text-orange-600 font-medium">@</Label>
@@ -36,8 +37,9 @@ const BreakdownInput = ({ name, value, price, onCountChange, onPriceChange }) =>
       id={`${name}-price`}
       type="number"
       placeholder="0.00"
-      value={price || ''}
-      onChange={(e) => onPriceChange(parseFloat(e.target.value) || 0)}
+      value={price === 0 ? '' : price}
+      onChange={(e) => onPriceChange(e.target.value === '' ? 0 : parseFloat(e.target.value) || 0)}
+      onFocus={(e) => e.target.select()}
       className="text-right w-24 border-orange-200 focus:border-orange-400 focus:ring-orange-200"
     />
   </div>
@@ -141,6 +143,26 @@ export default function AddTransactionForm({ customerId, customerName, onBack, o
     return { totalBill, financialBalance, cylinderBalance, amountPaid }
   }, [returnsBreakdown, outrightBreakdown, totalLoad, totalReturns, amountPaid])
 
+  // Auto-calculate totals from breakdowns
+  const calculatedTotalReturns = useMemo(() => {
+    return returnsBreakdown.max_empty.kg6 + returnsBreakdown.max_empty.kg13 + returnsBreakdown.max_empty.kg50 +
+           returnsBreakdown.swap_empty.kg6 + returnsBreakdown.swap_empty.kg13 + returnsBreakdown.swap_empty.kg50 +
+           returnsBreakdown.return_full.kg6 + returnsBreakdown.return_full.kg13 + returnsBreakdown.return_full.kg50;
+  }, [returnsBreakdown]);
+
+  const calculatedTotalLoad = useMemo(() => {
+    return outrightBreakdown.kg6.count + outrightBreakdown.kg13.count + outrightBreakdown.kg50.count;
+  }, [outrightBreakdown]);
+
+  // Auto-update totals when breakdowns change
+  useEffect(() => {
+    setTotalReturns(calculatedTotalReturns);
+  }, [calculatedTotalReturns]);
+
+  useEffect(() => {
+    setTotalLoad(calculatedTotalLoad);
+  }, [calculatedTotalLoad]);
+
   const validateAndSubmit = async () => {
     setError('');
     
@@ -213,29 +235,94 @@ export default function AddTransactionForm({ customerId, customerName, onBack, o
             </div>
             <div className="space-y-3 pl-4 border-l-4 border-orange-200">
               <h4 className="font-semibold text-orange-800 text-lg">Returns Breakdown</h4>
-              <BreakdownInput 
-                name="Max Empty" 
-                value={returnsBreakdown.max_empty.kg6} 
-                price={returnsBreakdown.max_empty.price6} 
-                onCountChange={v => handleBreakdownChange(setReturnsBreakdown, 'max_empty', 'kg6', v)} 
-                onPriceChange={v => handleBreakdownChange(setReturnsBreakdown, 'max_empty', 'price6', v)} 
-              />
-              <BreakdownInput 
-                name="Swap Empty" 
-                value={returnsBreakdown.swap_empty.kg6} 
-                price={returnsBreakdown.swap_empty.price6} 
-                onCountChange={v => handleBreakdownChange(setReturnsBreakdown, 'swap_empty', 'kg6', v)} 
-                onPriceChange={v => handleBreakdownChange(setReturnsBreakdown, 'swap_empty', 'price6', v)} 
-              />
-              <div className="p-3 rounded-lg bg-white/70 border border-orange-100">
-                <Label className="text-orange-700 font-medium">Return Full</Label>
-                <Input 
-                  type="number" 
-                  value={returnsBreakdown.return_full.kg6 || ''} 
-                  onChange={e => handleBreakdownChange(setReturnsBreakdown, 'return_full', 'kg6', parseInt(e.target.value, 10) || 0)} 
-                  className="mt-2 border-orange-200 focus:border-orange-400 focus:ring-orange-200"
-                  placeholder="0"
+              
+              <div className="space-y-2">
+                <h5 className="font-medium text-orange-700">Max Empty</h5>
+                <BreakdownInput 
+                  name="6kg" 
+                  value={returnsBreakdown.max_empty.kg6} 
+                  price={returnsBreakdown.max_empty.price6} 
+                  onCountChange={v => handleBreakdownChange(setReturnsBreakdown, 'max_empty', 'kg6', v)} 
+                  onPriceChange={v => handleBreakdownChange(setReturnsBreakdown, 'max_empty', 'price6', v)} 
                 />
+                <BreakdownInput 
+                  name="13kg" 
+                  value={returnsBreakdown.max_empty.kg13} 
+                  price={returnsBreakdown.max_empty.price13} 
+                  onCountChange={v => handleBreakdownChange(setReturnsBreakdown, 'max_empty', 'kg13', v)} 
+                  onPriceChange={v => handleBreakdownChange(setReturnsBreakdown, 'max_empty', 'price13', v)} 
+                />
+                <BreakdownInput 
+                  name="50kg" 
+                  value={returnsBreakdown.max_empty.kg50} 
+                  price={returnsBreakdown.max_empty.price50} 
+                  onCountChange={v => handleBreakdownChange(setReturnsBreakdown, 'max_empty', 'kg50', v)} 
+                  onPriceChange={v => handleBreakdownChange(setReturnsBreakdown, 'max_empty', 'price50', v)} 
+                />
+              </div>
+
+              <div className="space-y-2">
+                <h5 className="font-medium text-orange-700">Swap Empty</h5>
+                <BreakdownInput 
+                  name="6kg" 
+                  value={returnsBreakdown.swap_empty.kg6} 
+                  price={returnsBreakdown.swap_empty.price6} 
+                  onCountChange={v => handleBreakdownChange(setReturnsBreakdown, 'swap_empty', 'kg6', v)} 
+                  onPriceChange={v => handleBreakdownChange(setReturnsBreakdown, 'swap_empty', 'price6', v)} 
+                />
+                <BreakdownInput 
+                  name="13kg" 
+                  value={returnsBreakdown.swap_empty.kg13} 
+                  price={returnsBreakdown.swap_empty.price13} 
+                  onCountChange={v => handleBreakdownChange(setReturnsBreakdown, 'swap_empty', 'kg13', v)} 
+                  onPriceChange={v => handleBreakdownChange(setReturnsBreakdown, 'swap_empty', 'price13', v)} 
+                />
+                <BreakdownInput 
+                  name="50kg" 
+                  value={returnsBreakdown.swap_empty.kg50} 
+                  price={returnsBreakdown.swap_empty.price50} 
+                  onCountChange={v => handleBreakdownChange(setReturnsBreakdown, 'swap_empty', 'kg50', v)} 
+                  onPriceChange={v => handleBreakdownChange(setReturnsBreakdown, 'swap_empty', 'price50', v)} 
+                />
+              </div>
+
+              <div className="space-y-2">
+                <h5 className="font-medium text-orange-700">Return Full</h5>
+                <div className="p-3 rounded-lg bg-white/70 border border-orange-100 space-y-2">
+                  <div className="flex items-center gap-3">
+                    <Label className="w-20 text-sm font-medium text-orange-700">6kg</Label>
+                    <Input 
+                      type="number" 
+                      value={returnsBreakdown.return_full.kg6 === 0 ? '' : returnsBreakdown.return_full.kg6} 
+                      onChange={e => handleBreakdownChange(setReturnsBreakdown, 'return_full', 'kg6', e.target.value === '' ? 0 : parseInt(e.target.value, 10) || 0)} 
+                      onFocus={(e) => e.target.select()}
+                      className="flex-1 border-orange-200 focus:border-orange-400 focus:ring-orange-200"
+                      placeholder="0"
+                    />
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <Label className="w-20 text-sm font-medium text-orange-700">13kg</Label>
+                    <Input 
+                      type="number" 
+                      value={returnsBreakdown.return_full.kg13 === 0 ? '' : returnsBreakdown.return_full.kg13} 
+                      onChange={e => handleBreakdownChange(setReturnsBreakdown, 'return_full', 'kg13', e.target.value === '' ? 0 : parseInt(e.target.value, 10) || 0)} 
+                      onFocus={(e) => e.target.select()}
+                      className="flex-1 border-orange-200 focus:border-orange-400 focus:ring-orange-200"
+                      placeholder="0"
+                    />
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <Label className="w-20 text-sm font-medium text-orange-700">50kg</Label>
+                    <Input 
+                      type="number" 
+                      value={returnsBreakdown.return_full.kg50 === 0 ? '' : returnsBreakdown.return_full.kg50} 
+                      onChange={e => handleBreakdownChange(setReturnsBreakdown, 'return_full', 'kg50', e.target.value === '' ? 0 : parseInt(e.target.value, 10) || 0)} 
+                      onFocus={(e) => e.target.select()}
+                      className="flex-1 border-orange-200 focus:border-orange-400 focus:ring-orange-200"
+                      placeholder="0"
+                    />
+                  </div>
+                </div>
               </div>
             </div>
           </div>

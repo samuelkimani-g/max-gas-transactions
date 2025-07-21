@@ -49,6 +49,47 @@ export function getDeviceInfo() {
   return config
 }
 
+// Get auto-login credentials for desktop devices
+export function getAutoLoginCredentials() {
+  try {
+    const deviceConfig = getDeviceInfo()
+    
+    // Only return credentials if auto-login is enabled and credentials exist
+    if (deviceConfig.autoLogin && deviceConfig.credentials) {
+      return {
+        username: deviceConfig.credentials.username,
+        password: deviceConfig.credentials.password
+      }
+    }
+    
+    return null
+  } catch (error) {
+    console.log('[DEVICE] Could not get auto-login credentials:', error)
+    return null
+  }
+}
+
+// Check if a feature is enabled for this device
+export function isFeatureEnabled(featureName) {
+  try {
+    const deviceConfig = getDeviceInfo()
+    
+    // Default feature flags
+    const defaultFeatures = {
+      autoLogin: false,
+      offlineMode: false,
+      analytics: true,
+      notifications: true
+    }
+    
+    const features = deviceConfig.features || defaultFeatures
+    return features[featureName] !== undefined ? features[featureName] : defaultFeatures[featureName]
+  } catch (error) {
+    console.log('[DEVICE] Could not check feature flag:', error)
+    return false
+  }
+}
+
 // Generate a unique device ID
 function generateDeviceId() {
   // Try to get a persistent device ID

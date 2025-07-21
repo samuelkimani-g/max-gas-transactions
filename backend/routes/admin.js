@@ -2,13 +2,21 @@ const express = require('express');
 const { sequelize } = require('../config/database');
 const { QueryTypes } = require('sequelize');
 const { authenticateToken } = require('../middleware/auth');
-const { checkPermission } = require('../middleware/rbac');
+const { requirePermission } = require('../middleware/rbac');
 
 const router = express.Router();
 
-// Migrate production database schema
-router.post('/migrate-db', authenticateToken, checkPermission('admin'), async (req, res) => {
+// Migrate production database schema - ADMIN ONLY
+router.post('/migrate-db', authenticateToken, requirePermission('users:create'), async (req, res) => {
   try {
+    // Double-check admin role
+    if (req.user.role !== 'admin') {
+      return res.status(403).json({
+        success: false,
+        message: 'Only administrators can perform database migrations'
+      });
+    }
+    
     console.log('🚀 Starting production database migration...');
     
     // Check if we're using PostgreSQL (production)
@@ -66,8 +74,12 @@ router.post('/migrate-db', authenticateToken, checkPermission('admin'), async (r
     await sequelize.query('DELETE FROM customers;', { type: QueryTypes.DELETE });
     
     // Reset sequences
-    await sequelize.query('ALTER SEQUENCE customers_id_seq RESTART WITH 1;', { type: QueryTypes.RAW });
-    await sequelize.query('ALTER SEQUENCE transactions_id_seq RESTART WITH 1;', { type: QueryTypes.RAW });
+    try {
+      await sequelize.query('ALTER SEQUENCE customers_id_seq RESTART WITH 1;', { type: QueryTypes.RAW });
+      await sequelize.query('ALTER SEQUENCE transactions_id_seq RESTART WITH 1;', { type: QueryTypes.RAW });
+    } catch (error) {
+      console.log('ℹ️ Sequence reset not needed or failed (non-critical)');
+    }
     
     console.log('✅ Production migration completed successfully');
     

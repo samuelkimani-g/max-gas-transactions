@@ -76,6 +76,7 @@ const Forecast = sequelize.define('Forecast', {
 }, {
   tableName: 'forecasts',
   timestamps: true,
+  underscored: true,
   indexes: [
     {
       fields: ['type', 'period', 'start_date']

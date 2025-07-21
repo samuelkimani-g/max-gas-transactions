@@ -96,8 +96,10 @@ export default function App() {
     setSelectedCustomerId(null)
   }
 
-  const handleAddCustomerSuccess = () => {
+  const handleAddCustomerSuccess = async () => {
     setIsAddingCustomer(false)
+    // Refresh customers from database to show the new customer
+    await loadCustomers()
   }
 
   if (!isAuthenticated) {

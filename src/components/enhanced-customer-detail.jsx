@@ -18,7 +18,7 @@ import ConfirmationDialog from "./confirmation-dialog"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "./ui/dialog"
 
 export default function EnhancedCustomerDetail({ customerId, onBack }) {
-  const { customers, getCustomerTransactions, deleteCustomer, getCustomerCylinderBalance, submitApprovalRequest, user } = useStore()
+  const { customers, getCustomerTransactions, deleteCustomer, getCustomerCylinderBalance, submitApprovalRequest, user, loadTransactions } = useStore()
   const { permissions } = useRBAC(user)
   const customerTransactions = getCustomerTransactions(customerId)
   const [isAddingTransaction, setIsAddingTransaction] = useState(false)
@@ -129,7 +129,11 @@ export default function EnhancedCustomerDetail({ customerId, onBack }) {
         customerId={customerId}
         customerName={customer.name}
         onBack={() => setIsAddingTransaction(false)}
-        onSuccess={() => setIsAddingTransaction(false)}
+        onSuccess={async () => {
+          setIsAddingTransaction(false)
+          // Refresh transactions from database to show the new transaction
+          await loadTransactions()
+        }}
       />
     )
   }

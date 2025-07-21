@@ -38,6 +38,7 @@ export default function App() {
   const [currentView, setCurrentView] = useState('customers')
   const [deviceInfo, setDeviceInfo] = useState(null)
   const [isAutoLoggingIn, setIsAutoLoggingIn] = useState(false)
+  const [isAddingCustomer, setIsAddingCustomer] = useState(false)
 
   useEffect(() => {
     const initializeApp = async () => {

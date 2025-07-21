@@ -1,0 +1,17 @@
+services:
+  - type: web
+    name: max-gas-backend
+    runtime: node
+    plan: free
+    buildCommand: npm install
+    startCommand: npm start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: JWT_SECRET
+        value: MaxGas2024!SecureKey#789
+      - key: JWT_EXPIRES_IN
+        value: 7d
+      - key: DATABASE_URL
+        value: your-neon-database-url-here
+    healthCheckPath: /health 

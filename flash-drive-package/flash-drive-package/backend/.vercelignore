@@ -1,0 +1,9 @@
+*
+!api/
+!package.json
+!.nvmrc
+!config/
+!models/
+!routes/
+!middleware/
+node_modules/ 

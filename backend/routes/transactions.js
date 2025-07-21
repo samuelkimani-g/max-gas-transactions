@@ -270,6 +270,9 @@ router.post('/', [
     }
 
     // Convert all values to numbers to prevent string concatenation
+    const numMaxGas6kgLoad = Number(maxGas6kgLoad) || 0;
+    const numMaxGas13kgLoad = Number(maxGas13kgLoad) || 0;
+    const numMaxGas50kgLoad = Number(maxGas50kgLoad) || 0;
     const numReturn6kg = Number(return6kg) || 0;
     const numReturn13kg = Number(return13kg) || 0;
     const numReturn50kg = Number(return50kg) || 0;
@@ -282,34 +285,64 @@ router.post('/', [
     const numRefillPrice6kg = Number(refillPrice6kg) || 135;
     const numRefillPrice13kg = Number(refillPrice13kg) || 135;
     const numRefillPrice50kg = Number(refillPrice50kg) || 135;
-    const numOutrightPrice6kg = Number(outrightPrice6kg) || 3200;
-    const numOutrightPrice13kg = Number(outrightPrice13kg) || 3500;
-    const numOutrightPrice50kg = Number(outrightPrice50kg) || 8500;
+    const numOutrightPrice6kg = Number(outrightPrice6kg) || 2200;
+    const numOutrightPrice13kg = Number(outrightPrice13kg) || 4400;
+    const numOutrightPrice50kg = Number(outrightPrice50kg) || 8000;
     const numSwipeRefillPrice6kg = Number(swipeRefillPrice6kg) || 160;
     const numSwipeRefillPrice13kg = Number(swipeRefillPrice13kg) || 160;
     const numSwipeRefillPrice50kg = Number(swipeRefillPrice50kg) || 160;
     const numPaid = Number(paid) || 0;
 
-    // Calculate total with proper numeric operations
-    const refillTotal = 
-      (numReturn6kg * 6 * numRefillPrice6kg) +
-      (numReturn13kg * 13 * numRefillPrice13kg) +
-      (numReturn50kg * 50 * numRefillPrice50kg);
+    // SOLUTION 1: Load-First Calculation System
+    // Step 1: Calculate total debt from load (cylinders taken)
+    const loadDebt = 
+      (numMaxGas6kgLoad * numRefillPrice6kg) +
+      (numMaxGas13kgLoad * numRefillPrice13kg) +
+      (numMaxGas50kgLoad * numRefillPrice50kg);
 
-    const outrightTotal = 
+    // Step 2: Calculate credits against the debt
+    const returnCredits = 
+      (numReturn6kg * numRefillPrice6kg) +
+      (numReturn13kg * numRefillPrice13kg) +
+      (numReturn50kg * numRefillPrice50kg);
+
+    const outrightCredits = 
       (numOutright6kg * numOutrightPrice6kg) +
       (numOutright13kg * numOutrightPrice13kg) +
       (numOutright50kg * numOutrightPrice50kg);
 
-    const swipeTotal = 
-      (numSwipeReturn6kg * 6 * numSwipeRefillPrice6kg) +
-      (numSwipeReturn13kg * 13 * numSwipeRefillPrice13kg) +
-      (numSwipeReturn50kg * 50 * numSwipeRefillPrice50kg);
+    const swipeCredits = 
+      (numSwipeReturn6kg * numSwipeRefillPrice6kg) +
+      (numSwipeReturn13kg * numSwipeRefillPrice13kg) +
+      (numSwipeReturn50kg * numSwipeRefillPrice50kg);
 
-    const total = parseFloat((refillTotal + outrightTotal + swipeTotal).toFixed(2));
-    const balance = parseFloat((total - numPaid).toFixed(2));
+    const cashCredits = numPaid;
+    const totalCredits = returnCredits + outrightCredits + swipeCredits + cashCredits;
 
-    console.log('[DEBUG] Calculated total:', total, 'balance:', balance);
+    // Step 3: Calculate final balance (debt - credits)
+    const total = parseFloat(loadDebt.toFixed(2)); // Total debt from load
+    const balance = parseFloat((loadDebt - totalCredits).toFixed(2)); // Remaining balance
+
+    // Step 4: Cylinder accountability check
+    const totalCylindersTaken = numMaxGas6kgLoad + numMaxGas13kgLoad + numMaxGas50kgLoad;
+    const totalCylindersReturned = numReturn6kg + numReturn13kg + numReturn50kg + 
+                                  numOutright6kg + numOutright13kg + numOutright50kg +
+                                  numSwipeReturn6kg + numSwipeReturn13kg + numSwipeReturn50kg;
+    const cylinderDiscrepancy = totalCylindersTaken - totalCylindersReturned;
+
+    console.log('[DEBUG] Load-First Calculation:');
+    console.log('  Load Debt:', loadDebt);
+    console.log('  Total Credits:', totalCredits);
+    console.log('  Final Balance:', balance);
+    console.log('  Cylinder Discrepancy:', cylinderDiscrepancy);
+
+    // Validation: Ensure load is provided for new Load-First system
+    if (totalCylindersTaken === 0) {
+      return res.status(400).json({
+        success: false,
+        message: 'Load (total cylinders taken) is required'
+      });
+    }
 
     // Credit limit check removed - allow all transactions regardless of payment
 

@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Clearing Cache...</title>
+    <meta http-equiv="refresh" content="0; url=/">
+</head>
+<body>
+    <script>
+        // Force clear all caches
+        if ('caches' in window) {
+            caches.keys().then(function(names) {
+                for (let name of names) {
+                    caches.delete(name);
+                }
+            });
+        }
+        
+        // Force reload
+        setTimeout(() => {
+            window.location.href = '/';
+        }, 1000);
+    </script>
+    <p>Clearing cache and redirecting...</p>
+</body>
+</html> 

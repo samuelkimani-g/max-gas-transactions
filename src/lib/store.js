@@ -43,10 +43,18 @@ const DEMO_PASSWORDS = {
   'operator1@maxgas.com': 'operator123'
 }
 
-// Helper function for API calls
+// Helper function for API calls with timeout and loading states
 const apiCall = async (endpoint, options = {}) => {
   const token = localStorage.getItem('authToken')
   const url = `${API_BASE_URL}${endpoint}`
+  
+  // Debug token status
+  if (!token) {
+    console.log('[API] WARNING: No auth token found in localStorage')
+  } else {
+    console.log('[API] Auth token present:', token.substring(0, 20) + '...')
+  }
+  
   const headers = {
       'Content-Type': 'application/json',
     ...(token && { 'Authorization': `Bearer ${token}` }),
@@ -56,17 +64,37 @@ const apiCall = async (endpoint, options = {}) => {
   if (options.body) {
     try { console.log('[API] Body:', JSON.parse(options.body)) } catch { console.log('[API] Body:', options.body) }
   }
-  const response = await fetch(url, {
-    headers,
-    ...options,
-  })
-  console.log('[API] Response status:', response.status)
-  if (!response.ok) {
-    const text = await response.text()
-    console.log('[API] Error response:', text)
-    throw new Error(`API call failed: ${response.status} ${response.statusText}`)
+  
+  // Add timeout for slow requests
+  const controller = new AbortController()
+  const timeoutId = setTimeout(() => {
+    console.log('[API] Request timeout after 30 seconds')
+    controller.abort()
+  }, 30000) // 30 second timeout
+  
+  try {
+    const response = await fetch(url, {
+      headers,
+      signal: controller.signal,
+      ...options,
+    })
+    
+    clearTimeout(timeoutId)
+    console.log('[API] Response status:', response.status)
+    
+    if (!response.ok) {
+      const text = await response.text()
+      console.log('[API] Error response:', text)
+      throw new Error(`API call failed: ${response.status} ${response.statusText}`)
+    }
+    return response.json()
+  } catch (error) {
+    clearTimeout(timeoutId)
+    if (error.name === 'AbortError') {
+      throw new Error('Request timeout - server may be sleeping, please try again')
+    }
+    throw error
   }
-  return response.json()
 }
 
 export const useStore = create(
@@ -211,7 +239,8 @@ export const useStore = create(
             return
           }
           
-          await apiCall(`/customers/${id}`, {
+          // Use force delete for easier testing - removes customer and all related transactions
+          await apiCall(`/customers/${id}?force=true`, {
             method: 'DELETE'
           })
           

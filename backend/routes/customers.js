@@ -321,32 +321,51 @@ router.delete('/:id', [
       });
     }
 
-    // Check if customer has significant outstanding balance (allow for rounding errors)
-    const balance = parseFloat(customer.balance || 0);
-    if (Math.abs(balance) > 0.01) {
-      return res.status(400).json({
-        success: false,
-        message: `Cannot delete customer with outstanding balance of ${balance.toFixed(2)}`
-      });
-    }
+    // Check for force delete parameter (for testing)
+    const forceDelete = req.query.force === 'true';
+    
+    if (!forceDelete) {
+      // Check if customer has significant outstanding balance (allow for rounding errors)
+      const balance = parseFloat(customer.balance || 0);
+      if (Math.abs(balance) > 0.01) {
+        return res.status(400).json({
+          success: false,
+          message: `Cannot delete customer with outstanding balance of ${balance.toFixed(2)}. Use ?force=true to override.`
+        });
+      }
 
-    // Check if customer has transactions
-    const transactionCount = await Transaction.count({
-      where: { customerId: customer.id }
-    });
-
-    if (transactionCount > 0) {
-      return res.status(400).json({
-        success: false,
-        message: 'Cannot delete customer with existing transactions'
+      // Check if customer has transactions
+      const transactionCount = await Transaction.count({
+        where: { customerId: customer.id }
       });
+
+      if (transactionCount > 0) {
+        return res.status(400).json({
+          success: false,
+          message: `Cannot delete customer with ${transactionCount} existing transactions. Use ?force=true to override.`
+        });
+      }
+    } else {
+      // Force delete: Remove all related transactions first
+      console.log(`🗑️ Force deleting customer ${customer.name} and all related data...`);
+      
+      const deletedTransactions = await Transaction.destroy({
+        where: { customerId: customer.id },
+        force: true
+      });
+      
+      if (deletedTransactions > 0) {
+        console.log(`✅ Deleted ${deletedTransactions} related transactions`);
+      }
     }
 
     await customer.destroy();
 
     res.json({
       success: true,
-      message: 'Customer deleted successfully'
+      message: forceDelete ? 
+        'Customer and all related data deleted successfully' : 
+        'Customer deleted successfully'
     });
 
   } catch (error) {

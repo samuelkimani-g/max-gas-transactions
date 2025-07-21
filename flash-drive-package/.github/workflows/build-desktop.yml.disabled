@@ -1,0 +1,43 @@
+# name: Build Desktop App
+# 
+# on:
+#   push:
+#     tags:
+#       - 'v*'
+# 
+# jobs:
+#   build:
+#     runs-on: ${{ matrix.os }}
+#     
+#     strategy:
+#       matrix:
+#         os: [windows-latest, macos-latest, ubuntu-latest]
+#     
+#     steps:
+#     - uses: actions/checkout@v3
+#     
+#     - name: Setup Node.js
+#       uses: actions/setup-node@v3
+#       with:
+#         node-version: '18'
+#         cache: 'npm'
+#     
+#     - name: Install dependencies
+#       run: npm run install:all
+#     
+#     - name: Build frontend
+#       run: npm run build
+#     
+#     - name: Build desktop app
+#       run: |
+#         cd electron
+#         npm run dist:${{ matrix.os == 'windows-latest' && 'win' || matrix.os == 'macos-latest' && 'mac' || 'linux' }}
+#     
+#     - name: Upload artifacts
+#       uses: actions/upload-artifact@v3
+#       with:
+#         name: desktop-app-${{ matrix.os }}
+#         path: electron/dist/
+
+# This workflow is disabled because manual deployment is being used
+# To enable automatic desktop builds, uncomment this workflow 

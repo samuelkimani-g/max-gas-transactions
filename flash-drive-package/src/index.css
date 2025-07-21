@@ -1,0 +1,239 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Accessibility Features */
+:root {
+  --animation-duration: 0.3s;
+}
+
+/* High Contrast Mode */
+.high-contrast {
+  --tw-bg-opacity: 1;
+  background-color: rgb(0 0 0 / var(--tw-bg-opacity));
+  color: rgb(255 255 255 / var(--tw-text-opacity));
+}
+
+.high-contrast * {
+  border-color: rgb(255 255 255 / 0.3) !important;
+}
+
+.high-contrast .bg-white {
+  background-color: rgb(0 0 0 / var(--tw-bg-opacity)) !important;
+  color: rgb(255 255 255 / var(--tw-text-opacity)) !important;
+}
+
+.high-contrast .text-gray-600 {
+  color: rgb(200 200 200 / var(--tw-text-opacity)) !important;
+}
+
+.high-contrast .text-gray-500 {
+  color: rgb(180 180 180 / var(--tw-text-opacity)) !important;
+}
+
+/* Reduced Motion */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* Large Text Mode */
+.large-text {
+  font-size: 1.2rem;
+}
+
+.large-text .text-sm {
+  font-size: 1rem;
+}
+
+.large-text .text-xs {
+  font-size: 0.9rem;
+}
+
+/* Focus Indicators */
+*:focus {
+  outline: 2px solid #f97316;
+  outline-offset: 2px;
+  }
+
+/* Skip to content link */
+.skip-link {
+  position: absolute;
+  top: -40px;
+  left: 6px;
+  background: #f97316;
+  color: white;
+  padding: 8px;
+  text-decoration: none;
+  border-radius: 4px;
+  z-index: 1000;
+  }
+
+.skip-link:focus {
+  top: 6px;
+}
+
+/* Mobile Responsive Improvements */
+@media (max-width: 768px) {
+  .mobile-optimized {
+    padding: 1rem;
+}
+
+  .mobile-optimized .grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .mobile-optimized .text-lg {
+    font-size: 1rem;
+}
+
+  .mobile-optimized .text-xl {
+    font-size: 1.125rem;
+  }
+  
+  .mobile-optimized .text-2xl {
+    font-size: 1.25rem;
+  }
+}
+
+/* Touch-friendly buttons */
+@media (hover: none) and (pointer: coarse) {
+  button, 
+  [role="button"],
+  .cursor-pointer {
+    min-height: 44px;
+    min-width: 44px;
+  }
+  
+  input, 
+  select, 
+  textarea {
+    min-height: 44px;
+    font-size: 16px; /* Prevents zoom on iOS */
+  }
+}
+
+/* PWA specific styles */
+@media (display-mode: standalone) {
+  body {
+    -webkit-user-select: none;
+    -webkit-touch-callout: none;
+    -webkit-tap-highlight-color: transparent;
+  }
+}
+
+/* Voice command feedback */
+.voice-listening {
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+/* Accessibility color schemes */
+[data-theme="high-contrast"] {
+  --tw-bg-opacity: 1;
+  background-color: rgb(0 0 0 / var(--tw-bg-opacity));
+  color: rgb(255 255 255 / var(--tw-text-opacity));
+}
+
+[data-theme="dark"] {
+  --tw-bg-opacity: 1;
+  background-color: rgb(17 24 39 / var(--tw-bg-opacity));
+  color: rgb(243 244 246 / var(--tw-text-opacity));
+}
+
+[data-theme="sepia"] {
+  background-color: #f4ecd8;
+  color: #5c4b37;
+}
+
+/* Screen reader only text */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* Improved focus for keyboard navigation */
+.focus-visible:focus {
+  outline: 2px solid #f97316;
+  outline-offset: 2px;
+}
+
+/* Better contrast for links */
+a {
+  color: #f97316;
+  text-decoration: underline;
+}
+
+a:hover {
+  color: #ea580c;
+}
+
+/* Improved form accessibility */
+label {
+  font-weight: 500;
+  margin-bottom: 0.25rem;
+  display: block;
+}
+
+input:invalid,
+select:invalid,
+textarea:invalid {
+  border-color: #ef4444;
+}
+
+/* Loading states for better UX */
+.loading {
+  opacity: 0.6;
+  pointer-events: none;
+}
+
+/* Responsive typography */
+@media (max-width: 640px) {
+  html {
+    font-size: 14px;
+  }
+}
+
+@media (min-width: 1024px) {
+  html {
+    font-size: 16px;
+  }
+}
+
+/* Print styles */
+@media print {
+  .no-print {
+    display: none !important;
+}
+
+  body {
+    background: white !important;
+    color: black !important;
+  }
+  
+  * {
+    box-shadow: none !important;
+    text-shadow: none !important;
+  }
+}

@@ -2,7 +2,7 @@
 
 import { AlertTriangle, CheckCircle } from "lucide-react"
 import { Button } from "./ui/button"
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "./ui/dialog"
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "./ui/dialog"
 
 export default function ConfirmationDialog({
   isOpen,

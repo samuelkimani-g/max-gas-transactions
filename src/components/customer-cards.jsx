@@ -11,14 +11,17 @@ export default function CustomerCards() {
   const { getFilteredCustomers, setSelectedCustomerId, getCustomerOutstanding, getCustomerTransactions, getCustomerCylinderBalance } = useStore()
   const customers = getFilteredCustomers()
 
+  // Safety check
+  const safeCustomers = customers || []
+
   // Debug logging
-  console.log("CustomerCards: Total customers:", customers.length)
-  customers.forEach(customer => {
+  console.log("CustomerCards: Total customers:", safeCustomers.length)
+  safeCustomers.forEach(customer => {
     const transactions = getCustomerTransactions(customer.id)
     console.log(`Customer ${customer.name} (ID: ${customer.id}) has ${transactions.length} transactions:`, transactions)
   })
 
-  if (customers.length === 0) {
+  if (safeCustomers.length === 0) {
     return (
       <div className="text-center py-12">
         <User className="mx-auto h-12 w-12 text-gray-400" />
@@ -30,7 +33,7 @@ export default function CustomerCards() {
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-      {customers.map((customer) => {
+      {safeCustomers.map((customer) => {
         const outstanding = getCustomerOutstanding(customer.id)
         const transactions = getCustomerTransactions(customer.id)
         const cylinderBalance = getCustomerCylinderBalance(customer.id)

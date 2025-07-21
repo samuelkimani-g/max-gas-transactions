@@ -78,7 +78,7 @@ export default function App() {
   // Add debug logging
   useEffect(() => {
     console.log("App rendered, selectedCustomerId:", selectedCustomerId)
-    console.log("Available customers:", customers)
+    console.log("Available customers:", customers || [])
   }, [selectedCustomerId, customers])
 
   const handleSearch = (e) => {

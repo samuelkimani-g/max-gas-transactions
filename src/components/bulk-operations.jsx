@@ -55,7 +55,7 @@ const customerCategories = {
 }
 
 export default function BulkOperations() {
-  const { customers, transactions, updateCustomer, updateTransaction, deleteCustomer, deleteTransaction } = useStore()
+  const { customers, transactions, updateCustomer, updateTransaction, deleteCustomer, deleteTransaction, recordBulkPayment } = useStore()
   const [selectedMode, setSelectedMode] = useState("customers")
   const [selectedItems, setSelectedItems] = useState([])
   const [selectedAction, setSelectedAction] = useState("")
@@ -64,6 +64,10 @@ export default function BulkOperations() {
   const [filterStatus, setFilterStatus] = useState("all")
   const [bulkHistory, setBulkHistory] = useState([])
   const { toast } = useToast()
+
+  // Safety checks
+  const safeCustomers = customers || []
+  const safeTransactions = transactions || []
 
   const filteredItems = () => {
     let items = selectedMode === "customers" ? customers : transactions

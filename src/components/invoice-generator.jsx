@@ -169,7 +169,7 @@ export default function InvoiceGenerator() {
                   <SelectValue placeholder="Choose a customer" />
                 </SelectTrigger>
                 <SelectContent>
-                  {customers.map(customer => {
+                  {(customers || []).map(customer => {
                     const category = customerCategories[customer.category || 'regular']
                     const CategoryIcon = category.icon
                     return (

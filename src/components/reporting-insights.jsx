@@ -601,7 +601,7 @@ export default function ReportingInsights() {
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="all">All Customers</SelectItem>
-                    {customers.map((customer) => (
+                    {(customers || []).map((customer) => (
                       <SelectItem key={customer.id} value={customer.id.toString()}>
                         {customer.name}
                       </SelectItem>

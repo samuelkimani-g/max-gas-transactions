@@ -27,11 +27,15 @@ export default function ExportImport() {
     setError("")
 
     try {
+      // Safety checks
+      const safeCustomers = customers || []
+      const safeTransactions = transactions || []
+      
       // Create workbook
       const wb = XLSX.utils.book_new()
 
       // Add customers sheet
-      const customersData = customers.map((customer) => ({
+      const customersData = safeCustomers.map((customer) => ({
         "Customer ID": customer.id,
         "Customer Name": customer.name,
         "Phone Number": customer.phone,
@@ -44,10 +48,10 @@ export default function ExportImport() {
       XLSX.utils.book_append_sheet(wb, customersWs, "Customers")
 
       // Add transactions sheet with all data including dates
-      const transactionsData = transactions.map((transaction) => ({
+      const transactionsData = safeTransactions.map((transaction) => ({
         "Transaction ID": transaction.id,
         "Customer ID": transaction.customerId,
-        "Customer Name": customers.find(c => c.id === transaction.customerId)?.name || "Unknown",
+        "Customer Name": safeCustomers.find(c => c.id === transaction.customerId)?.name || "Unknown",
         "Transaction Date": formatDateForExcel(transaction.date),
         "Load 6kg": transaction.maxGas6kgLoad || 0,
         "Load 13kg": transaction.maxGas13kgLoad || 0,
@@ -82,8 +86,8 @@ export default function ExportImport() {
       // Create separate worksheets for each employee (customer)
       const employeeSheets = {}
       
-      customers.forEach(customer => {
-        const customerTransactions = transactions.filter(t => t.customerId === customer.id)
+      safeCustomers.forEach(customer => {
+        const customerTransactions = safeTransactions.filter(t => t.customerId === customer.id)
         
         if (customerTransactions.length > 0) {
           const employeeData = customerTransactions.map((transaction) => ({
@@ -122,8 +126,8 @@ export default function ExportImport() {
       // Add combined data sheet (for easy import)
       const combinedData = []
       
-      customers.forEach(customer => {
-        const customerTransactions = transactions.filter(t => t.customerId === customer.id)
+      safeCustomers.forEach(customer => {
+        const customerTransactions = safeTransactions.filter(t => t.customerId === customer.id)
         
         if (customerTransactions.length === 0) {
           // Add customer with no transactions
@@ -204,8 +208,8 @@ export default function ExportImport() {
       XLSX.utils.book_append_sheet(wb, combinedWs, "Combined Data")
 
       // Add summary sheet
-      const summaryData = customers.map(customer => {
-        const customerTransactions = transactions.filter(t => t.customerId === customer.id)
+      const summaryData = safeCustomers.map(customer => {
+        const customerTransactions = safeTransactions.filter(t => t.customerId === customer.id)
         const totalSales = customerTransactions.reduce((sum, t) => sum + calculateTransactionTotal(t), 0)
         const totalPaid = customerTransactions.reduce((sum, t) => sum + (t.paid || 0), 0)
         const outstanding = totalSales - totalPaid

@@ -47,6 +47,7 @@ export default function AddCustomerForm({ onBack, onSuccess }) {
   })
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [errors, setErrors] = useState({})
+  const [duplicateError, setDuplicateError] = useState("")
   const { toast } = useToast()
 
   // Safety check

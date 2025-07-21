@@ -1,4 +1,4 @@
-const { DataTypes, Op } = require('sequelize');
+const { DataTypes } = require('sequelize');
 const { sequelize } = require('../config/database');
 
 const Transaction = sequelize.define('Transaction', {
@@ -23,334 +23,96 @@ const Transaction = sequelize.define('Transaction', {
       key: 'id'
     }
   },
-  branchId: {
-    type: DataTypes.INTEGER,
-    allowNull: true,
-    references: {
-      model: 'branches',
-      key: 'id'
-    }
-  },
   date: {
     type: DataTypes.DATE,
     allowNull: false,
     defaultValue: DataTypes.NOW
   },
-  // MaxGas Loads (Cylinders given to customer)
-  maxGas6kgLoad: {
+  
+  // -- NEW Reconciled Ledger System Fields --
+
+  // Part 1: Cylinders IN
+  total_returns: {
     type: DataTypes.INTEGER,
+    allowNull: false,
     defaultValue: 0,
-    allowNull: false
+    comment: 'Total physical cylinders customer brought IN.'
   },
-  maxGas13kgLoad: {
+  returns_breakdown: {
+    type: DataTypes.JSONB,
+    allowNull: true,
+    comment: 'JSON object detailing the breakdown of returned cylinders (max_empty, swap_empty, return_full).'
+    // Example: { 
+    //   "max_empty": { "kg6": 5, "kg13": 0, "kg50": 0, "price6": 135, "price13": 135, "price50": 135 },
+    //   "swap_empty": { "kg6": 0, "kg13": 2, "kg50": 0, "price6": 160, "price13": 160, "price50": 160 },
+    //   "return_full": { "kg6": 0, "kg13": 0, "kg50": 1 }
+    // }
+  },
+
+  // Part 2: Cylinders BOUGHT
+  outright_breakdown: {
+    type: DataTypes.JSONB,
+    allowNull: true,
+    comment: 'JSON object detailing new cylinders purchased outright.'
+    // Example: { 
+    //   "kg6": { "count": 1, "price": 2200 },
+    //   "kg13": { "count": 0, "price": 4400 },
+    //   "kg50": { "count": 0, "price": 8000 }
+    // }
+  },
+
+  // Part 3: Cylinders OUT
+  total_load: {
     type: DataTypes.INTEGER,
+    allowNull: false,
     defaultValue: 0,
-    allowNull: false
+    comment: 'Total physical cylinders customer took OUT.'
   },
-  maxGas50kgLoad: {
+  
+  // Part 4: Balances & Payment
+  cylinder_balance: {
     type: DataTypes.INTEGER,
+    allowNull: false,
     defaultValue: 0,
-    allowNull: false
+    comment: 'The physical cylinder balance. Positive means customer owes us cylinders.'
   },
-  // MaxGas Refills (Returns)
-  return6kg: {
-    type: DataTypes.INTEGER,
-    defaultValue: 0,
-    allowNull: false
-  },
-  return13kg: {
-    type: DataTypes.INTEGER,
-    defaultValue: 0,
-    allowNull: false
-  },
-  return50kg: {
-    type: DataTypes.INTEGER,
-    defaultValue: 0,
-    allowNull: false
-  },
-  // MaxGas Outright Sales (Full cylinders)
-  outright6kg: {
-    type: DataTypes.INTEGER,
-    defaultValue: 0,
-    allowNull: false
-  },
-  outright13kg: {
-    type: DataTypes.INTEGER,
-    defaultValue: 0,
-    allowNull: false
-  },
-  outright50kg: {
-    type: DataTypes.INTEGER,
-    defaultValue: 0,
-    allowNull: false
-  },
-  // Other Company Swipes
-  swipeReturn6kg: {
-    type: DataTypes.INTEGER,
-    defaultValue: 0,
-    allowNull: false
-  },
-  swipeReturn13kg: {
-    type: DataTypes.INTEGER,
-    defaultValue: 0,
-    allowNull: false
-  },
-  swipeReturn50kg: {
-    type: DataTypes.INTEGER,
-    defaultValue: 0,
-    allowNull: false
-  },
-  // Prices
-  refillPrice6kg: {
+  financial_balance: {
     type: DataTypes.DECIMAL(10, 2),
-    defaultValue: 135.00,
-    allowNull: false
+    allowNull: false,
+    defaultValue: 0.00,
+    comment: 'The monetary balance. Positive means customer owes us money.'
   },
-  refillPrice13kg: {
+  total_bill: {
     type: DataTypes.DECIMAL(10, 2),
-    defaultValue: 135.00,
-    allowNull: false
+    allowNull: false,
+    defaultValue: 0.00,
+    comment: 'The total monetary value of the services rendered (refills, swaps, outright).'
   },
-  refillPrice50kg: {
-    type: DataTypes.DECIMAL(10, 2),
-    defaultValue: 135.00,
-    allowNull: false
-  },
-  outrightPrice6kg: {
-    type: DataTypes.DECIMAL(10, 2),
-    defaultValue: 3200.00,
-    allowNull: false
-  },
-  outrightPrice13kg: {
-    type: DataTypes.DECIMAL(10, 2),
-    defaultValue: 3500.00,
-    allowNull: false
-  },
-  outrightPrice50kg: {
-    type: DataTypes.DECIMAL(10, 2),
-    defaultValue: 8500.00,
-    allowNull: false
-  },
-  swipeRefillPrice6kg: {
-    type: DataTypes.DECIMAL(10, 2),
-    defaultValue: 160.00,
-    allowNull: false
-  },
-  swipeRefillPrice13kg: {
-    type: DataTypes.DECIMAL(10, 2),
-    defaultValue: 160.00,
-    allowNull: false
-  },
-  swipeRefillPrice50kg: {
-    type: DataTypes.DECIMAL(10, 2),
-    defaultValue: 160.00,
-    allowNull: false
-  },
-  // Payment
-  total: {
+  amount_paid: {
     type: DataTypes.DECIMAL(10, 2),
     allowNull: false,
     defaultValue: 0.00
   },
-  paid: {
-    type: DataTypes.DECIMAL(10, 2),
-    allowNull: false,
-    defaultValue: 0.00
+  payment_method: {
+    type: DataTypes.ENUM('cash', 'mpesa', 'card', 'transfer', 'credit'),
+    defaultValue: 'credit',
+    allowNull: true
   },
-  balance: {
-    type: DataTypes.DECIMAL(10, 2),
-    allowNull: false,
-    defaultValue: 0.00
-  },
-  // Additional fields
+
+  // -- Standard Fields --
   notes: {
     type: DataTypes.TEXT,
     allowNull: true
   },
   status: {
-    type: DataTypes.ENUM('pending', 'completed', 'cancelled', 'refunded'),
+    type: DataTypes.ENUM('completed', 'pending', 'cancelled'),
     defaultValue: 'completed',
     allowNull: false
-  },
-  paymentMethod: {
-    type: DataTypes.ENUM('cash', 'mpesa', 'card', 'transfer', 'credit'),
-    defaultValue: 'credit',
-    allowNull: true
-  },
-  invoiceNumber: {
-    type: DataTypes.STRING(50),
-    allowNull: true,
-    unique: true
-  },
-  reference: {
-    type: DataTypes.STRING(100),
-    allowNull: true
   }
 }, {
   tableName: 'transactions',
   timestamps: true,
   underscored: true,
-  hooks: {
-    beforeCreate: (transaction) => {
-      transaction.total = calculateTransactionTotal(transaction);
-      transaction.balance = transaction.total - transaction.paid;
-    },
-    beforeUpdate: async (transaction, options) => {
-      // Recalculate total if any relevant field is being updated
-      transaction.total = calculateTransactionTotal(transaction);
-      transaction.balance = transaction.total - transaction.paid;
-    },
-    afterCreate: async (transaction) => {
-      // Update customer balance and stats
-      const Customer = require('./Customer');
-      const customer = await Customer.findByPk(transaction.customerId);
-      if (customer) {
-        // Ensure all values are treated as numbers
-        const currentBalance = parseFloat(customer.balance || 0);
-        const transactionBalance = parseFloat(transaction.balance || 0);
-        const currentTotalSpent = parseFloat(customer.totalSpent || 0);
-        const transactionTotal = parseFloat(transaction.total || 0);
-
-        customer.balance = currentBalance + transactionBalance;
-        customer.totalTransactions = (customer.totalTransactions || 0) + 1;
-        customer.totalSpent = currentTotalSpent + transactionTotal;
-        customer.lastTransactionDate = transaction.date;
-        await customer.save();
-      }
-    },
-    beforeDestroy: async (transaction) => {
-      // Revert customer balance and stats
-      const { sequelize } = require('../config/database');
-      const Customer = require('./Customer');
-      const customer = await Customer.findByPk(transaction.customerId);
-      if (customer) {
-        // Ensure all values are treated as numbers
-        const currentBalance = parseFloat(customer.balance || 0);
-        const transactionBalance = parseFloat(transaction.balance || 0);
-        const currentTotalSpent = parseFloat(customer.totalSpent || 0);
-        const transactionTotal = parseFloat(transaction.total || 0);
-
-        customer.balance = currentBalance - transactionBalance;
-        customer.totalTransactions = Math.max(0, (customer.totalTransactions || 0) - 1);
-        customer.totalSpent = Math.max(0, currentTotalSpent - transactionTotal);
-        
-        // Find previous transaction to set last_transaction_date
-        const lastTransaction = await sequelize.models.Transaction.findOne({
-          where: { 
-            customerId: transaction.customerId,
-            id: { [Op.ne]: transaction.id } 
-          },
-          order: [['date', 'DESC']]
-        });
-        customer.lastTransactionDate = lastTransaction ? lastTransaction.date : null;
-
-        await customer.save();
-      }
-    }
-  }
 });
-
-// Helper function to calculate transaction total
-function calculateTransactionTotal(transaction) {
-  if (!transaction) return 0;
-
-  // MaxGas Refills (Returns) - multiply by kg weight and price per kg
-  const refill6kg = (transaction.return6kg || 0) * 6 * (transaction.refillPrice6kg || 135);
-  const refill13kg = (transaction.return13kg || 0) * 13 * (transaction.refillPrice13kg || 135);
-  const refill50kg = (transaction.return50kg || 0) * 50 * (transaction.refillPrice50kg || 135);
-
-  // MaxGas Outright Sales (Full cylinders) - per cylinder
-  const outright6kg = (transaction.outright6kg || 0) * (transaction.outrightPrice6kg || 3200);
-  const outright13kg = (transaction.outright13kg || 0) * (transaction.outrightPrice13kg || 3500);
-  const outright50kg = (transaction.outright50kg || 0) * (transaction.outrightPrice50kg || 8500);
-
-  // Other Company Swipes - multiply by kg weight and price per kg
-  const swipe6kg = (transaction.swipeReturn6kg || 0) * 6 * (transaction.swipeRefillPrice6kg || 160);
-  const swipe13kg = (transaction.swipeReturn13kg || 0) * 13 * (transaction.swipeRefillPrice13kg || 160);
-  const swipe50kg = (transaction.swipeReturn50kg || 0) * 50 * (transaction.swipeRefillPrice50kg || 160);
-
-  return parseFloat((refill6kg + refill13kg + refill50kg + outright6kg + outright13kg + outright50kg + swipe6kg + swipe13kg + swipe50kg).toFixed(2));
-}
-
-// Instance methods
-Transaction.prototype.calculateTotal = function() {
-  return calculateTransactionTotal(this);
-};
-
-Transaction.prototype.getOutstandingAmount = function() {
-  return Math.max(0, parseFloat(this.balance));
-};
-
-Transaction.prototype.recordPayment = async function(amount, method = 'cash', notes = '') {
-  this.paid = parseFloat(this.paid) + parseFloat(amount);
-  this.balance = this.total - this.paid;
-  this.paymentMethod = method;
-  if (notes) {
-    this.notes = this.notes ? `${this.notes}\n${notes}` : notes;
-  }
-  await this.save();
-  return this;
-};
-
-// Class methods
-Transaction.getCustomerTransactions = async function(customerId, limit = 50) {
-  return await this.findAll({
-    where: { customerId },
-    order: [['date', 'DESC']],
-    limit
-  });
-};
-
-Transaction.getCustomerBalance = async function(customerId) {
-  const transactions = await this.findAll({
-    where: { customerId },
-    attributes: ['balance']
-  });
-  return transactions.reduce((total, t) => total + parseFloat(t.balance), 0);
-};
-
-Transaction.getCustomerCylinderBalance = async function(customerId) {
-  const transactions = await this.findAll({
-    where: { customerId },
-    attributes: [
-      'maxGas6kgLoad', 'maxGas13kgLoad', 'maxGas50kgLoad',
-      'return6kg', 'return13kg', 'return50kg',
-      'outright6kg', 'outright13kg', 'outright50kg',
-      'swipeReturn6kg', 'swipeReturn13kg', 'swipeReturn50kg'
-    ]
-  });
-
-  const balance = { '6kg': 0, '13kg': 0, '50kg': 0 };
-
-  transactions.forEach(t => {
-    // Loads (cylinders given to customer)
-    balance['6kg'] += (t.maxGas6kgLoad || 0);
-    balance['13kg'] += (t.maxGas13kgLoad || 0);
-    balance['50kg'] += (t.maxGas50kgLoad || 0);
-
-    // Returns (cylinders returned by customer)
-    balance['6kg'] -= (t.return6kg || 0);
-    balance['13kg'] -= (t.return13kg || 0);
-    balance['50kg'] -= (t.return50kg || 0);
-
-    // Swipes (cylinders returned by customer)
-    balance['6kg'] -= (t.swipeReturn6kg || 0);
-    balance['13kg'] -= (t.swipeReturn13kg || 0);
-    balance['50kg'] -= (t.swipeReturn50kg || 0);
-
-    // Outright sales (cylinders sold to customer)
-    balance['6kg'] -= (t.outright6kg || 0);
-    balance['13kg'] -= (t.outright13kg || 0);
-    balance['50kg'] -= (t.outright50kg || 0);
-  });
-
-  return balance;
-};
-
-Transaction.generateInvoiceNumber = async function() {
-  // Simple timestamp-based invoice number that will always work
-  const timestamp = Date.now();
-  return `INV-${timestamp}`;
-};
 
 module.exports = Transaction; 

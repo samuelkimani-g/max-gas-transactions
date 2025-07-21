@@ -26,13 +26,9 @@ const Customer = sequelize.define('Customer', {
     type: DataTypes.STRING(100),
     allowNull: true,
     validate: {
-      isEmail: {
-        args: true,
-        msg: 'Invalid email format'
-      }
+      isEmail: true
     },
     set(value) {
-      // Convert empty string to null
       this.setDataValue('email', value === '' ? null : value);
     }
   },
@@ -41,33 +37,31 @@ const Customer = sequelize.define('Customer', {
     allowNull: true
   },
   category: {
-    type: DataTypes.ENUM('regular', 'premium', 'wholesale', 'retail'),
+    type: DataTypes.ENUM('regular', 'premium', 'wholesale', 'retail', 'sales_team'),
     defaultValue: 'regular',
     allowNull: false
-  },
-  branchId: {
-    type: DataTypes.INTEGER,
-    allowNull: true,
-    references: {
-      model: 'branches',
-      key: 'id'
-    }
   },
   status: {
     type: DataTypes.ENUM('active', 'inactive', 'suspended'),
     defaultValue: 'active',
     allowNull: false
   },
-  creditLimit: {
-    type: DataTypes.DECIMAL(10, 2),
-    defaultValue: 100000.00,
-    allowNull: false
-  },
-  balance: {
+  
+  // -- NEW Reconciled Ledger System Balance Fields --
+  financial_balance: {
     type: DataTypes.DECIMAL(10, 2),
     defaultValue: 0.00,
-    allowNull: false
+    allowNull: false,
+    comment: 'The overall monetary balance for the customer. Positive means they owe money.'
   },
+  cylinder_balance: {
+    type: DataTypes.INTEGER,
+    defaultValue: 0,
+    allowNull: false,
+    comment: 'The overall physical cylinder balance for the customer. Positive means they owe cylinders.'
+  },
+  
+  // -- Standard Fields --
   notes: {
     type: DataTypes.TEXT,
     allowNull: true
@@ -93,49 +87,10 @@ const Customer = sequelize.define('Customer', {
 }, {
   tableName: 'customers',
   timestamps: true,
-  underscored: true,
-  hooks: {
-    beforeCreate: async (customer) => {
-      if (!customer.balance) customer.balance = 0.00;
-      if (!customer.creditLimit) customer.creditLimit = 100000.00;
-    }
-  }
+  underscored: true
 });
 
-// Instance methods
-Customer.prototype.updateBalance = async function(amount) {
-  this.balance = parseFloat(this.balance) + parseFloat(amount);
-  await this.save();
-  return this.balance;
-};
-
-Customer.prototype.getOutstandingAmount = function() {
-  return Math.max(0, parseFloat(this.balance));
-};
-
-Customer.prototype.canMakeTransaction = function(amount) {
-  const newBalance = parseFloat(this.balance) + parseFloat(amount);
-  return newBalance <= parseFloat(this.creditLimit);
-};
-
-// Class methods
-Customer.findByPhone = async function(phone) {
-  return await this.findOne({ where: { phone } });
-};
-
-Customer.searchCustomers = async function(searchTerm, limit = 10) {
-  return await this.findAll({
-    where: {
-      $or: [
-        { name: { $ilike: `%${searchTerm}%` } },
-        { phone: { $ilike: `%${searchTerm}%` } },
-        { email: { $ilike: `%${searchTerm}%` } }
-      ],
-      status: 'active'
-    },
-    limit,
-    order: [['name', 'ASC']]
-  });
-};
+// Instance methods and class methods can be updated later if needed.
+// The primary goal is to update the schema first.
 
 module.exports = Customer; 

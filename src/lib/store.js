@@ -273,44 +273,38 @@ export const useStore = create()(
         },
 
         // Transaction Actions
-        addTransaction: async (transaction) => {
+        addTransaction: async (transactionData) => {
+          // The transactionData is now expected to be in the new "Reconciled Ledger System" format
+          // from the rebuilt add-transaction-form.jsx
           try {
             if (DEMO_MODE) {
-              // Demo mode - add transaction locally
-              const newTransaction = {
-                id: Date.now(), // Use timestamp as ID
-                ...transaction,
-                userId: get().user?.id || 1,
-                date: new Date().toISOString(),
-                status: 'completed',
-                createdAt: new Date().toISOString()
-              }
-              
-              set((state) => ({
-                transactions: [...state.transactions, newTransaction],
-              }))
-              
-              console.log('[DEMO] Added transaction:', newTransaction)
-              console.log('[DEMO] Total transactions after add:', get().transactions.length)
-              return newTransaction
+              // Demo mode would need a more complex simulation for the new format.
+              // For now, we focus on the real backend implementation.
+              console.warn('[DEMO] addTransaction in demo mode is not fully compatible with the new ledger system.');
+              return;
             }
             
             const result = await apiCall('/transactions', {
               method: 'POST',
-              body: JSON.stringify(transaction)
-            })
+              body: JSON.stringify(transactionData) // Send the new structured data directly
+            });
             
-            console.log("Store: Adding transaction:", result.data.transaction)
-            console.log("Store: Total transactions after add:", get().transactions.length + 1)
-
+            console.log("Store: Adding transaction:", result.data.transaction);
+            
+            // Add the new transaction to the local state
             set((state) => ({
               transactions: [...state.transactions, result.data.transaction],
-            }))
+            }));
             
-            return result.data.transaction
+            // IMPORTANT: Reload customers to update their financial/cylinder balances in the UI
+            await get().loadCustomers();
+
+            return result.data.transaction;
           } catch (error) {
-            console.error('Failed to add transaction:', error)
-            throw error
+            console.error('Failed to add transaction:', error);
+            // Propagate the actual error message from the API
+            const errorData = await error.response?.json();
+            throw new Error(errorData?.message || error.message || 'Failed to add transaction. Please try again.');
           }
         },
 

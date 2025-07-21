@@ -13,7 +13,7 @@ const formatNumber = (num) => new Intl.NumberFormat('en-US').format(num);
 
 export default function TransactionHistory({ transactions = [], customerId }) {
   const { deleteTransaction, submitApprovalRequest, user } = useStore();
-  const { permissions } = useRBAC(user);
+  const rbac = useRBAC(user);
   const [expandedRow, setExpandedRow] = useState(null);
 
   const toggleRow = (id) => {
@@ -75,7 +75,7 @@ export default function TransactionHistory({ transactions = [], customerId }) {
                   </Badge>
                 </TableCell>
                 <TableCell className="text-center">
-                  {permissions.includes('transactions:delete') && (
+                  {rbac?.permissions?.canDeleteTransaction && (
                      <Button variant="ghost" size="icon" onClick={(e) => {e.stopPropagation(); handleDelete(t.id);}}>
                        <Trash2 className="h-4 w-4 text-red-500" />
                      </Button>

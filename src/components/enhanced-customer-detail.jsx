@@ -15,7 +15,7 @@ const formatNumber = (num) => new Intl.NumberFormat('en-US').format(num);
 
 export default function EnhancedCustomerDetail({ customerId, onBack }) {
   const { customers, getCustomerTransactions, deleteCustomer, user } = useStore()
-  const { permissions } = useRBAC(user)
+  const rbac = useRBAC(user)
   
   const [isAddingTransaction, setIsAddingTransaction] = useState(false)
   const [isEditingCustomer, setIsEditingCustomer] = useState(false)
@@ -70,10 +70,10 @@ export default function EnhancedCustomerDetail({ customerId, onBack }) {
           </div>
         </div>
         <div className="flex space-x-2">
-          {permissions.includes('customers:update') && (
+          {rbac?.permissions?.canEditCustomer && (
             <Button onClick={() => setIsEditingCustomer(true)}>Edit Customer</Button>
           )}
-          {permissions.includes('transactions:create') && (
+          {rbac?.permissions?.canAddTransaction && (
             <Button onClick={() => setIsAddingTransaction(true)}>
               <PlusCircle className="w-4 h-4 mr-2" />
               New Transaction
@@ -126,7 +126,7 @@ export default function EnhancedCustomerDetail({ customerId, onBack }) {
       </Card>
 
       {/* Delete Customer Section */}
-      {permissions.includes('customers:delete') && (
+      {rbac?.permissions?.canDeleteCustomer && (
         <Card className="border-red-500 border-2">
           <CardHeader>
             <CardTitle className="text-red-600">Danger Zone</CardTitle>

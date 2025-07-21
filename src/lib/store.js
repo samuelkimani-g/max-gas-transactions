@@ -730,9 +730,12 @@ export const useStore = create()(
             }
             
             const result = await apiCall('/transactions')
-            console.log("Store: Loaded transactions:", result.data.transactions.length, "transactions")
-            console.log("Store: Sample transaction:", result.data.transactions[0])
-            set({ transactions: result.data.transactions, isLoading: false })
+            const transactions = result.data?.transactions || result.data || []
+            console.log("Store: Loaded transactions:", transactions.length, "transactions")
+            if (transactions.length > 0) {
+              console.log("Store: Sample transaction:", transactions[0])
+            }
+            set({ transactions, isLoading: false })
           } catch (error) {
             console.error('Failed to load transactions:', error)
             set({ isLoading: false })

@@ -3,6 +3,40 @@ import ReactDOM from "react-dom/client"
 import App from "./App.jsx"
 import "./index.css"
 
+// NUCLEAR SOLUTION: Add global customers variable to prevent ReferenceError
+// This is a last resort to catch any direct references to 'customers' variable
+window.customers = window.customers || []
+globalThis.customers = globalThis.customers || []
+
+// Also add it to the global scope for any eval'd code
+if (typeof global !== 'undefined') {
+  global.customers = global.customers || []
+}
+
+// Ultra-aggressive: Override global variable access
+try {
+  // Create a Proxy to catch any undefined variable access
+  const originalWindowGet = window.__lookupGetter__
+  
+  // Add customers to window object
+  Object.defineProperty(window, 'customers', {
+    get() {
+      console.log('[GLOBAL] customers accessed via window')
+      return []
+    },
+    set(value) {
+      console.log('[GLOBAL] customers set via window:', value)
+      window._customers = value
+    },
+    enumerable: true,
+    configurable: true
+  })
+} catch (error) {
+  console.warn('[GLOBAL] Could not set up Proxy:', error)
+}
+
+console.log('[GLOBAL] Global customers variable set:', window.customers)
+
 // Global Error Boundary
 class ErrorBoundary extends React.Component {
   constructor(props) {

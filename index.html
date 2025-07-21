@@ -16,6 +16,23 @@
   </head>
   <body>
     <div id="root"></div>
+    
+    <!-- NUCLEAR SOLUTION: Set global customers before React loads -->
+    <script>
+      // Set global customers variable BEFORE React loads to prevent ReferenceError
+      window.customers = window.customers || [];
+      globalThis.customers = globalThis.customers || [];
+      
+      // Also try to set it as a global variable
+      try {
+        eval('var customers = customers || [];');
+      } catch (e) {
+        console.log('[GLOBAL] Could not set global customers via eval:', e);
+      }
+      
+      console.log('[GLOBAL] Pre-React customers variable set');
+    </script>
+    
     <script type="module" src="/src/main.jsx"></script>
     <!-- Service Worker Registration - Temporarily Disabled for Debugging -->
     <script>

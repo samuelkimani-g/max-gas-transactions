@@ -113,6 +113,11 @@ const Transaction = sequelize.define('Transaction', {
   tableName: 'transactions',
   timestamps: true,
   underscored: true,
+  indexes: [
+    { fields: ['customer_id'] },
+    { fields: ['user_id'] },
+    { fields: ['date'] },
+  ]
 });
 
 module.exports = Transaction; 

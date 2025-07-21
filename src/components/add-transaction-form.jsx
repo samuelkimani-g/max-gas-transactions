@@ -244,8 +244,7 @@ export default function AddTransactionForm({ customerId, customerName, onBack, o
             <textarea id="notes" value={notes} onChange={e => setNotes(e.target.value)} rows="3" className="w-full p-2 border rounded-md" />
           </div>
         </div>
-      </CardContent>
-      </Card>
+      </SectionCard>
 
       <div className="flex justify-end gap-4 pt-4">
         <Button variant="outline" onClick={onBack}>Cancel</Button>

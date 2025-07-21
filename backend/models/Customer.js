@@ -87,7 +87,12 @@ const Customer = sequelize.define('Customer', {
 }, {
   tableName: 'customers',
   timestamps: true,
-  underscored: true
+  underscored: true,
+  indexes: [
+    { fields: ['name'] },
+    { fields: ['phone'], unique: true },
+    { fields: ['status'] },
+  ]
 });
 
 // Instance methods and class methods can be updated later if needed.

@@ -159,8 +159,8 @@ router.post('/', authenticateToken, async (req, res) => {
     // Fetch the complete transaction with user details
     const completeTransaction = await Transaction.findByPk(newTransaction.id, {
       include: [
-        { model: Customer, attributes: ['name', 'phone'] },
-        { model: User, attributes: ['username'] }
+        { model: Customer, as: 'Customer', attributes: ['name', 'phone'] },
+        { model: User, as: 'User', attributes: ['username'] }
       ]
     });
 

@@ -336,7 +336,8 @@ export default function AddTransactionForm({ customerId, customerName, onBack, o
                           className="w-24 md:w-40 text-lg md:text-2xl border-gray-300 focus:border-orange-400 focus:ring-orange-200 px-3 py-2 md:px-6 md:py-4"
                           placeholder="0"
                         />
-                        <span className="text-sm md:text-lg text-gray-600">6kg @ Ksh</span>
+                        <Label htmlFor="max_empty-kg6" className="w-20 text-xs font-medium text-orange-700">6kg</Label>
+                        <span className="text-xs text-gray-600">@ Ksh</span>
                         <Input
                           type="number"
                           value={returnsBreakdown.max_empty.price6}
@@ -355,7 +356,8 @@ export default function AddTransactionForm({ customerId, customerName, onBack, o
                           className="w-24 md:w-40 text-lg md:text-2xl border-gray-300 focus:border-orange-400 focus:ring-orange-200 px-3 py-2 md:px-6 md:py-4"
                           placeholder="0"
                         />
-                        <span className="text-sm md:text-lg text-gray-600">13kg @ Ksh</span>
+                        <Label htmlFor="max_empty-kg13" className="w-20 text-xs font-medium text-orange-700">13kg</Label>
+                        <span className="text-xs text-gray-600">@ Ksh</span>
                         <Input
                           type="number"
                           value={returnsBreakdown.max_empty.price13}
@@ -374,7 +376,8 @@ export default function AddTransactionForm({ customerId, customerName, onBack, o
                           className="w-24 md:w-40 text-lg md:text-2xl border-gray-300 focus:border-orange-400 focus:ring-orange-200 px-3 py-2 md:px-6 md:py-4"
                           placeholder="0"
                         />
-                        <span className="text-sm md:text-lg text-gray-600">50kg @ Ksh</span>
+                        <Label htmlFor="max_empty-kg50" className="w-20 text-xs font-medium text-orange-700">50kg</Label>
+                        <span className="text-xs text-gray-600">@ Ksh</span>
                         <Input
                           type="number"
                           value={returnsBreakdown.max_empty.price50}
@@ -399,7 +402,8 @@ export default function AddTransactionForm({ customerId, customerName, onBack, o
                           className="w-24 md:w-40 text-lg md:text-2xl border-gray-300 focus:border-blue-400 focus:ring-blue-200 px-3 py-2 md:px-6 md:py-4"
                           placeholder="0"
                         />
-                        <span className="text-sm md:text-lg text-gray-600">6kg @ Ksh</span>
+                        <Label htmlFor="swap_empty-kg6" className="w-20 text-xs font-medium text-blue-700">6kg</Label>
+                        <span className="text-xs text-gray-600">@ Ksh</span>
                         <Input
                           type="number"
                           value={returnsBreakdown.swap_empty.price6}
@@ -418,7 +422,8 @@ export default function AddTransactionForm({ customerId, customerName, onBack, o
                           className="w-24 md:w-40 text-lg md:text-2xl border-gray-300 focus:border-blue-400 focus:ring-blue-200 px-3 py-2 md:px-6 md:py-4"
                           placeholder="0"
                         />
-                        <span className="text-sm md:text-lg text-gray-600">13kg @ Ksh</span>
+                        <Label htmlFor="swap_empty-kg13" className="w-20 text-xs font-medium text-blue-700">13kg</Label>
+                        <span className="text-xs text-gray-600">@ Ksh</span>
                         <Input
                           type="number"
                           value={returnsBreakdown.swap_empty.price13}
@@ -437,7 +442,8 @@ export default function AddTransactionForm({ customerId, customerName, onBack, o
                           className="w-24 md:w-40 text-lg md:text-2xl border-gray-300 focus:border-blue-400 focus:ring-blue-200 px-3 py-2 md:px-6 md:py-4"
                           placeholder="0"
                         />
-                        <span className="text-sm md:text-lg text-gray-600">50kg @ Ksh</span>
+                        <Label htmlFor="swap_empty-kg50" className="w-20 text-xs font-medium text-blue-700">50kg</Label>
+                        <span className="text-xs text-gray-600">@ Ksh</span>
                         <Input
                           type="number"
                           value={returnsBreakdown.swap_empty.price50}
@@ -462,7 +468,8 @@ export default function AddTransactionForm({ customerId, customerName, onBack, o
                           className="w-24 md:w-40 text-lg md:text-2xl border-gray-300 focus:border-green-400 focus:ring-green-200 px-3 py-2 md:px-6 md:py-4"
                           placeholder="0"
                         />
-                        <span className="text-sm md:text-lg text-gray-600">6kg cylinders</span>
+                        <Label htmlFor="return_full-kg6" className="w-20 text-xs font-medium text-green-700">6kg</Label>
+                        <span className="text-xs text-gray-600">cylinders</span>
                       </div>
                     </div>
                     <div>
@@ -475,7 +482,8 @@ export default function AddTransactionForm({ customerId, customerName, onBack, o
                           className="w-24 md:w-40 text-lg md:text-2xl border-gray-300 focus:border-green-400 focus:ring-green-200 px-3 py-2 md:px-6 md:py-4"
                           placeholder="0"
                         />
-                        <span className="text-sm md:text-lg text-gray-600">13kg cylinders</span>
+                        <Label htmlFor="return_full-kg13" className="w-20 text-xs font-medium text-green-700">13kg</Label>
+                        <span className="text-xs text-gray-600">cylinders</span>
                       </div>
                     </div>
                     <div>
@@ -488,7 +496,8 @@ export default function AddTransactionForm({ customerId, customerName, onBack, o
                           className="w-24 md:w-40 text-lg md:text-2xl border-gray-300 focus:border-green-400 focus:ring-green-200 px-3 py-2 md:px-6 md:py-4"
                           placeholder="0"
                         />
-                        <span className="text-sm md:text-lg text-gray-600">50kg cylinders</span>
+                        <Label htmlFor="return_full-kg50" className="w-20 text-xs font-medium text-green-700">50kg</Label>
+                        <span className="text-xs text-gray-600">cylinders</span>
                       </div>
                     </div>
                   </div>

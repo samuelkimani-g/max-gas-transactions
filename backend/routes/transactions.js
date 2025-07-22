@@ -229,10 +229,10 @@ router.get('/', [
     res.json({
       success: true,
       data: transactions,
-      pagination: {
+        pagination: {
         totalItems: count,
         totalPages: Math.ceil(count / limit),
-        currentPage: parseInt(page),
+          currentPage: parseInt(page),
       }
     });
 

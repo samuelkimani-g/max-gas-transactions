@@ -872,33 +872,3 @@ export const useStore = create()(
     )
   )
 )
-
-// Helper function for transaction calculations (moved from calculations.js)
-function calculateTransactionTotal(transaction) {
-  // MaxGas Refills - Price is per kg
-  const refillTotal =
-    (transaction.return6kg || 0) * 6 * (transaction.refillPrice6kg || 135) +
-    (transaction.return13kg || 0) * 13 * (transaction.refillPrice13kg || 135) +
-    (transaction.return50kg || 0) * 50 * (transaction.refillPrice50kg || 135)
-
-  // MaxGas Outright - Price is per cylinder
-  const outrightTotal =
-    (transaction.outright6kg || 0) * (transaction.outrightPrice6kg || 3200) +
-    (transaction.outright13kg || 0) * (transaction.outrightPrice13kg || 3500) +
-    (transaction.outright50kg || 0) * (transaction.outrightPrice50kg || 8500)
-
-  // Swipes - Price is per kg
-  const swipeTotal =
-    (transaction.swipeReturn6kg || 0) * 6 * (transaction.swipeRefillPrice6kg || 160) +
-    (transaction.swipeReturn13kg || 0) * 13 * (transaction.swipeRefillPrice13kg || 160) +
-    (transaction.swipeReturn50kg || 0) * 50 * (transaction.swipeRefillPrice50kg || 160)
-
-  return refillTotal + outrightTotal + swipeTotal
-}
-
-// Helper function to calculate outstanding amount
-function calculateOutstanding(transaction) {
-  const total = calculateTransactionTotal(transaction)
-  const paid = transaction.paid || 0
-  return total - paid
-}

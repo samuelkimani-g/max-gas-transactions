@@ -57,15 +57,6 @@ const LiveSummary = ({ summary }) => (
       <div className="grid grid-cols-2 gap-4">
         <div className="text-center p-3 bg-white/70 rounded-lg border border-orange-200">
           <div className="text-2xl font-bold text-orange-800">
-            {isNaN(summary.cylinderBalance) ? 0 : summary.cylinderBalance}
-          </div>
-          <div className="text-sm text-orange-600">
-            {summary.cylinderBalance > 0 ? 'Owed to Customer' : 'Owed to Us'}
-          </div>
-          <div className="text-xs text-orange-500 font-medium">Cylinder Balance</div>
-        </div>
-        <div className="text-center p-3 bg-white/70 rounded-lg border border-orange-200">
-          <div className="text-2xl font-bold text-orange-800">
             {isNaN(summary.financialBalance) ? 0 : summary.financialBalance.toFixed(2)}
           </div>
           <div className="text-sm text-orange-600">
@@ -79,12 +70,44 @@ const LiveSummary = ({ summary }) => (
           </div>
           <div className="text-xs text-orange-500 font-medium">Total Bill</div>
         </div>
-        <div className="text-center p-3 bg-white/70 rounded-lg border border-orange-200">
-          <div className="text-2xl font-bold text-orange-800">
-            {summary.amountPaid.toFixed(2)}
+      </div>
+      
+      {/* Detailed Cylinder Balance */}
+      <div className="bg-white/50 p-3 rounded-lg border border-orange-200">
+        <div className="text-sm font-semibold text-orange-800 mb-3">Cylinder Balance Breakdown</div>
+        <div className="grid grid-cols-3 gap-2 text-xs">
+          <div className="text-center p-2 bg-white/70 rounded border border-orange-100">
+            <div className={`text-lg font-bold ${summary.cylinderBalance_6kg > 0 ? 'text-red-600' : summary.cylinderBalance_6kg < 0 ? 'text-green-600' : 'text-orange-800'}`}>
+              {summary.cylinderBalance_6kg || 0}
+            </div>
+            <div className="text-orange-600">6kg</div>
           </div>
-          <div className="text-xs text-orange-500 font-medium">Amount Paid</div>
+          <div className="text-center p-2 bg-white/70 rounded border border-orange-100">
+            <div className={`text-lg font-bold ${summary.cylinderBalance_13kg > 0 ? 'text-red-600' : summary.cylinderBalance_13kg < 0 ? 'text-green-600' : 'text-orange-800'}`}>
+              {summary.cylinderBalance_13kg || 0}
+            </div>
+            <div className="text-orange-600">13kg</div>
+          </div>
+          <div className="text-center p-2 bg-white/70 rounded border border-orange-100">
+            <div className={`text-lg font-bold ${summary.cylinderBalance_50kg > 0 ? 'text-red-600' : summary.cylinderBalance_50kg < 0 ? 'text-green-600' : 'text-orange-800'}`}>
+              {summary.cylinderBalance_50kg || 0}
+            </div>
+            <div className="text-orange-600">50kg</div>
+          </div>
         </div>
+        <div className="mt-2 pt-2 border-t border-orange-200 text-center">
+          <div className={`text-xl font-bold ${summary.cylinderBalance > 0 ? 'text-red-600' : summary.cylinderBalance < 0 ? 'text-green-600' : 'text-orange-800'}`}>
+            {summary.cylinderBalance || 0}
+          </div>
+          <div className="text-xs text-orange-600">Total Cylinder Balance</div>
+        </div>
+      </div>
+      
+      <div className="text-center p-3 bg-white/70 rounded-lg border border-orange-200">
+        <div className="text-2xl font-bold text-orange-800">
+          {summary.amountPaid.toFixed(2)}
+        </div>
+        <div className="text-xs text-orange-500 font-medium">Amount Paid</div>
       </div>
     </CardContent>
   </Card>
@@ -127,45 +150,48 @@ export default function AddTransactionForm({ customerId, customerName, onBack, o
     }))
   }
   
-  const handleBreakdownChange = (setBreakdown, category, size, value) => {
+  const handleBreakdownChange = (setBreakdown, category, field, value) => {
     setBreakdown(prev => ({
       ...prev,
       [category]: {
         ...prev[category],
-        [size]: value
+        [field]: value
       }
     }))
   }
 
   const summary = useMemo(() => {
-    let totalBill = 0
-    let totalOutrightCount = 0
+    const maxEmptyTotal = (returnsBreakdown.max_empty.kg6 * returnsBreakdown.max_empty.price6) +
+                         (returnsBreakdown.max_empty.kg13 * returnsBreakdown.max_empty.price13) +
+                         (returnsBreakdown.max_empty.kg50 * returnsBreakdown.max_empty.price50)
     
-    // Calculate from returns - Max Empty
-    totalBill += (returnsBreakdown.max_empty.kg6 * returnsBreakdown.max_empty.price6) +
-                 (returnsBreakdown.max_empty.kg13 * returnsBreakdown.max_empty.price13) +
-                 (returnsBreakdown.max_empty.kg50 * returnsBreakdown.max_empty.price50)
+    const swapEmptyTotal = (returnsBreakdown.swap_empty.kg6 * returnsBreakdown.swap_empty.price6) +
+                          (returnsBreakdown.swap_empty.kg13 * returnsBreakdown.swap_empty.price13) +
+                          (returnsBreakdown.swap_empty.kg50 * returnsBreakdown.swap_empty.price50)
     
-    // Calculate from returns - Swap Empty  
-    totalBill += (returnsBreakdown.swap_empty.kg6 * returnsBreakdown.swap_empty.price6) +
-                 (returnsBreakdown.swap_empty.kg13 * returnsBreakdown.swap_empty.price13) +
-                 (returnsBreakdown.swap_empty.kg50 * returnsBreakdown.swap_empty.price50)
+    const outrightTotal = (outrightBreakdown.kg6.count * outrightBreakdown.kg6.price) +
+                         (outrightBreakdown.kg13.count * outrightBreakdown.kg13.price) +
+                         (outrightBreakdown.kg50.count * outrightBreakdown.kg50.price)
     
-    // Return Full cylinders don't generate revenue (customer returning our cylinders)
-    // No calculation needed for return_full
-    
-    // Calculate from outright purchases
-    totalBill += (outrightBreakdown.kg6.count * outrightBreakdown.kg6.price) +
-                 (outrightBreakdown.kg13.count * outrightBreakdown.kg13.price) +
-                 (outrightBreakdown.kg50.count * outrightBreakdown.kg50.price)
-    
-    totalOutrightCount = outrightBreakdown.kg6.count + outrightBreakdown.kg13.count + outrightBreakdown.kg50.count
-
+    const totalBill = maxEmptyTotal + swapEmptyTotal + outrightTotal
     const financialBalance = totalBill - amountPaid
-    const cylinderBalance = totalLoad - (totalReturns + totalOutrightCount)
 
-    return { totalBill, financialBalance, cylinderBalance, amountPaid }
-  }, [returnsBreakdown, outrightBreakdown, totalLoad, totalReturns, amountPaid])
+    // Calculate detailed cylinder balance by size
+    const cylinderBalance_6kg = loadBreakdown.kg6 - (returnsBreakdown.max_empty.kg6 + returnsBreakdown.swap_empty.kg6 + returnsBreakdown.return_full.kg6 + outrightBreakdown.kg6.count)
+    const cylinderBalance_13kg = loadBreakdown.kg13 - (returnsBreakdown.max_empty.kg13 + returnsBreakdown.swap_empty.kg13 + returnsBreakdown.return_full.kg13 + outrightBreakdown.kg13.count)
+    const cylinderBalance_50kg = loadBreakdown.kg50 - (returnsBreakdown.max_empty.kg50 + returnsBreakdown.swap_empty.kg50 + returnsBreakdown.return_full.kg50 + outrightBreakdown.kg50.count)
+    const cylinderBalance = cylinderBalance_6kg + cylinderBalance_13kg + cylinderBalance_50kg
+
+    return {
+      totalBill,
+      financialBalance,
+      cylinderBalance,
+      cylinderBalance_6kg,
+      cylinderBalance_13kg,
+      cylinderBalance_50kg,
+      amountPaid
+    }
+  }, [loadBreakdown, returnsBreakdown, outrightBreakdown, amountPaid])
 
   // Auto-calculate totals from breakdowns
   const calculatedTotalReturns = useMemo(() => {
@@ -417,6 +443,198 @@ export default function AddTransactionForm({ customerId, customerName, onBack, o
           </div>
         </div>
       </SectionCard>
+
+      <SectionCard title="Step 4: Returns Breakdown" description="Cylinders brought back by the customer.">
+          <div className="space-y-6">
+            {/* Max Empty */}
+            <div className="bg-white/70 p-4 rounded-lg border border-orange-200">
+              <h4 className="font-semibold text-orange-800 mb-3">Max Empty</h4>
+              <div className="space-y-3">
+                <div className="flex items-center gap-3">
+                  <Label className="w-16 text-sm font-medium text-orange-700">6kg</Label>
+                  <Input
+                    type="number"
+                    value={returnsBreakdown.max_empty.kg6 === 0 ? '' : returnsBreakdown.max_empty.kg6}
+                    onChange={e => handleBreakdownChange(setReturnsBreakdown, 'max_empty', 'kg6', e.target.value === '' ? 0 : parseInt(e.target.value, 10) || 0)}
+                    onFocus={(e) => e.target.select()}
+                    className="w-20 border-orange-200 focus:border-orange-400 focus:ring-orange-200"
+                    placeholder="0"
+                  />
+                  <span className="text-orange-600 text-sm">@ Ksh</span>
+                  <Input
+                    type="number"
+                    value={returnsBreakdown.max_empty.price6}
+                    onChange={e => handleBreakdownChange(setReturnsBreakdown, 'max_empty', 'price6', parseFloat(e.target.value) || 0)}
+                    className="w-20 border-orange-200 focus:border-orange-400 focus:ring-orange-200"
+                  />
+                </div>
+                <div className="flex items-center gap-3">
+                  <Label className="w-16 text-sm font-medium text-orange-700">13kg</Label>
+                  <Input
+                    type="number"
+                    value={returnsBreakdown.max_empty.kg13 === 0 ? '' : returnsBreakdown.max_empty.kg13}
+                    onChange={e => handleBreakdownChange(setReturnsBreakdown, 'max_empty', 'kg13', e.target.value === '' ? 0 : parseInt(e.target.value, 10) || 0)}
+                    onFocus={(e) => e.target.select()}
+                    className="w-20 border-orange-200 focus:border-orange-400 focus:ring-orange-200"
+                    placeholder="0"
+                  />
+                  <span className="text-orange-600 text-sm">@ Ksh</span>
+                  <Input
+                    type="number"
+                    value={returnsBreakdown.max_empty.price13}
+                    onChange={e => handleBreakdownChange(setReturnsBreakdown, 'max_empty', 'price13', parseFloat(e.target.value) || 0)}
+                    className="w-20 border-orange-200 focus:border-orange-400 focus:ring-orange-200"
+                  />
+                </div>
+                <div className="flex items-center gap-3">
+                  <Label className="w-16 text-sm font-medium text-orange-700">50kg</Label>
+                  <Input
+                    type="number"
+                    value={returnsBreakdown.max_empty.kg50 === 0 ? '' : returnsBreakdown.max_empty.kg50}
+                    onChange={e => handleBreakdownChange(setReturnsBreakdown, 'max_empty', 'kg50', e.target.value === '' ? 0 : parseInt(e.target.value, 10) || 0)}
+                    onFocus={(e) => e.target.select()}
+                    className="w-20 border-orange-200 focus:border-orange-400 focus:ring-orange-200"
+                    placeholder="0"
+                  />
+                  <span className="text-orange-600 text-sm">@ Ksh</span>
+                  <Input
+                    type="number"
+                    value={returnsBreakdown.max_empty.price50}
+                    onChange={e => handleBreakdownChange(setReturnsBreakdown, 'max_empty', 'price50', parseFloat(e.target.value) || 0)}
+                    className="w-20 border-orange-200 focus:border-orange-400 focus:ring-orange-200"
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* Swap Empty */}
+            <div className="bg-white/70 p-4 rounded-lg border border-orange-200">
+              <h4 className="font-semibold text-orange-800 mb-3">Swap Empty</h4>
+              <div className="space-y-3">
+                <div className="flex items-center gap-3">
+                  <Label className="w-16 text-sm font-medium text-orange-700">6kg</Label>
+                  <Input
+                    type="number"
+                    value={returnsBreakdown.swap_empty.kg6 === 0 ? '' : returnsBreakdown.swap_empty.kg6}
+                    onChange={e => handleBreakdownChange(setReturnsBreakdown, 'swap_empty', 'kg6', e.target.value === '' ? 0 : parseInt(e.target.value, 10) || 0)}
+                    onFocus={(e) => e.target.select()}
+                    className="w-20 border-orange-200 focus:border-orange-400 focus:ring-orange-200"
+                    placeholder="0"
+                  />
+                  <span className="text-orange-600 text-sm">@ Ksh</span>
+                  <Input
+                    type="number"
+                    value={returnsBreakdown.swap_empty.price6}
+                    onChange={e => handleBreakdownChange(setReturnsBreakdown, 'swap_empty', 'price6', parseFloat(e.target.value) || 0)}
+                    className="w-20 border-orange-200 focus:border-orange-400 focus:ring-orange-200"
+                  />
+                </div>
+                <div className="flex items-center gap-3">
+                  <Label className="w-16 text-sm font-medium text-orange-700">13kg</Label>
+                  <Input
+                    type="number"
+                    value={returnsBreakdown.swap_empty.kg13 === 0 ? '' : returnsBreakdown.swap_empty.kg13}
+                    onChange={e => handleBreakdownChange(setReturnsBreakdown, 'swap_empty', 'kg13', e.target.value === '' ? 0 : parseInt(e.target.value, 10) || 0)}
+                    onFocus={(e) => e.target.select()}
+                    className="w-20 border-orange-200 focus:border-orange-400 focus:ring-orange-200"
+                    placeholder="0"
+                  />
+                  <span className="text-orange-600 text-sm">@ Ksh</span>
+                  <Input
+                    type="number"
+                    value={returnsBreakdown.swap_empty.price13}
+                    onChange={e => handleBreakdownChange(setReturnsBreakdown, 'swap_empty', 'price13', parseFloat(e.target.value) || 0)}
+                    className="w-20 border-orange-200 focus:border-orange-400 focus:ring-orange-200"
+                  />
+                </div>
+                <div className="flex items-center gap-3">
+                  <Label className="w-16 text-sm font-medium text-orange-700">50kg</Label>
+                  <Input
+                    type="number"
+                    value={returnsBreakdown.swap_empty.kg50 === 0 ? '' : returnsBreakdown.swap_empty.kg50}
+                    onChange={e => handleBreakdownChange(setReturnsBreakdown, 'swap_empty', 'kg50', e.target.value === '' ? 0 : parseInt(e.target.value, 10) || 0)}
+                    onFocus={(e) => e.target.select()}
+                    className="w-20 border-orange-200 focus:border-orange-400 focus:ring-orange-200"
+                    placeholder="0"
+                  />
+                  <span className="text-orange-600 text-sm">@ Ksh</span>
+                  <Input
+                    type="number"
+                    value={returnsBreakdown.swap_empty.price50}
+                    onChange={e => handleBreakdownChange(setReturnsBreakdown, 'swap_empty', 'price50', parseFloat(e.target.value) || 0)}
+                    className="w-20 border-orange-200 focus:border-orange-400 focus:ring-orange-200"
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* Return Full */}
+            <div className="bg-white/70 p-4 rounded-lg border border-orange-200">
+              <h4 className="font-semibold text-orange-800 mb-3">Return Full</h4>
+              <div className="space-y-3">
+                <div className="flex items-center gap-3">
+                  <Label className="w-16 text-sm font-medium text-orange-700">6kg</Label>
+                  <Input
+                    type="number"
+                    value={returnsBreakdown.return_full.kg6 === 0 ? '' : returnsBreakdown.return_full.kg6}
+                    onChange={e => handleBreakdownChange(setReturnsBreakdown, 'return_full', 'kg6', e.target.value === '' ? 0 : parseInt(e.target.value, 10) || 0)}
+                    onFocus={(e) => e.target.select()}
+                    className="w-20 border-orange-200 focus:border-orange-400 focus:ring-orange-200"
+                    placeholder="0"
+                  />
+                  <span className="text-orange-600 text-sm">cylinders</span>
+                </div>
+                <div className="flex items-center gap-3">
+                  <Label className="w-16 text-sm font-medium text-orange-700">13kg</Label>
+                  <Input
+                    type="number"
+                    value={returnsBreakdown.return_full.kg13 === 0 ? '' : returnsBreakdown.return_full.kg13}
+                    onChange={e => handleBreakdownChange(setReturnsBreakdown, 'return_full', 'kg13', e.target.value === '' ? 0 : parseInt(e.target.value, 10) || 0)}
+                    onFocus={(e) => e.target.select()}
+                    className="w-20 border-orange-200 focus:border-orange-400 focus:ring-orange-200"
+                    placeholder="0"
+                  />
+                  <span className="text-orange-600 text-sm">cylinders</span>
+                </div>
+                <div className="flex items-center gap-3">
+                  <Label className="w-16 text-sm font-medium text-orange-700">50kg</Label>
+                  <Input
+                    type="number"
+                    value={returnsBreakdown.return_full.kg50 === 0 ? '' : returnsBreakdown.return_full.kg50}
+                    onChange={e => handleBreakdownChange(setReturnsBreakdown, 'return_full', 'kg50', e.target.value === '' ? 0 : parseInt(e.target.value, 10) || 0)}
+                    onFocus={(e) => e.target.select()}
+                    className="w-20 border-orange-200 focus:border-orange-400 focus:ring-orange-200"
+                    placeholder="0"
+                  />
+                  <span className="text-orange-600 text-sm">cylinders</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Total Returns Summary with Validation */}
+            <div className={`p-4 rounded-lg border-l-4 ${
+              calculatedTotalReturns > calculatedTotalLoad 
+                ? 'bg-red-50 border-red-500' 
+                : 'bg-orange-100 border-orange-500'
+            }`}>
+              <div className="flex justify-between items-center">
+                <span className="font-semibold text-orange-800">Total Returns:</span>
+                <span className={`text-2xl font-bold ${
+                  calculatedTotalReturns > calculatedTotalLoad 
+                    ? 'text-red-600' 
+                    : 'text-orange-900'
+                }`}>
+                  {calculatedTotalReturns} cylinders
+                </span>
+              </div>
+              {calculatedTotalReturns > calculatedTotalLoad && (
+                <div className="mt-2 text-red-600 text-sm font-medium">
+                  ⚠️ Error: Returns exceed total load by {calculatedTotalReturns - calculatedTotalLoad} cylinders
+                </div>
+              )}
+            </div>
+          </div>
+        </SectionCard>
 
       <SectionCard title="Step 4: Payment" description="Settle the financial balance.">
         <div className="grid grid-cols-2 gap-4">

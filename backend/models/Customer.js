@@ -56,9 +56,21 @@ const Customer = sequelize.define('Customer', {
   },
   cylinder_balance: {
     type: DataTypes.INTEGER,
-    defaultValue: 0,
-    allowNull: false,
-    comment: 'The overall physical cylinder balance for the customer. Positive means they owe cylinders.'
+    defaultValue: 0
+  },
+  
+  // Detailed cylinder balance by size
+  cylinder_balance_6kg: {
+    type: DataTypes.INTEGER,
+    defaultValue: 0
+  },
+  cylinder_balance_13kg: {
+    type: DataTypes.INTEGER,
+    defaultValue: 0
+  },
+  cylinder_balance_50kg: {
+    type: DataTypes.INTEGER,
+    defaultValue: 0
   },
   
   // -- Standard Fields --

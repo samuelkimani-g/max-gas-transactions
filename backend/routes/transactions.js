@@ -14,121 +14,143 @@ const router = express.Router();
 // @route   POST /api/transactions
 // @desc    Create a new transaction using the Reconciled Ledger System
 // @access  Private
-router.post('/', [
-  authenticateToken,
-  requirePermission('transactions:create'),
-  // Basic validation - more complex validation will be done in the route handler
-  body('customerId', 'Customer ID is required').isInt(),
-  body('date', 'Date is required').isISO8601(),
-  body('total_returns', 'Total Returns count is required').isInt({ min: 0 }),
-  body('total_load', 'Total Load count is required').isInt({ min: 0 }),
-  body('returns_breakdown', 'Returns breakdown is required').isObject(),
-  body('outright_breakdown', 'Outright breakdown is required').isObject(),
-  body('amount_paid').optional().isDecimal(),
-  body('payment_method').optional().isString(),
-], async (req, res) => {
-  const errors = validationResult(req);
-  if (!errors.isEmpty()) {
-    return res.status(400).json({ success: false, message: 'Validation errors', errors: errors.array() });
-  }
-
-  const t = await sequelize.transaction();
-
+router.post('/', authenticateToken, async (req, res) => {
+  const transaction = await sequelize.transaction();
+  
   try {
-    const {
-      customerId,
-      date,
-      total_returns,
-      total_load,
-      returns_breakdown,
-      outright_breakdown,
-      amount_paid = 0,
-      payment_method = 'credit',
-      notes,
+    const { 
+      customerId, 
+      loadBreakdown,
+      returnsBreakdown, 
+      outrightBreakdown, 
+      amountPaid, 
+      paymentMethod, 
+      notes 
     } = req.body;
 
-    // --- 1. Validate Customer ---
-    const customer = await Customer.findByPk(customerId, { transaction: t });
+    // Validate customer exists
+    const customer = await Customer.findByPk(customerId);
     if (!customer) {
-      await t.rollback();
-      return res.status(404).json({ success: false, message: 'Customer not found' });
+      await transaction.rollback();
+      return res.status(404).json({ success: false, error: 'Customer not found' });
     }
 
-    // --- 2. Calculate Financials (Total Bill & Balance) ---
-    let total_bill = 0;
+    // Calculate detailed load
+    const load_6kg = loadBreakdown?.kg6 || 0;
+    const load_13kg = loadBreakdown?.kg13 || 0;
+    const load_50kg = loadBreakdown?.kg50 || 0;
+    const total_load = load_6kg + load_13kg + load_50kg;
+
+    // Calculate total returns by size
+    const returns_6kg = (returnsBreakdown?.max_empty?.kg6 || 0) + 
+                       (returnsBreakdown?.swap_empty?.kg6 || 0) + 
+                       (returnsBreakdown?.return_full?.kg6 || 0);
+    const returns_13kg = (returnsBreakdown?.max_empty?.kg13 || 0) + 
+                        (returnsBreakdown?.swap_empty?.kg13 || 0) + 
+                        (returnsBreakdown?.return_full?.kg13 || 0);
+    const returns_50kg = (returnsBreakdown?.max_empty?.kg50 || 0) + 
+                        (returnsBreakdown?.swap_empty?.kg50 || 0) + 
+                        (returnsBreakdown?.return_full?.kg50 || 0);
+    const total_returns = returns_6kg + returns_13kg + returns_50kg;
+
+    // Calculate outright totals by size
+    const outright_6kg = outrightBreakdown?.kg6?.count || 0;
+    const outright_13kg = outrightBreakdown?.kg13?.count || 0;
+    const outright_50kg = outrightBreakdown?.kg50?.count || 0;
+
+    // Calculate detailed cylinder balances
+    const cylinder_balance_6kg = load_6kg - (returns_6kg + outright_6kg);
+    const cylinder_balance_13kg = load_13kg - (returns_13kg + outright_13kg);
+    const cylinder_balance_50kg = load_50kg - (returns_50kg + outright_50kg);
+    const cylinder_balance = cylinder_balance_6kg + cylinder_balance_13kg + cylinder_balance_50kg;
+
+    // Calculate financial totals
+    const maxEmptyTotal = ((returnsBreakdown?.max_empty?.kg6 || 0) * (returnsBreakdown?.max_empty?.price6 || 0)) +
+                         ((returnsBreakdown?.max_empty?.kg13 || 0) * (returnsBreakdown?.max_empty?.price13 || 0)) +
+                         ((returnsBreakdown?.max_empty?.kg50 || 0) * (returnsBreakdown?.max_empty?.price50 || 0));
     
-    // Calculate cost from returns/swaps
-    if (returns_breakdown.max_empty) {
-      total_bill += (returns_breakdown.max_empty.kg6 || 0) * (returns_breakdown.max_empty.price6 || 0);
-      total_bill += (returns_breakdown.max_empty.kg13 || 0) * (returns_breakdown.max_empty.price13 || 0);
-      total_bill += (returns_breakdown.max_empty.kg50 || 0) * (returns_breakdown.max_empty.price50 || 0);
-    }
-    if (returns_breakdown.swap_empty) {
-      total_bill += (returns_breakdown.swap_empty.kg6 || 0) * (returns_breakdown.swap_empty.price6 || 0);
-      total_bill += (returns_breakdown.swap_empty.kg13 || 0) * (returns_breakdown.swap_empty.price13 || 0);
-      total_bill += (returns_breakdown.swap_empty.kg50 || 0) * (returns_breakdown.swap_empty.price50 || 0);
-    }
-
-    // Calculate cost from outright purchases
-    let total_outright_count = 0;
-    if (outright_breakdown.kg6) {
-      total_bill += (outright_breakdown.kg6.count || 0) * (outright_breakdown.kg6.price || 0);
-      total_outright_count += (outright_breakdown.kg6.count || 0);
-    }
-    if (outright_breakdown.kg13) {
-      total_bill += (outright_breakdown.kg13.count || 0) * (outright_breakdown.kg13.price || 0);
-      total_outright_count += (outright_breakdown.kg13.count || 0);
-    }
-    if (outright_breakdown.kg50) {
-      total_bill += (outright_breakdown.kg50.count || 0) * (outright_breakdown.kg50.price || 0);
-      total_outright_count += (outright_breakdown.kg50.count || 0);
-    }
+    const swapEmptyTotal = ((returnsBreakdown?.swap_empty?.kg6 || 0) * (returnsBreakdown?.swap_empty?.price6 || 0)) +
+                          ((returnsBreakdown?.swap_empty?.kg13 || 0) * (returnsBreakdown?.swap_empty?.price13 || 0)) +
+                          ((returnsBreakdown?.swap_empty?.kg50 || 0) * (returnsBreakdown?.swap_empty?.price50 || 0));
     
-    const financial_balance = parseFloat(total_bill) - parseFloat(amount_paid);
+    const outrightTotal = ((outrightBreakdown?.kg6?.count || 0) * (outrightBreakdown?.kg6?.price || 0)) +
+                         ((outrightBreakdown?.kg13?.count || 0) * (outrightBreakdown?.kg13?.price || 0)) +
+                         ((outrightBreakdown?.kg50?.count || 0) * (outrightBreakdown?.kg50?.price || 0));
+    
+    const total_bill = maxEmptyTotal + swapEmptyTotal + outrightTotal;
+    const financial_balance = total_bill - (amountPaid || 0);
 
-    // --- 3. Calculate Physical Cylinder Balance ---
-    const cylinder_balance = parseInt(total_load, 10) - (parseInt(total_returns, 10) + total_outright_count);
-
-    // --- 4. Create Transaction Record ---
-    const transactionRecord = await Transaction.create({
+    // Create transaction record
+    const newTransaction = await Transaction.create({
       customerId,
       userId: req.user.id,
-      date,
-      total_returns,
+      
+      // Detailed load tracking
+      load_6kg,
+      load_13kg,
+      load_50kg,
       total_load,
-      returns_breakdown,
-      outright_breakdown,
-      total_bill: parseFloat(total_bill).toFixed(2),
-      amount_paid: parseFloat(amount_paid).toFixed(2),
-      payment_method,
-      financial_balance: financial_balance.toFixed(2),
+      
+      // Breakdown data
+      returns_breakdown: returnsBreakdown || {},
+      outright_breakdown: outrightBreakdown || {},
+      total_returns,
+      
+      // Detailed cylinder balances
+      cylinder_balance_6kg,
+      cylinder_balance_13kg,
+      cylinder_balance_50kg,
       cylinder_balance,
-      notes,
-      status: 'completed',
-    }, { transaction: t });
+      
+      // Financial data
+      total_bill,
+      amount_paid: amountPaid || 0,
+      financial_balance,
+      payment_method: paymentMethod || 'cash',
+      notes: notes || ''
+    }, { transaction });
 
-    // --- 5. Update Customer's Overall Balances ---
-    const currentFinancialBalance = parseFloat(customer.financial_balance || 0);
-    const currentCylinderBalance = parseInt(customer.cylinder_balance || 0, 10);
+    // Update customer balances with detailed tracking
+    const currentCustomer = await Customer.findByPk(customerId, { transaction });
+    const newFinancialBalance = (currentCustomer.financial_balance || 0) + financial_balance;
+    const newCylinderBalance = (currentCustomer.cylinder_balance || 0) + cylinder_balance;
+    const newCylinderBalance6kg = (currentCustomer.cylinder_balance_6kg || 0) + cylinder_balance_6kg;
+    const newCylinderBalance13kg = (currentCustomer.cylinder_balance_13kg || 0) + cylinder_balance_13kg;
+    const newCylinderBalance50kg = (currentCustomer.cylinder_balance_50kg || 0) + cylinder_balance_50kg;
 
-    customer.financial_balance = (currentFinancialBalance + financial_balance).toFixed(2);
-    customer.cylinder_balance = currentCylinderBalance + cylinder_balance;
-    customer.lastTransactionDate = date;
-    
-    await customer.save({ transaction: t });
+    await Customer.update({
+      financial_balance: newFinancialBalance,
+      cylinder_balance: newCylinderBalance,
+      cylinder_balance_6kg: newCylinderBalance6kg,
+      cylinder_balance_13kg: newCylinderBalance13kg,
+      cylinder_balance_50kg: newCylinderBalance50kg
+    }, { 
+      where: { id: customerId },
+      transaction 
+    });
 
-    await t.commit();
+    await transaction.commit();
 
-    res.status(201).json({
+    // Fetch the complete transaction with user details
+    const completeTransaction = await Transaction.findByPk(newTransaction.id, {
+      include: [
+        { model: Customer, attributes: ['name', 'phone'] },
+        { model: User, attributes: ['username'] }
+      ]
+    });
+
+    res.json({
       success: true,
-      message: 'Transaction created successfully',
-      data: { transaction: transactionRecord }
+      data: { transaction: completeTransaction }
     });
 
   } catch (error) {
-    await t.rollback();
-    console.error('Create transaction error:', error);
-    res.status(500).json({ success: false, message: 'Server error', error: error.message });
+    await transaction.rollback();
+    console.error('Transaction creation error:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to create transaction: ' + error.message
+    });
   }
 });
 

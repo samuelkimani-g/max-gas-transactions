@@ -158,4 +158,64 @@ router.post('/clear-branches', authenticateToken, requirePermission('users:creat
   }
 });
 
+router.post('/clear-db', authenticateToken, requirePermission('users:create'), async (req, res) => {
+  try {
+    if (req.user.role !== 'admin') {
+      return res.status(403).json({ 
+        success: false, 
+        error: 'Access denied. Admin privileges required.' 
+      });
+    }
+
+    console.log('🧹 Admin requested database cleanup...');
+    
+    // First, delete all transactions (they reference customers)
+    console.log('📝 Deleting all transactions...');
+    const deletedTransactions = await sequelize.query('DELETE FROM transactions;', { type: QueryTypes.DELETE });
+    console.log(`Deleted ${deletedTransactions[1]} transactions`);
+    
+    // Then delete all customers
+    console.log('📝 Deleting all customers...');
+    const deletedCustomers = await sequelize.query('DELETE FROM customers;', { type: QueryTypes.DELETE });
+    console.log(`Deleted ${deletedCustomers[1]} customers`);
+    
+    // Reset the ID sequences to start from 1 again
+    console.log('📝 Resetting ID sequences...');
+    try {
+      await sequelize.query('ALTER SEQUENCE customers_id_seq RESTART WITH 1;', { type: QueryTypes.RAW });
+      await sequelize.query('ALTER SEQUENCE transactions_id_seq RESTART WITH 1;', { type: QueryTypes.RAW });
+      console.log('✅ Sequences reset successfully');
+    } catch (e) {
+      console.log('ℹ️ Sequence reset not needed (SQLite or already reset)');
+    }
+    
+    // Verify users are still there
+    console.log('📝 Checking users...');
+    const users = await sequelize.query('SELECT username, role FROM users ORDER BY username;', { type: QueryTypes.SELECT });
+    console.log('👥 Remaining users:');
+    users.forEach(user => console.log(`  - ${user.username} (${user.role})`));
+    
+    console.log('✅ Database cleanup completed successfully!');
+    
+    res.json({
+      success: true,
+      message: 'Database cleared successfully',
+      details: {
+        deletedCustomers: deletedCustomers[1],
+        deletedTransactions: deletedTransactions[1],
+        preservedUsers: users.length,
+        users: users.map(u => ({ username: u.username, role: u.role }))
+      }
+    });
+
+  } catch (error) {
+    console.error('❌ Database cleanup failed:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Database cleanup failed: ' + error.message,
+      details: error.stack
+    });
+  }
+});
+
 module.exports = router; 

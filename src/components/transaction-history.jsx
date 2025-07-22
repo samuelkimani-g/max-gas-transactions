@@ -196,6 +196,7 @@ export default function TransactionHistory({ transactions = [], customerId, onEd
             const outright6kg = modalTransaction.outright_breakdown?.kg6 || 0;
             const outright13kg = modalTransaction.outright_breakdown?.kg13 || 0;
             const outright50kg = modalTransaction.outright_breakdown?.kg50 || 0;
+            const outrightTotal = (outright6kg * (modalTransaction.outright_breakdown?.price6 || 0)) + (outright13kg * (modalTransaction.outright_breakdown?.price13 || 0)) + (outright50kg * (modalTransaction.outright_breakdown?.price50 || 0));
             const totalOutright = outright6kg + outright13kg + outright50kg;
             return (
               <div className="p-8 space-y-8">
@@ -224,6 +225,7 @@ export default function TransactionHistory({ transactions = [], customerId, onEd
                     <div className="space-y-1 text-lg">
                       <div>{modalTransaction.outright_breakdown ? `${modalTransaction.outright_breakdown.kg6 || 0} x 6kg @ Ksh ${modalTransaction.outright_breakdown.price6 || 0}, ${modalTransaction.outright_breakdown.kg13 || 0} x 13kg @ Ksh ${modalTransaction.outright_breakdown.price13 || 0}, ${modalTransaction.outright_breakdown.kg50 || 0} x 50kg @ Ksh ${modalTransaction.outright_breakdown.price50 || 0}` : '-'}</div>
                     </div>
+                    <div className="mt-2 font-bold text-blue-700">Outright Total: Ksh {formatNumber(outrightTotal)}</div>
                   </div>
                   <div className="bg-green-50 rounded-xl p-6 border shadow flex flex-col items-start">
                     <h4 className="font-bold mb-3 text-green-700 flex items-center gap-2"><DollarSign className="w-5 h-5" /> Load & Totals</h4>

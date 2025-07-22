@@ -51,9 +51,10 @@ export default function EnhancedCustomerDetail({ customerId, onBack }) {
   const totalBill = customerTransactions.reduce((sum, t) => sum + calculateTransactionTotal(t), 0);
   const totalPaid = customerTransactions.reduce((sum, t) => sum + (parseFloat(t.amount_paid) || 0), 0);
   const financialBalance = totalBill - totalPaid;
-  const cylinderBalance6kg = customerTransactions.reduce((sum, t) => sum + ((t.load_6kg || 0) - ((t.returns_breakdown?.max_empty?.kg6 || 0) + (t.returns_breakdown?.swap_empty?.kg6 || 0) + (t.returns_breakdown?.return_full?.kg6 || 0) + (t.outright_breakdown?.kg6 || 0))), 0);
-  const cylinderBalance13kg = customerTransactions.reduce((sum, t) => sum + ((t.load_13kg || 0) - ((t.returns_breakdown?.max_empty?.kg13 || 0) + (t.returns_breakdown?.swap_empty?.kg13 || 0) + (t.returns_breakdown?.return_full?.kg13 || 0) + (t.outright_breakdown?.kg13 || 0))), 0);
-  const cylinderBalance50kg = customerTransactions.reduce((sum, t) => sum + ((t.load_50kg || 0) - ((t.returns_breakdown?.max_empty?.kg50 || 0) + (t.returns_breakdown?.swap_empty?.kg50 || 0) + (t.returns_breakdown?.return_full?.kg50 || 0) + (t.outright_breakdown?.kg50 || 0))), 0);
+  // Fix cylinder balance calculation:
+  const cylinderBalance6kg = customerTransactions.reduce((sum, t) => sum + ((t.load_6kg || 0) - ((t.returns_breakdown?.max_empty?.kg6 || 0) + (t.returns_breakdown?.swap_empty?.kg6 || 0) + (t.returns_breakdown?.return_full?.kg6 || 0))), 0);
+  const cylinderBalance13kg = customerTransactions.reduce((sum, t) => sum + ((t.load_13kg || 0) - ((t.returns_breakdown?.max_empty?.kg13 || 0) + (t.returns_breakdown?.swap_empty?.kg13 || 0) + (t.returns_breakdown?.return_full?.kg13 || 0))), 0);
+  const cylinderBalance50kg = customerTransactions.reduce((sum, t) => sum + ((t.load_50kg || 0) - ((t.returns_breakdown?.max_empty?.kg50 || 0) + (t.returns_breakdown?.swap_empty?.kg50 || 0) + (t.returns_breakdown?.return_full?.kg50 || 0))), 0);
   const cylinderBalance = cylinderBalance6kg + cylinderBalance13kg + cylinderBalance50kg;
 
   const handleDeleteCustomer = async () => {

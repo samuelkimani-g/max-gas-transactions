@@ -112,9 +112,12 @@ export default function AddTransactionForm({ customerId, customerName, onBack, o
   })
 
   const [outrightBreakdown, setOutrightBreakdown] = useState({
-    kg6: { count: 0, price: 2200 },
-    kg13: { count: 0, price: 4400 },
-    kg50: { count: 0, price: 8000 },
+    kg6: 0,
+    kg13: 0,
+    kg50: 0,
+    price6: 2200,
+    price13: 4400,
+    price50: 8000,
   })
   
   const handleLoadChange = (size, value) => {
@@ -198,7 +201,7 @@ export default function AddTransactionForm({ customerId, customerName, onBack, o
         loadBreakdown,
         returnsBreakdown,
         outrightBreakdown,
-        totalLoad: totalLoad.kg6 + totalLoad.kg13 + totalLoad.kg50,
+        totalLoad: calculatedTotalReturns + outrightBreakdown.kg6 + outrightBreakdown.kg13 + outrightBreakdown.kg50,
         amountPaid,
         paymentMethod,
         notes
@@ -521,11 +524,85 @@ export default function AddTransactionForm({ customerId, customerName, onBack, o
           </div>
         </SectionCard>
         
-        <SectionCard title="Step 2: Cylinders BOUGHT" description="Brand-new cylinders purchased separately.">
-          <div className="space-y-2">
-            <BreakdownInput name="6kg Outright" value={outrightBreakdown.kg6.count} price={outrightBreakdown.kg6.price} onCountChange={v => handleBreakdownChange(setOutrightBreakdown, 'kg6', 'count', v)} onPriceChange={v => handleBreakdownChange(setOutrightBreakdown, 'kg6', 'price', v)} />
-            <BreakdownInput name="13kg Outright" value={outrightBreakdown.kg13.count} price={outrightBreakdown.kg13.price} onCountChange={v => handleBreakdownChange(setOutrightBreakdown, 'kg13', 'count', v)} onPriceChange={v => handleBreakdownChange(setOutrightBreakdown, 'kg13', 'price', v)} />
-            <BreakdownInput name="50kg Outright" value={outrightBreakdown.kg50.count} price={outrightBreakdown.kg50.price} onCountChange={v => handleBreakdownChange(setOutrightBreakdown, 'kg50', 'count', v)} onPriceChange={v => handleBreakdownChange(setOutrightBreakdown, 'kg50', 'price', v)} />
+        <SectionCard title="Step 2: Outright" description="Brand-new cylinders purchased separately.">
+          <div className="space-y-4">
+            <h4 className="font-semibold text-gray-800">Outright Purchases</h4>
+            <div className="text-sm text-gray-600 mb-3">
+              New cylinders purchased by the customer
+            </div>
+
+            {/* Outright Breakdown */}
+            <div className="bg-white p-4 rounded border border-gray-200">
+              <h5 className="font-medium text-gray-800 mb-3">Outright Cylinders</h5>
+              <div className="grid grid-cols-3 gap-4">
+                <div>
+                  <div className="flex items-center gap-2">
+                    <Input
+                      type="number"
+                      value={outrightBreakdown.kg6 === 0 ? '' : outrightBreakdown.kg6}
+                      onChange={e => setOutrightBreakdown(prev => ({...prev, kg6: e.target.value === '' ? 0 : parseInt(e.target.value, 10) || 0}))}
+                      onFocus={(e) => e.target.select()}
+                      className="w-16 border-gray-300 focus:border-orange-400 focus:ring-orange-200"
+                      placeholder="0"
+                    />
+                    <span className="text-sm text-gray-600">6kg @ Ksh</span>
+                    <Input
+                      type="number"
+                      value={outrightBreakdown.price6}
+                      onChange={e => setOutrightBreakdown(prev => ({...prev, price6: parseFloat(e.target.value) || 0}))}
+                      className="w-16 border-gray-300 focus:border-orange-400 focus:ring-orange-200"
+                    />
+                  </div>
+                </div>
+                <div>
+                  <div className="flex items-center gap-2">
+                    <Input
+                      type="number"
+                      value={outrightBreakdown.kg13 === 0 ? '' : outrightBreakdown.kg13}
+                      onChange={e => setOutrightBreakdown(prev => ({...prev, kg13: e.target.value === '' ? 0 : parseInt(e.target.value, 10) || 0}))}
+                      onFocus={(e) => e.target.select()}
+                      className="w-16 border-gray-300 focus:border-orange-400 focus:ring-orange-200"
+                      placeholder="0"
+                    />
+                    <span className="text-sm text-gray-600">13kg @ Ksh</span>
+                    <Input
+                      type="number"
+                      value={outrightBreakdown.price13}
+                      onChange={e => setOutrightBreakdown(prev => ({...prev, price13: parseFloat(e.target.value) || 0}))}
+                      className="w-16 border-gray-300 focus:border-orange-400 focus:ring-orange-200"
+                    />
+                  </div>
+                </div>
+                <div>
+                  <div className="flex items-center gap-2">
+                    <Input
+                      type="number"
+                      value={outrightBreakdown.kg50 === 0 ? '' : outrightBreakdown.kg50}
+                      onChange={e => setOutrightBreakdown(prev => ({...prev, kg50: e.target.value === '' ? 0 : parseInt(e.target.value, 10) || 0}))}
+                      onFocus={(e) => e.target.select()}
+                      className="w-16 border-gray-300 focus:border-orange-400 focus:ring-orange-200"
+                      placeholder="0"
+                    />
+                    <span className="text-sm text-gray-600">50kg @ Ksh</span>
+                    <Input
+                      type="number"
+                      value={outrightBreakdown.price50}
+                      onChange={e => setOutrightBreakdown(prev => ({...prev, price50: parseFloat(e.target.value) || 0}))}
+                      className="w-16 border-gray-300 focus:border-orange-400 focus:ring-orange-200"
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Total Outright Summary */}
+            <div className="p-4 bg-gray-50 rounded border border-gray-200">
+              <div className="flex justify-between items-center">
+                <span className="font-semibold text-gray-800">Total Outright:</span>
+                <span className="text-xl font-bold text-gray-900">{(outrightBreakdown.kg6 + outrightBreakdown.kg13 + outrightBreakdown.kg50)} cylinders</span>
+              </div>
+              <div className="text-sm text-gray-600 mt-1">Total outright purchases</div>
+            </div>
           </div>
         </SectionCard>
       </div>
@@ -534,45 +611,36 @@ export default function AddTransactionForm({ customerId, customerName, onBack, o
         <div className="space-y-4">
           <div className="bg-blue-50 p-4 rounded border border-blue-200">
             <h4 className="font-semibold text-blue-800 mb-3">Cylinder Load Breakdown</h4>
-            <div className="text-sm text-blue-600 mb-3">Cylinders given to the customer</div>
+            <div className="text-sm text-blue-600 mb-3">Cylinders given to the customer (auto-calculated)</div>
             
             <div className="grid grid-cols-3 gap-6">
               <div className="text-center">
                 <Label className="text-sm font-medium text-gray-700 block mb-2">6kg</Label>
-                <Input
-                  type="number"
-                  value={totalLoad.kg6 === 0 ? '' : totalLoad.kg6}
-                  onChange={e => setTotalLoad(prev => ({...prev, kg6: e.target.value === '' ? 0 : parseInt(e.target.value, 10) || 0}))}
-                  onFocus={(e) => e.target.select()}
-                  className="text-center border-gray-300 focus:border-blue-400 focus:ring-blue-200 text-lg font-semibold"
-                  placeholder="0"
-                />
+                <div className="p-3 bg-white border border-blue-200 rounded text-center">
+                  <div className="text-2xl font-bold text-blue-600">
+                    {(returnsBreakdown.max_empty.kg6 + returnsBreakdown.swap_empty.kg6 + returnsBreakdown.return_full.kg6 + outrightBreakdown.kg6)}
+                  </div>
+                </div>
                 <div className="text-sm text-gray-600 mt-1">cylinders</div>
               </div>
               
               <div className="text-center">
                 <Label className="text-sm font-medium text-gray-700 block mb-2">13kg</Label>
-                <Input
-                  type="number"
-                  value={totalLoad.kg13 === 0 ? '' : totalLoad.kg13}
-                  onChange={e => setTotalLoad(prev => ({...prev, kg13: e.target.value === '' ? 0 : parseInt(e.target.value, 10) || 0}))}
-                  onFocus={(e) => e.target.select()}
-                  className="text-center border-gray-300 focus:border-blue-400 focus:ring-blue-200 text-lg font-semibold"
-                  placeholder="0"
-                />
+                <div className="p-3 bg-white border border-blue-200 rounded text-center">
+                  <div className="text-2xl font-bold text-blue-600">
+                    {(returnsBreakdown.max_empty.kg13 + returnsBreakdown.swap_empty.kg13 + returnsBreakdown.return_full.kg13 + outrightBreakdown.kg13)}
+                  </div>
+                </div>
                 <div className="text-sm text-gray-600 mt-1">cylinders</div>
               </div>
               
               <div className="text-center">
                 <Label className="text-sm font-medium text-gray-700 block mb-2">50kg</Label>
-                <Input
-                  type="number"
-                  value={totalLoad.kg50 === 0 ? '' : totalLoad.kg50}
-                  onChange={e => setTotalLoad(prev => ({...prev, kg50: e.target.value === '' ? 0 : parseInt(e.target.value, 10) || 0}))}
-                  onFocus={(e) => e.target.select()}
-                  className="text-center border-gray-300 focus:border-blue-400 focus:ring-blue-200 text-lg font-semibold"
-                  placeholder="0"
-                />
+                <div className="p-3 bg-white border border-blue-200 rounded text-center">
+                  <div className="text-2xl font-bold text-blue-600">
+                    {(returnsBreakdown.max_empty.kg50 + returnsBreakdown.swap_empty.kg50 + returnsBreakdown.return_full.kg50 + outrightBreakdown.kg50)}
+                  </div>
+                </div>
                 <div className="text-sm text-gray-600 mt-1">cylinders</div>
               </div>
             </div>
@@ -580,8 +648,11 @@ export default function AddTransactionForm({ customerId, customerName, onBack, o
             <div className="mt-4 p-3 bg-white rounded border border-blue-200">
               <div className="flex justify-between items-center">
                 <span className="font-medium text-gray-700">Total Load:</span>
-                <span className="text-2xl font-bold text-blue-600">{(totalLoad.kg6 + totalLoad.kg13 + totalLoad.kg50)} cylinders</span>
+                <span className="text-2xl font-bold text-blue-600">
+                  {(calculatedTotalReturns + outrightBreakdown.kg6 + outrightBreakdown.kg13 + outrightBreakdown.kg50)} cylinders
+                </span>
               </div>
+              <div className="text-sm text-gray-600 mt-1">Returns + Outright = Total Load</div>
             </div>
           </div>
         </div>

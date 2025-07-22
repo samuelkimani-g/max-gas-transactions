@@ -5,7 +5,7 @@ import { useStore } from "../lib/store"
 import { useRBAC } from "../lib/rbac"
 import { Button } from "./ui/button"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "./ui/card"
-import { ArrowLeft, PlusCircle, Trash2, FileText, DollarSign, Package, AlertTriangle, Shield } from "lucide-react"
+import { ArrowLeft, PlusCircle, Trash2, FileText, DollarSign, Package, AlertTriangle, Shield, Settings } from "lucide-react"
 import AddTransactionForm from "./add-transaction-form"
 import EditCustomerForm from "./edit-customer-form"
 import TransactionHistory from "./transaction-history" // The new, rebuilt component
@@ -20,6 +20,8 @@ export default function EnhancedCustomerDetail({ customerId, onBack }) {
   const [isAddingTransaction, setIsAddingTransaction] = useState(false)
   const [isEditingCustomer, setIsEditingCustomer] = useState(false)
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
+  const [showDeleteOptions, setShowDeleteOptions] = useState(false)
+  const [isDeleting, setIsDeleting] = useState(false)
 
   const customer = customers.find((c) => c.id === customerId)
   const customerTransactions = getCustomerTransactions(customerId)
@@ -39,10 +41,13 @@ export default function EnhancedCustomerDetail({ customerId, onBack }) {
   const handleDeleteCustomer = async () => {
     if (confirm(`Are you sure you want to PERMANENTLY DELETE ${customer.name}? This action cannot be undone.`)) {
       try {
+        setIsDeleting(true)
         await deleteCustomer(customerId)
         onBack() // Go back to the customer list after deletion
       } catch (error) {
         alert(`Failed to delete customer: ${error.message}`)
+      } finally {
+        setIsDeleting(false)
       }
     }
   }
@@ -57,68 +62,70 @@ export default function EnhancedCustomerDetail({ customerId, onBack }) {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-orange-25 to-white p-6 space-y-8">
-      <div className="flex justify-between items-start mb-8">
-        <div className="flex items-center gap-4">
-          <Button onClick={onBack} variant="outline" className="border-orange-300 text-orange-700 hover:bg-orange-50">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
+        <div className="flex items-center gap-3">
+          <Button
+            variant="outline"
+            onClick={onBack}
+            className="border-gray-300 text-gray-700 hover:bg-gray-50"
+          >
             <ArrowLeft className="w-4 h-4 mr-2" />
             Back
           </Button>
           <div>
-            <h1 className="text-4xl font-bold text-orange-900">{customer.name}</h1>
-            <div className="flex items-center gap-4 mt-2">
-              <p className="text-orange-600 text-lg font-medium">{customer.phone}</p>
-              {customer.email && (
-                <>
-                  <span className="text-orange-400">|</span>
-                  <p className="text-orange-600 text-lg">{customer.email}</p>
-                </>
-              )}
-              <Badge className="bg-orange-100 text-orange-800 border-orange-200">{customer.category}</Badge>
-            </div>
+            <h1 className="text-2xl font-bold text-gray-900">{customer.name}</h1>
+            <p className="text-gray-600">{customer.phone}</p>
+            <span className="inline-block px-2 py-1 text-xs font-medium bg-gray-100 text-gray-700 rounded-full mt-1">
+              {customer.category}
+            </span>
           </div>
         </div>
-        <div className="flex space-x-3">
-          {rbac?.permissions?.canEditCustomer && (
-            <Button onClick={() => setIsEditingCustomer(true)} className="bg-orange-600 hover:bg-orange-700 text-white">
-              Edit Customer
-            </Button>
-          )}
-          {rbac?.permissions?.canAddTransaction && (
-            <Button onClick={() => setIsAddingTransaction(true)} className="bg-green-600 hover:bg-green-700 text-white">
-              <PlusCircle className="w-4 h-4 mr-2" />
-              New Transaction
-            </Button>
-          )}
+
+        <div className="flex gap-3">
+          <Button
+            variant="outline"
+            onClick={() => setIsEditingCustomer(true)}
+            className="border-gray-300 text-gray-700 hover:bg-gray-50"
+          >
+            Edit Customer
+          </Button>
+          <Button
+            onClick={() => setIsAddingTransaction(true)}
+            className="bg-orange-500 hover:bg-orange-600 text-white"
+          >
+            <PlusCircle className="w-4 h-4 mr-2" />
+            New Transaction
+          </Button>
         </div>
       </div>
 
       {/* Balance Cards */}
       <div className="grid gap-6 md:grid-cols-2">
-        <Card className="shadow-lg border-orange-200 bg-gradient-to-br from-white to-orange-50">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-lg font-semibold text-orange-800">Financial Balance</CardTitle>
-            <DollarSign className="h-6 w-6 text-orange-600" />
+        <Card className="border border-gray-200 bg-white">
+          <CardHeader className="bg-orange-500 text-white flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-lg font-semibold">Financial Balance</CardTitle>
+            <DollarSign className="h-5 w-5" />
           </CardHeader>
-          <CardContent>
-            <div className={`text-3xl font-bold ${customer.financial_balance > 0 ? 'text-red-600' : 'text-green-600'}`}>
+          <CardContent className="p-6">
+            <div className={`text-2xl font-bold ${customer.financial_balance > 0 ? 'text-red-600' : 'text-green-600'}`}>
               Ksh {formatNumber(customer.financial_balance || 0)}
             </div>
-            <p className="text-sm text-orange-600 mt-1">
+            <p className="text-sm text-gray-600 mt-1">
               {customer.financial_balance > 0 ? 'Owed to us' : 'Customer Credit'}
             </p>
           </CardContent>
         </Card>
         
-        <Card className="shadow-lg border-orange-200 bg-gradient-to-br from-white to-orange-50">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-lg font-semibold text-orange-800">Cylinder Balance</CardTitle>
-            <Package className="h-6 w-6 text-orange-600" />
+        <Card className="border border-gray-200 bg-white">
+          <CardHeader className="bg-orange-500 text-white flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-lg font-semibold">Cylinder Balance</CardTitle>
+            <Package className="h-5 w-5" />
           </CardHeader>
-          <CardContent>
-            <div className={`text-3xl font-bold ${customer.cylinder_balance > 0 ? 'text-red-600' : 'text-green-600'}`}>
+          <CardContent className="p-6">
+            <div className={`text-2xl font-bold ${customer.cylinder_balance > 0 ? 'text-red-600' : 'text-green-600'}`}>
               {customer.cylinder_balance > 0 ? `+${customer.cylinder_balance}`: (customer.cylinder_balance || 0)}
             </div>
-            <p className="text-sm text-orange-600 mt-1">
+            <p className="text-sm text-gray-600 mt-1">
                {customer.cylinder_balance > 0 ? 'Cylinders Owed to us' : 'Cylinders Owed to Customer'}
             </p>
           </CardContent>
@@ -126,42 +133,42 @@ export default function EnhancedCustomerDetail({ customerId, onBack }) {
       </div>
 
       {/* Detailed Cylinder Balance Breakdown */}
-      <Card className="shadow-lg border-orange-200 bg-gradient-to-br from-white to-orange-50">
-        <CardHeader>
-          <CardTitle className="text-xl font-bold text-orange-900 flex items-center gap-2">
+      <Card className="border border-gray-200 bg-white">
+        <CardHeader className="bg-orange-500 text-white">
+          <CardTitle className="text-lg font-semibold flex items-center gap-2">
             <Package className="w-5 h-5" />
             Detailed Cylinder Balance
           </CardTitle>
-          <CardDescription className="text-orange-600">Breakdown by cylinder size</CardDescription>
+          <CardDescription className="text-orange-100">Breakdown by cylinder size</CardDescription>
         </CardHeader>
-        <CardContent>
+        <CardContent className="p-6">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="text-center p-4 bg-white/70 rounded-lg border border-orange-200">
-              <div className="text-2xl font-bold text-orange-800">
+            <div className="text-center p-4 bg-gray-50 rounded border border-gray-200">
+              <div className="text-xl font-bold text-gray-900">
                 {customer.cylinder_balance_6kg || 0}
               </div>
-              <div className="text-sm text-orange-600 font-medium">6kg Cylinders</div>
-              <div className="text-xs text-orange-500">
+              <div className="text-sm text-gray-600 font-medium">6kg Cylinders</div>
+              <div className="text-xs text-gray-500">
                 {(customer.cylinder_balance_6kg || 0) > 0 ? 'Owed to us' : 'Owed to customer'}
               </div>
             </div>
             
-            <div className="text-center p-4 bg-white/70 rounded-lg border border-orange-200">
-              <div className="text-2xl font-bold text-orange-800">
+            <div className="text-center p-4 bg-gray-50 rounded border border-gray-200">
+              <div className="text-xl font-bold text-gray-900">
                 {customer.cylinder_balance_13kg || 0}
               </div>
-              <div className="text-sm text-orange-600 font-medium">13kg Cylinders</div>
-              <div className="text-xs text-orange-500">
+              <div className="text-sm text-gray-600 font-medium">13kg Cylinders</div>
+              <div className="text-xs text-gray-500">
                 {(customer.cylinder_balance_13kg || 0) > 0 ? 'Owed to us' : 'Owed to customer'}
               </div>
             </div>
             
-            <div className="text-center p-4 bg-white/70 rounded-lg border border-orange-200">
-              <div className="text-2xl font-bold text-orange-800">
+            <div className="text-center p-4 bg-gray-50 rounded border border-gray-200">
+              <div className="text-xl font-bold text-gray-900">
                 {customer.cylinder_balance_50kg || 0}
               </div>
-              <div className="text-sm text-orange-600 font-medium">50kg Cylinders</div>
-              <div className="text-xs text-orange-500">
+              <div className="text-sm text-gray-600 font-medium">50kg Cylinders</div>
+              <div className="text-xs text-gray-500">
                 {(customer.cylinder_balance_50kg || 0) > 0 ? 'Owed to us' : 'Owed to customer'}
               </div>
             </div>
@@ -170,69 +177,94 @@ export default function EnhancedCustomerDetail({ customerId, onBack }) {
       </Card>
       
       {/* Transaction History */}
-      <Card className="shadow-lg border-orange-200 bg-gradient-to-br from-white to-orange-50">
-        <CardHeader>
-          <CardTitle className="text-xl font-bold text-orange-900">Transaction History</CardTitle>
-          <CardDescription className="text-orange-600">A complete record of all transactions for this customer.</CardDescription>
+      <Card className="border border-gray-200 bg-white">
+        <CardHeader className="bg-orange-500 text-white">
+          <CardTitle className="text-lg font-semibold">Transaction History</CardTitle>
+          <CardDescription className="text-orange-100">A complete record of all transactions for this customer.</CardDescription>
         </CardHeader>
-        <CardContent>
-          <TransactionHistory transactions={customerTransactions} customerId={customerId} />
+        <CardContent className="p-6">
+          {customerTransactions.length === 0 ? (
+            <div className="text-center py-8">
+              <FileText className="mx-auto h-12 w-12 text-gray-400" />
+              <h3 className="mt-2 text-sm font-medium text-gray-900">No transactions found</h3>
+              <p className="mt-1 text-sm text-gray-500">No transactions found for this customer.</p>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {customerTransactions.map((transaction, index) => (
+                <div key={transaction.id} className="flex justify-between items-start p-4 border border-gray-200 rounded bg-gray-50">
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2">
+                      <span className="font-semibold text-gray-900">#{transaction.transaction_number}</span>
+                      <span className="text-sm text-gray-500">
+                        {new Date(transaction.date).toLocaleDateString()}
+                      </span>
+                    </div>
+                    <div className="text-sm text-gray-600 mt-1">
+                      Load: {transaction.total_load || 0} | Returns: {transaction.total_returns || 0} | 
+                      Bill: Ksh {formatNumber(transaction.total_bill || 0)}
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <div className={`font-semibold ${transaction.cylinder_balance > 0 ? 'text-red-600' : 'text-green-600'}`}>
+                      {transaction.cylinder_balance > 0 ? '+' : ''}{transaction.cylinder_balance || 0}
+                    </div>
+                    <div className="text-xs text-gray-500">cylinders</div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
         </CardContent>
       </Card>
 
-      {/* Advanced Actions - Only show if admin */}
-      {rbac?.permissions?.canDeleteCustomer && (
-        <Card className="shadow-lg border-gray-300 bg-gradient-to-br from-gray-50 to-gray-100">
-          <CardHeader>
-            <CardTitle className="text-lg font-semibold text-gray-700 flex items-center gap-2">
-              <Shield className="w-5 h-5" />
-              Advanced Actions
-            </CardTitle>
-            <CardDescription className="text-gray-600">
-              Sensitive operations requiring administrator privileges.
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            {!showDeleteConfirm ? (
-              <Button 
-                variant="outline" 
-                onClick={() => setShowDeleteConfirm(true)}
-                className="border-red-300 text-red-700 hover:bg-red-50"
-              >
-                <Shield className="w-4 h-4 mr-2" />
-                Show Delete Options
-              </Button>
-            ) : (
-              <div className="space-y-4 p-4 border-2 border-red-200 rounded-lg bg-red-50">
-                <div className="flex items-center gap-2 text-red-800">
-                  <AlertTriangle className="w-5 h-5" />
-                  <h4 className="font-semibold">Danger Zone</h4>
+      {/* Advanced Actions */}
+      <Card className="border border-gray-200 bg-white">
+        <CardHeader className="bg-orange-500 text-white">
+          <CardTitle className="text-lg font-semibold">Advanced Actions</CardTitle>
+          <CardDescription className="text-orange-100">Sensitive operations requiring administrator privileges.</CardDescription>
+        </CardHeader>
+        <CardContent className="p-6">
+          {!showDeleteOptions ? (
+            <Button
+              onClick={() => setShowDeleteOptions(true)}
+              variant="outline"
+              className="w-full border-gray-300 text-gray-700 hover:bg-gray-50"
+            >
+              <Settings className="w-4 h-4 mr-2" />
+              Show Delete Options
+            </Button>
+          ) : (
+            <div className="space-y-4">
+              <div className="p-4 bg-red-50 border border-red-200 rounded">
+                <div className="flex items-center gap-2 text-red-800 mb-2">
+                  <AlertTriangle className="w-4 h-4" />
+                  <span className="font-semibold">Danger Zone</span>
                 </div>
-                <p className="text-red-700 text-sm">
-                  Permanently delete this customer and all their associated data. This action cannot be undone.
+                <p className="text-sm text-red-700 mb-4">
+                  This action cannot be undone. This will permanently delete the customer and all associated data.
                 </p>
-                <div className="flex gap-3">
-                  <Button 
-                    variant="destructive" 
+                <div className="flex gap-2">
+                  <Button
                     onClick={handleDeleteCustomer}
-                    className="bg-red-600 hover:bg-red-700"
+                    className="bg-red-600 hover:bg-red-700 text-white"
+                    disabled={isDeleting}
                   >
-                    <Trash2 className="w-4 h-4 mr-2" />
-                    Confirm Delete
+                    {isDeleting ? 'Deleting...' : 'Delete Customer'}
                   </Button>
-                  <Button 
-                    variant="outline" 
-                    onClick={() => setShowDeleteConfirm(false)}
-                    className="border-gray-300 text-gray-700"
+                  <Button
+                    onClick={() => setShowDeleteOptions(false)}
+                    variant="outline"
+                    className="border-gray-300 text-gray-700 hover:bg-gray-50"
                   >
                     Cancel
                   </Button>
                 </div>
               </div>
-            )}
-          </CardContent>
-        </Card>
-      )}
+            </div>
+          )}
+        </CardContent>
+      </Card>
     </div>
   )
 }

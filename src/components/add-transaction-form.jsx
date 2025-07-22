@@ -11,12 +11,16 @@ import { ArrowLeft, Save, AlertTriangle, ChevronsRight, Minus, Plus } from "luci
 // --- Helper Components for a cleaner structure ---
 
 const SectionCard = ({ title, description, children }) => (
-  <Card className="shadow-lg border-orange-200 bg-gradient-to-br from-white to-orange-50 backdrop-blur-sm hover:shadow-xl transition-shadow duration-300">
-    <CardHeader className="pb-4">
-      <CardTitle className="text-orange-800 text-lg font-semibold">{title}</CardTitle>
-      {description && <CardDescription className="text-orange-600">{description}</CardDescription>}
+  <Card className="border border-gray-200 bg-white">
+    <CardHeader className="bg-orange-500 text-white">
+      <CardTitle className="text-lg font-semibold">{title}</CardTitle>
+      {description && (
+        <CardDescription className="text-orange-100">{description}</CardDescription>
+      )}
     </CardHeader>
-    <CardContent className="pt-2">{children}</CardContent>
+    <CardContent className="p-6">
+      {children}
+    </CardContent>
   </Card>
 )
 
@@ -46,68 +50,36 @@ const BreakdownInput = ({ name, value, price, onCountChange, onPriceChange, plac
 )
 
 const LiveSummary = ({ summary }) => (
-  <Card className="shadow-xl border-2 border-orange-300 bg-gradient-to-br from-orange-50 to-orange-100 sticky top-4 z-10">
-    <CardHeader className="pb-4">
-      <CardTitle className="text-orange-900 text-xl font-bold flex items-center gap-2">
-        <div className="w-3 h-3 bg-orange-500 rounded-full animate-pulse"></div>
-        Live Transaction Summary
-      </CardTitle>
+  <Card className="border border-gray-200 bg-white">
+    <CardHeader className="bg-orange-500 text-white">
+      <CardTitle className="text-lg font-semibold">Transaction Summary</CardTitle>
     </CardHeader>
-    <CardContent className="space-y-4">
-      <div className="grid grid-cols-2 gap-4">
-        <div className="text-center p-3 bg-white/70 rounded-lg border border-orange-200">
-          <div className="text-2xl font-bold text-orange-800">
-            {isNaN(summary.financialBalance) ? 0 : summary.financialBalance.toFixed(2)}
+    <CardContent className="p-4">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
+        <div>
+          <div className="text-xl font-bold text-gray-900">
+            Ksh {isNaN(summary.financialBalance) ? 0 : summary.financialBalance.toFixed(2)}
           </div>
-          <div className="text-sm text-orange-600">
-            {summary.financialBalance > 0 ? 'Credit' : 'Debt'}
-          </div>
-          <div className="text-xs text-orange-500 font-medium">Financial Balance</div>
+          <div className="text-sm text-gray-600">Financial Balance</div>
         </div>
-        <div className="text-center p-3 bg-white/70 rounded-lg border border-orange-200">
-          <div className="text-2xl font-bold text-orange-800">
-            {isNaN(summary.totalBill) ? 0 : summary.totalBill.toFixed(2)}
+        <div>
+          <div className="text-xl font-bold text-gray-900">
+            Ksh {isNaN(summary.totalBill) ? 0 : summary.totalBill.toFixed(2)}
           </div>
-          <div className="text-xs text-orange-500 font-medium">Total Bill</div>
+          <div className="text-sm text-gray-600">Total Bill</div>
         </div>
-      </div>
-      
-      {/* Detailed Cylinder Balance */}
-      <div className="bg-white/50 p-3 rounded-lg border border-orange-200">
-        <div className="text-sm font-semibold text-orange-800 mb-3">Cylinder Balance Breakdown</div>
-        <div className="grid grid-cols-3 gap-2 text-xs">
-          <div className="text-center p-2 bg-white/70 rounded border border-orange-100">
-            <div className={`text-lg font-bold ${summary.cylinderBalance_6kg > 0 ? 'text-red-600' : summary.cylinderBalance_6kg < 0 ? 'text-green-600' : 'text-orange-800'}`}>
-              {summary.cylinderBalance_6kg || 0}
-            </div>
-            <div className="text-orange-600">6kg</div>
-          </div>
-          <div className="text-center p-2 bg-white/70 rounded border border-orange-100">
-            <div className={`text-lg font-bold ${summary.cylinderBalance_13kg > 0 ? 'text-red-600' : summary.cylinderBalance_13kg < 0 ? 'text-green-600' : 'text-orange-800'}`}>
-              {summary.cylinderBalance_13kg || 0}
-            </div>
-            <div className="text-orange-600">13kg</div>
-          </div>
-          <div className="text-center p-2 bg-white/70 rounded border border-orange-100">
-            <div className={`text-lg font-bold ${summary.cylinderBalance_50kg > 0 ? 'text-red-600' : summary.cylinderBalance_50kg < 0 ? 'text-green-600' : 'text-orange-800'}`}>
-              {summary.cylinderBalance_50kg || 0}
-            </div>
-            <div className="text-orange-600">50kg</div>
-          </div>
-        </div>
-        <div className="mt-2 pt-2 border-t border-orange-200 text-center">
-          <div className={`text-xl font-bold ${summary.cylinderBalance > 0 ? 'text-red-600' : summary.cylinderBalance < 0 ? 'text-green-600' : 'text-orange-800'}`}>
+        <div>
+          <div className="text-xl font-bold text-gray-900">
             {summary.cylinderBalance || 0}
           </div>
-          <div className="text-xs text-orange-600">Total Cylinder Balance</div>
+          <div className="text-sm text-gray-600">Cylinder Balance</div>
         </div>
-      </div>
-      
-      <div className="text-center p-3 bg-white/70 rounded-lg border border-orange-200">
-        <div className="text-2xl font-bold text-orange-800">
-          {summary.amountPaid.toFixed(2)}
+        <div>
+          <div className="text-xl font-bold text-gray-900">
+            Ksh {summary.amountPaid.toFixed(2)}
+          </div>
+          <div className="text-sm text-gray-600">Amount Paid</div>
         </div>
-        <div className="text-xs text-orange-500 font-medium">Amount Paid</div>
       </div>
     </CardContent>
   </Card>
@@ -259,15 +231,6 @@ export default function AddTransactionForm({ customerId, customerName, onBack, o
           <p className="text-orange-600 text-lg">Customer: <span className="font-semibold">{customerName}</span></p>
         </div>
       </div>
-
-      <LiveSummary summary={summary} />
-      
-      {error && (
-        <div className="p-4 bg-red-50 border border-red-300 text-red-800 rounded-lg flex items-center gap-3 shadow-md">
-          <AlertTriangle className="w-5 h-5 flex-shrink-0" />
-          <div className="font-medium">{error}</div>
-        </div>
-      )}
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         <SectionCard title="Step 1: Cylinders IN" description="What the customer brought into the compound.">
@@ -659,12 +622,28 @@ export default function AddTransactionForm({ customerId, customerName, onBack, o
         </div>
       </SectionCard>
 
-      <div className="flex justify-end gap-4 pt-8 border-t border-orange-200">
-        <Button variant="outline" onClick={onBack} className="border-orange-300 text-orange-700 hover:bg-orange-50 px-6 py-2">
+      <LiveSummary summary={summary} />
+
+      {error && (
+        <div className="p-4 bg-red-50 border border-red-300 text-red-800 rounded-lg flex items-center gap-3 shadow-md">
+          <AlertTriangle className="w-5 h-5 flex-shrink-0" />
+          <div className="font-medium">{error}</div>
+        </div>
+      )}
+
+      <div className="flex justify-end gap-4 pt-8 border-t border-gray-200">
+        <Button
+          variant="outline"
+          onClick={onBack}
+          className="border-gray-300 text-gray-700 hover:bg-gray-50"
+        >
           Cancel
         </Button>
-        <Button onClick={validateAndSubmit} className="bg-orange-600 hover:bg-orange-700 text-white px-8 py-2 shadow-lg">
-          <Save className="w-4 h-4 mr-2" />
+        <Button
+          onClick={validateAndSubmit}
+          disabled={calculatedTotalReturns > calculatedTotalLoad}
+          className="bg-orange-500 hover:bg-orange-600 text-white"
+        >
           Save Transaction
         </Button>
       </div>

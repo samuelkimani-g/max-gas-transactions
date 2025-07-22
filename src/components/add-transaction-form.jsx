@@ -324,243 +324,237 @@ export default function AddTransactionForm({ customerId, customerName, onBack, o
               <div className="text-sm text-gray-600 mb-3">
                 Break down how the cylinders were returned (must match cylinders brought in by size)
               </div>
-
-              {/* Max Empty */}
-              <div className="bg-white p-4 rounded border border-gray-200">
-                <h5 className="font-medium text-gray-800 mb-3">Max Empty</h5>
-                <div className="grid grid-cols-3 gap-4">
-                  <div>
-                    <div className="flex items-center gap-2">
-                      <Input
-                        type="number"
-                        value={returnsBreakdown.max_empty.kg6 === 0 ? '' : returnsBreakdown.max_empty.kg6}
-                        onChange={e => handleBreakdownChange(setReturnsBreakdown, 'max_empty', 'kg6', e.target.value === '' ? 0 : parseInt(e.target.value, 10) || 0)}
-                        onFocus={(e) => e.target.select()}
-                        className="w-16 border-gray-300 focus:border-orange-400 focus:ring-orange-200"
-                        placeholder="0"
-                      />
-                      <span className="text-sm text-gray-600">6kg @ Ksh</span>
-                      <Input
-                        type="number"
-                        value={returnsBreakdown.max_empty.price6}
-                        onChange={e => handleBreakdownChange(setReturnsBreakdown, 'max_empty', 'price6', parseFloat(e.target.value) || 0)}
-                        className="w-16 border-gray-300 focus:border-orange-400 focus:ring-orange-200"
-                      />
+              <div className="flex flex-col gap-4 md:flex-row md:gap-6">
+                {/* Max Empty */}
+                <div className="flex-1 bg-white p-4 rounded border border-gray-200 mb-2 md:mb-0">
+                  <h5 className="font-medium text-orange-700 mb-3">Max Empty</h5>
+                  <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <Input
+                          type="number"
+                          value={returnsBreakdown.max_empty.kg6 === 0 ? '' : returnsBreakdown.max_empty.kg6}
+                          onChange={e => handleBreakdownChange(setReturnsBreakdown, 'max_empty', 'kg6', e.target.value === '' ? 0 : parseInt(e.target.value, 10) || 0)}
+                          onFocus={(e) => e.target.select()}
+                          className="w-16 border-gray-300 focus:border-orange-400 focus:ring-orange-200"
+                          placeholder="0"
+                        />
+                        <span className="text-sm text-gray-600">6kg @ Ksh</span>
+                        <Input
+                          type="number"
+                          value={returnsBreakdown.max_empty.price6}
+                          onChange={e => handleBreakdownChange(setReturnsBreakdown, 'max_empty', 'price6', parseFloat(e.target.value) || 0)}
+                          className="w-16 border-gray-300 focus:border-orange-400 focus:ring-orange-200"
+                        />
+                      </div>
+                    </div>
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <Input
+                          type="number"
+                          value={returnsBreakdown.max_empty.kg13 === 0 ? '' : returnsBreakdown.max_empty.kg13}
+                          onChange={e => handleBreakdownChange(setReturnsBreakdown, 'max_empty', 'kg13', e.target.value === '' ? 0 : parseInt(e.target.value, 10) || 0)}
+                          onFocus={(e) => e.target.select()}
+                          className="w-16 border-gray-300 focus:border-orange-400 focus:ring-orange-200"
+                          placeholder="0"
+                        />
+                        <span className="text-sm text-gray-600">13kg @ Ksh</span>
+                        <Input
+                          type="number"
+                          value={returnsBreakdown.max_empty.price13}
+                          onChange={e => handleBreakdownChange(setReturnsBreakdown, 'max_empty', 'price13', parseFloat(e.target.value) || 0)}
+                          className="w-16 border-gray-300 focus:border-orange-400 focus:ring-orange-200"
+                        />
+                      </div>
+                    </div>
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <Input
+                          type="number"
+                          value={returnsBreakdown.max_empty.kg50 === 0 ? '' : returnsBreakdown.max_empty.kg50}
+                          onChange={e => handleBreakdownChange(setReturnsBreakdown, 'max_empty', 'kg50', e.target.value === '' ? 0 : parseInt(e.target.value, 10) || 0)}
+                          onFocus={(e) => e.target.select()}
+                          className="w-16 border-gray-300 focus:border-orange-400 focus:ring-orange-200"
+                          placeholder="0"
+                        />
+                        <span className="text-sm text-gray-600">50kg @ Ksh</span>
+                        <Input
+                          type="number"
+                          value={returnsBreakdown.max_empty.price50}
+                          onChange={e => handleBreakdownChange(setReturnsBreakdown, 'max_empty', 'price50', parseFloat(e.target.value) || 0)}
+                          className="w-16 border-gray-300 focus:border-orange-400 focus:ring-orange-200"
+                        />
+                      </div>
                     </div>
                   </div>
-                  <div>
-                    <div className="flex items-center gap-2">
-                      <Input
-                        type="number"
-                        value={returnsBreakdown.max_empty.kg13 === 0 ? '' : returnsBreakdown.max_empty.kg13}
-                        onChange={e => handleBreakdownChange(setReturnsBreakdown, 'max_empty', 'kg13', e.target.value === '' ? 0 : parseInt(e.target.value, 10) || 0)}
-                        onFocus={(e) => e.target.select()}
-                        className="w-16 border-gray-300 focus:border-orange-400 focus:ring-orange-200"
-                        placeholder="0"
-                      />
-                      <span className="text-sm text-gray-600">13kg @ Ksh</span>
-                      <Input
-                        type="number"
-                        value={returnsBreakdown.max_empty.price13}
-                        onChange={e => handleBreakdownChange(setReturnsBreakdown, 'max_empty', 'price13', parseFloat(e.target.value) || 0)}
-                        className="w-16 border-gray-300 focus:border-orange-400 focus:ring-orange-200"
-                      />
+                </div>
+                {/* Swap Empty */}
+                <div className="flex-1 bg-white p-4 rounded border border-gray-200 mb-2 md:mb-0">
+                  <h5 className="font-medium text-blue-700 mb-3">Swap Empty</h5>
+                  <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <Input
+                          type="number"
+                          value={returnsBreakdown.swap_empty.kg6 === 0 ? '' : returnsBreakdown.swap_empty.kg6}
+                          onChange={e => handleBreakdownChange(setReturnsBreakdown, 'swap_empty', 'kg6', e.target.value === '' ? 0 : parseInt(e.target.value, 10) || 0)}
+                          onFocus={(e) => e.target.select()}
+                          className="w-16 border-gray-300 focus:border-blue-400 focus:ring-blue-200"
+                          placeholder="0"
+                        />
+                        <span className="text-sm text-gray-600">6kg @ Ksh</span>
+                        <Input
+                          type="number"
+                          value={returnsBreakdown.swap_empty.price6}
+                          onChange={e => handleBreakdownChange(setReturnsBreakdown, 'swap_empty', 'price6', parseFloat(e.target.value) || 0)}
+                          className="w-16 border-gray-300 focus:border-blue-400 focus:ring-blue-200"
+                        />
+                      </div>
+                    </div>
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <Input
+                          type="number"
+                          value={returnsBreakdown.swap_empty.kg13 === 0 ? '' : returnsBreakdown.swap_empty.kg13}
+                          onChange={e => handleBreakdownChange(setReturnsBreakdown, 'swap_empty', 'kg13', e.target.value === '' ? 0 : parseInt(e.target.value, 10) || 0)}
+                          onFocus={(e) => e.target.select()}
+                          className="w-16 border-gray-300 focus:border-blue-400 focus:ring-blue-200"
+                          placeholder="0"
+                        />
+                        <span className="text-sm text-gray-600">13kg @ Ksh</span>
+                        <Input
+                          type="number"
+                          value={returnsBreakdown.swap_empty.price13}
+                          onChange={e => handleBreakdownChange(setReturnsBreakdown, 'swap_empty', 'price13', parseFloat(e.target.value) || 0)}
+                          className="w-16 border-gray-300 focus:border-blue-400 focus:ring-blue-200"
+                        />
+                      </div>
+                    </div>
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <Input
+                          type="number"
+                          value={returnsBreakdown.swap_empty.kg50 === 0 ? '' : returnsBreakdown.swap_empty.kg50}
+                          onChange={e => handleBreakdownChange(setReturnsBreakdown, 'swap_empty', 'kg50', e.target.value === '' ? 0 : parseInt(e.target.value, 10) || 0)}
+                          onFocus={(e) => e.target.select()}
+                          className="w-16 border-gray-300 focus:border-blue-400 focus:ring-blue-200"
+                          placeholder="0"
+                        />
+                        <span className="text-sm text-gray-600">50kg @ Ksh</span>
+                        <Input
+                          type="number"
+                          value={returnsBreakdown.swap_empty.price50}
+                          onChange={e => handleBreakdownChange(setReturnsBreakdown, 'swap_empty', 'price50', parseFloat(e.target.value) || 0)}
+                          className="w-16 border-gray-300 focus:border-blue-400 focus:ring-blue-200"
+                        />
+                      </div>
                     </div>
                   </div>
-                  <div>
-                    <div className="flex items-center gap-2">
-                      <Input
-                        type="number"
-                        value={returnsBreakdown.max_empty.kg50 === 0 ? '' : returnsBreakdown.max_empty.kg50}
-                        onChange={e => handleBreakdownChange(setReturnsBreakdown, 'max_empty', 'kg50', e.target.value === '' ? 0 : parseInt(e.target.value, 10) || 0)}
-                        onFocus={(e) => e.target.select()}
-                        className="w-16 border-gray-300 focus:border-orange-400 focus:ring-orange-200"
-                        placeholder="0"
-                      />
-                      <span className="text-sm text-gray-600">50kg @ Ksh</span>
-                      <Input
-                        type="number"
-                        value={returnsBreakdown.max_empty.price50}
-                        onChange={e => handleBreakdownChange(setReturnsBreakdown, 'max_empty', 'price50', parseFloat(e.target.value) || 0)}
-                        className="w-16 border-gray-300 focus:border-orange-400 focus:ring-orange-200"
-                      />
+                </div>
+                {/* Return Full */}
+                <div className="flex-1 bg-white p-4 rounded border border-gray-200">
+                  <h5 className="font-medium text-green-700 mb-3">Return Full</h5>
+                  <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <Input
+                          type="number"
+                          value={returnsBreakdown.return_full.kg6 === 0 ? '' : returnsBreakdown.return_full.kg6}
+                          onChange={e => handleBreakdownChange(setReturnsBreakdown, 'return_full', 'kg6', e.target.value === '' ? 0 : parseInt(e.target.value, 10) || 0)}
+                          onFocus={(e) => e.target.select()}
+                          className="w-16 border-gray-300 focus:border-green-400 focus:ring-green-200"
+                          placeholder="0"
+                        />
+                        <span className="text-sm text-gray-600">6kg cylinders</span>
+                      </div>
+                    </div>
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <Input
+                          type="number"
+                          value={returnsBreakdown.return_full.kg13 === 0 ? '' : returnsBreakdown.return_full.kg13}
+                          onChange={e => handleBreakdownChange(setReturnsBreakdown, 'return_full', 'kg13', e.target.value === '' ? 0 : parseInt(e.target.value, 10) || 0)}
+                          onFocus={(e) => e.target.select()}
+                          className="w-16 border-gray-300 focus:border-green-400 focus:ring-green-200"
+                          placeholder="0"
+                        />
+                        <span className="text-sm text-gray-600">13kg cylinders</span>
+                      </div>
+                    </div>
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <Input
+                          type="number"
+                          value={returnsBreakdown.return_full.kg50 === 0 ? '' : returnsBreakdown.return_full.kg50}
+                          onChange={e => handleBreakdownChange(setReturnsBreakdown, 'return_full', 'kg50', e.target.value === '' ? 0 : parseInt(e.target.value, 10) || 0)}
+                          onFocus={(e) => e.target.select()}
+                          className="w-16 border-gray-300 focus:border-green-400 focus:ring-green-200"
+                          placeholder="0"
+                        />
+                        <span className="text-sm text-gray-600">50kg cylinders</span>
+                      </div>
                     </div>
                   </div>
                 </div>
               </div>
+            </div>
 
-              {/* Swap Empty */}
-              <div className="bg-white p-4 rounded border border-gray-200">
-                <h5 className="font-medium text-gray-800 mb-3">Swap Empty</h5>
-                <div className="grid grid-cols-3 gap-4">
-                  <div>
-                    <div className="flex items-center gap-2">
-                      <Input
-                        type="number"
-                        value={returnsBreakdown.swap_empty.kg6 === 0 ? '' : returnsBreakdown.swap_empty.kg6}
-                        onChange={e => handleBreakdownChange(setReturnsBreakdown, 'swap_empty', 'kg6', e.target.value === '' ? 0 : parseInt(e.target.value, 10) || 0)}
-                        onFocus={(e) => e.target.select()}
-                        className="w-16 border-gray-300 focus:border-orange-400 focus:ring-orange-200"
-                        placeholder="0"
-                      />
-                      <span className="text-sm text-gray-600">6kg @ Ksh</span>
-                      <Input
-                        type="number"
-                        value={returnsBreakdown.swap_empty.price6}
-                        onChange={e => handleBreakdownChange(setReturnsBreakdown, 'swap_empty', 'price6', parseFloat(e.target.value) || 0)}
-                        className="w-16 border-gray-300 focus:border-orange-400 focus:ring-orange-200"
-                      />
-                    </div>
-                  </div>
-                  <div>
-                    <div className="flex items-center gap-2">
-                      <Input
-                        type="number"
-                        value={returnsBreakdown.swap_empty.kg13 === 0 ? '' : returnsBreakdown.swap_empty.kg13}
-                        onChange={e => handleBreakdownChange(setReturnsBreakdown, 'swap_empty', 'kg13', e.target.value === '' ? 0 : parseInt(e.target.value, 10) || 0)}
-                        onFocus={(e) => e.target.select()}
-                        className="w-16 border-gray-300 focus:border-orange-400 focus:ring-orange-200"
-                        placeholder="0"
-                      />
-                      <span className="text-sm text-gray-600">13kg @ Ksh</span>
-                      <Input
-                        type="number"
-                        value={returnsBreakdown.swap_empty.price13}
-                        onChange={e => handleBreakdownChange(setReturnsBreakdown, 'swap_empty', 'price13', parseFloat(e.target.value) || 0)}
-                        className="w-16 border-gray-300 focus:border-orange-400 focus:ring-orange-200"
-                      />
-                    </div>
-                  </div>
-                  <div>
-                    <div className="flex items-center gap-2">
-                      <Input
-                        type="number"
-                        value={returnsBreakdown.swap_empty.kg50 === 0 ? '' : returnsBreakdown.swap_empty.kg50}
-                        onChange={e => handleBreakdownChange(setReturnsBreakdown, 'swap_empty', 'kg50', e.target.value === '' ? 0 : parseInt(e.target.value, 10) || 0)}
-                        onFocus={(e) => e.target.select()}
-                        className="w-16 border-gray-300 focus:border-orange-400 focus:ring-orange-200"
-                        placeholder="0"
-                      />
-                      <span className="text-sm text-gray-600">50kg @ Ksh</span>
-                      <Input
-                        type="number"
-                        value={returnsBreakdown.swap_empty.price50}
-                        onChange={e => handleBreakdownChange(setReturnsBreakdown, 'swap_empty', 'price50', parseFloat(e.target.value) || 0)}
-                        className="w-16 border-gray-300 focus:border-orange-400 focus:ring-orange-200"
-                      />
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Return Full */}
-              <div className="bg-white p-4 rounded border border-gray-200">
-                <h5 className="font-medium text-gray-800 mb-3">Return Full</h5>
-                <div className="grid grid-cols-3 gap-4">
-                  <div>
-                    <div className="flex items-center gap-2">
-                      <Input
-                        type="number"
-                        value={returnsBreakdown.return_full.kg6 === 0 ? '' : returnsBreakdown.return_full.kg6}
-                        onChange={e => handleBreakdownChange(setReturnsBreakdown, 'return_full', 'kg6', e.target.value === '' ? 0 : parseInt(e.target.value, 10) || 0)}
-                        onFocus={(e) => e.target.select()}
-                        className="w-16 border-gray-300 focus:border-orange-400 focus:ring-orange-200"
-                        placeholder="0"
-                      />
-                      <span className="text-sm text-gray-600">6kg cylinders</span>
-                    </div>
-                  </div>
-                  <div>
-                    <div className="flex items-center gap-2">
-                      <Input
-                        type="number"
-                        value={returnsBreakdown.return_full.kg13 === 0 ? '' : returnsBreakdown.return_full.kg13}
-                        onChange={e => handleBreakdownChange(setReturnsBreakdown, 'return_full', 'kg13', e.target.value === '' ? 0 : parseInt(e.target.value, 10) || 0)}
-                        onFocus={(e) => e.target.select()}
-                        className="w-16 border-gray-300 focus:border-orange-400 focus:ring-orange-200"
-                        placeholder="0"
-                      />
-                      <span className="text-sm text-gray-600">13kg cylinders</span>
-                    </div>
-                  </div>
-                  <div>
-                    <div className="flex items-center gap-2">
-                      <Input
-                        type="number"
-                        value={returnsBreakdown.return_full.kg50 === 0 ? '' : returnsBreakdown.return_full.kg50}
-                        onChange={e => handleBreakdownChange(setReturnsBreakdown, 'return_full', 'kg50', e.target.value === '' ? 0 : parseInt(e.target.value, 10) || 0)}
-                        onFocus={(e) => e.target.select()}
-                        className="w-16 border-gray-300 focus:border-orange-400 focus:ring-orange-200"
-                        placeholder="0"
-                      />
-                      <span className="text-sm text-gray-600">50kg cylinders</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Validation Summary */}
-              <div className="p-4 bg-gray-50 rounded border border-gray-200">
-                <div className="grid grid-cols-4 gap-4 text-sm">
-                  <div className="font-medium text-gray-700">Size</div>
-                  <div className="font-medium text-gray-700">Brought In</div>
-                  <div className="font-medium text-gray-700">Returns Total</div>
-                  <div className="font-medium text-gray-700">Status</div>
-                  
-                  <div>6kg</div>
-                  <div className="font-semibold">{loadBreakdown.kg6}</div>
-                  <div className="font-semibold">{(returnsBreakdown.max_empty.kg6 + returnsBreakdown.swap_empty.kg6 + returnsBreakdown.return_full.kg6)}</div>
-                  <div className={`font-semibold ${
-                    loadBreakdown.kg6 === (returnsBreakdown.max_empty.kg6 + returnsBreakdown.swap_empty.kg6 + returnsBreakdown.return_full.kg6)
-                      ? 'text-green-600' : 'text-red-600'
-                  }`}>
-                    {loadBreakdown.kg6 === (returnsBreakdown.max_empty.kg6 + returnsBreakdown.swap_empty.kg6 + returnsBreakdown.return_full.kg6) ? '✓' : '✗'}
-                  </div>
-                  
-                  <div>13kg</div>
-                  <div className="font-semibold">{loadBreakdown.kg13}</div>
-                  <div className="font-semibold">{(returnsBreakdown.max_empty.kg13 + returnsBreakdown.swap_empty.kg13 + returnsBreakdown.return_full.kg13)}</div>
-                  <div className={`font-semibold ${
-                    loadBreakdown.kg13 === (returnsBreakdown.max_empty.kg13 + returnsBreakdown.swap_empty.kg13 + returnsBreakdown.return_full.kg13)
-                      ? 'text-green-600' : 'text-red-600'
-                  }`}>
-                    {loadBreakdown.kg13 === (returnsBreakdown.max_empty.kg13 + returnsBreakdown.swap_empty.kg13 + returnsBreakdown.return_full.kg13) ? '✓' : '✗'}
-                  </div>
-                  
-                  <div>50kg</div>
-                  <div className="font-semibold">{loadBreakdown.kg50}</div>
-                  <div className="font-semibold">{(returnsBreakdown.max_empty.kg50 + returnsBreakdown.swap_empty.kg50 + returnsBreakdown.return_full.kg50)}</div>
-                  <div className={`font-semibold ${
-                    loadBreakdown.kg50 === (returnsBreakdown.max_empty.kg50 + returnsBreakdown.swap_empty.kg50 + returnsBreakdown.return_full.kg50)
-                      ? 'text-green-600' : 'text-red-600'
-                  }`}>
-                    {loadBreakdown.kg50 === (returnsBreakdown.max_empty.kg50 + returnsBreakdown.swap_empty.kg50 + returnsBreakdown.return_full.kg50) ? '✓' : '✗'}
-                  </div>
+            {/* Validation Summary */}
+            <div className="p-4 bg-gray-50 rounded border border-gray-200">
+              <div className="grid grid-cols-4 gap-4 text-sm">
+                <div className="font-medium text-gray-700">Size</div>
+                <div className="font-medium text-gray-700">Brought In</div>
+                <div className="font-medium text-gray-700">Returns Total</div>
+                <div className="font-medium text-gray-700">Status</div>
+                
+                <div>6kg</div>
+                <div className="font-semibold">{loadBreakdown.kg6}</div>
+                <div className="font-semibold">{(returnsBreakdown.max_empty.kg6 + returnsBreakdown.swap_empty.kg6 + returnsBreakdown.return_full.kg6)}</div>
+                <div className={`font-semibold ${
+                  loadBreakdown.kg6 === (returnsBreakdown.max_empty.kg6 + returnsBreakdown.swap_empty.kg6 + returnsBreakdown.return_full.kg6)
+                    ? 'text-green-600' : 'text-red-600'
+                }`}>
+                  {loadBreakdown.kg6 === (returnsBreakdown.max_empty.kg6 + returnsBreakdown.swap_empty.kg6 + returnsBreakdown.return_full.kg6) ? '✓' : '✗'}
                 </div>
                 
-                {(loadBreakdown.kg6 !== (returnsBreakdown.max_empty.kg6 + returnsBreakdown.swap_empty.kg6 + returnsBreakdown.return_full.kg6) ||
-                  loadBreakdown.kg13 !== (returnsBreakdown.max_empty.kg13 + returnsBreakdown.swap_empty.kg13 + returnsBreakdown.return_full.kg13) ||
-                  loadBreakdown.kg50 !== (returnsBreakdown.max_empty.kg50 + returnsBreakdown.swap_empty.kg50 + returnsBreakdown.return_full.kg50)) && (
-                  <div className="mt-3 p-3 bg-red-50 border border-red-200 rounded text-red-700 text-sm">
-                    <strong>⚠️ Validation Error:</strong> Returns breakdown must match cylinders brought in by size
-                  </div>
-                )}
+                <div>13kg</div>
+                <div className="font-semibold">{loadBreakdown.kg13}</div>
+                <div className="font-semibold">{(returnsBreakdown.max_empty.kg13 + returnsBreakdown.swap_empty.kg13 + returnsBreakdown.return_full.kg13)}</div>
+                <div className={`font-semibold ${
+                  loadBreakdown.kg13 === (returnsBreakdown.max_empty.kg13 + returnsBreakdown.swap_empty.kg13 + returnsBreakdown.return_full.kg13)
+                    ? 'text-green-600' : 'text-red-600'
+                }`}>
+                  {loadBreakdown.kg13 === (returnsBreakdown.max_empty.kg13 + returnsBreakdown.swap_empty.kg13 + returnsBreakdown.return_full.kg13) ? '✓' : '✗'}
+                </div>
+                
+                <div>50kg</div>
+                <div className="font-semibold">{loadBreakdown.kg50}</div>
+                <div className="font-semibold">{(returnsBreakdown.max_empty.kg50 + returnsBreakdown.swap_empty.kg50 + returnsBreakdown.return_full.kg50)}</div>
+                <div className={`font-semibold ${
+                  loadBreakdown.kg50 === (returnsBreakdown.max_empty.kg50 + returnsBreakdown.swap_empty.kg50 + returnsBreakdown.return_full.kg50)
+                    ? 'text-green-600' : 'text-red-600'
+                }`}>
+                  {loadBreakdown.kg50 === (returnsBreakdown.max_empty.kg50 + returnsBreakdown.swap_empty.kg50 + returnsBreakdown.return_full.kg50) ? '✓' : '✗'}
+                </div>
               </div>
+              
+              {(loadBreakdown.kg6 !== (returnsBreakdown.max_empty.kg6 + returnsBreakdown.swap_empty.kg6 + returnsBreakdown.return_full.kg6) ||
+                loadBreakdown.kg13 !== (returnsBreakdown.max_empty.kg13 + returnsBreakdown.swap_empty.kg13 + returnsBreakdown.return_full.kg13) ||
+                loadBreakdown.kg50 !== (returnsBreakdown.max_empty.kg50 + returnsBreakdown.swap_empty.kg50 + returnsBreakdown.return_full.kg50)) && (
+                <div className="mt-3 p-3 bg-red-50 border border-red-200 rounded text-red-700 text-sm">
+                  <strong>⚠️ Validation Error:</strong> Returns breakdown must match cylinders brought in by size
+                </div>
+              )}
             </div>
           </div>
         </SectionCard>
         
+        {/* Outright Section - Mobile Friendly */}
         <SectionCard title="Step 2: Outright" description="Brand-new cylinders purchased separately.">
-          <div className="space-y-4">
-            <h4 className="font-semibold text-gray-800">Outright Purchases</h4>
-            <div className="text-sm text-gray-600 mb-3">
-              New cylinders purchased by the customer
-            </div>
-
-            {/* Outright Breakdown */}
-            <div className="bg-white p-4 rounded border border-gray-200">
-              <h5 className="font-medium text-gray-800 mb-3">Outright Cylinders</h5>
-              <div className="grid grid-cols-3 gap-4">
+          <div className="flex flex-col gap-4 md:flex-row md:gap-6">
+            <div className="flex-1 bg-white p-4 rounded border border-gray-200">
+              <h5 className="font-medium text-orange-700 mb-3">Outright Purchases</h5>
+              <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
                 <div>
                   <div className="flex items-center gap-2">
                     <Input
@@ -619,15 +613,6 @@ export default function AddTransactionForm({ customerId, customerName, onBack, o
                   </div>
                 </div>
               </div>
-            </div>
-
-            {/* Total Outright Summary */}
-            <div className="p-4 bg-gray-50 rounded border border-gray-200">
-              <div className="flex justify-between items-center">
-                <span className="font-semibold text-gray-800">Total Outright:</span>
-                <span className="text-xl font-bold text-gray-900">{(outrightBreakdown.kg6 + outrightBreakdown.kg13 + outrightBreakdown.kg50)} cylinders</span>
-              </div>
-              <div className="text-sm text-gray-600 mt-1">Total outright purchases</div>
             </div>
           </div>
         </SectionCard>
@@ -737,6 +722,14 @@ export default function AddTransactionForm({ customerId, customerName, onBack, o
               placeholder="0" 
               className="mt-2 border-gray-300 focus:border-orange-400 focus:ring-orange-200 text-lg font-semibold"
             />
+            <div className="flex gap-2 mt-2">
+              <Button type="button" size="sm" variant="outline" className="w-1/2" onClick={() => setAmountPaid(calculatedTotalBill)}>
+                Full
+              </Button>
+              <Button type="button" size="sm" variant="outline" className="w-1/2" onClick={() => setAmountPaid(calculatedTotalBill / 2)}>
+                Half
+              </Button>
+            </div>
           </div>
           <div>
             <Label htmlFor="payment-method" className="text-gray-700 font-medium">Payment Method</Label>

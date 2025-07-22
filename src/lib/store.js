@@ -1,6 +1,7 @@
 import { create } from "zustand"
 import { persist } from "zustand/middleware"
 import { devtools } from "zustand/middleware"
+import { calculateTransactionTotal } from "./calculations";
 
 // Global safety mechanism - ensure customers is never undefined
 const ensureSafeCustomers = (state) => {
@@ -797,10 +798,10 @@ export const useStore = create()(
 
         getCustomerOutstanding: (customerId) => {
           const state = get()
-          const transactions = state.transactions.filter((t) => t.customerId === customerId)
+          const transactions = state.transactions.filter((t) => t.customerId === customerId || t.customer_id === customerId)
           return transactions.reduce((total, t) => {
             const transactionTotal = calculateTransactionTotal(t)
-            return total + (transactionTotal - (t.paid || 0))
+            return total + (transactionTotal - (parseFloat(t.amount_paid) || 0))
           }, 0)
         },
 

@@ -181,13 +181,13 @@ export default function AddTransactionForm({ customerId, customerName, onBack, o
     return calculatedTotalBill - amountPaid;
   }, [calculatedTotalBill, amountPaid]);
 
-  // Live cylinder balance calculation (per size) - use Step 1 (brought in)
+  // Live cylinder balance calculation (per size) - use editable load (Step 3)
   const returns6kg = (returnsBreakdown.max_empty.kg6 || 0) + (returnsBreakdown.swap_empty.kg6 || 0) + (returnsBreakdown.return_full.kg6 || 0);
   const returns13kg = (returnsBreakdown.max_empty.kg13 || 0) + (returnsBreakdown.swap_empty.kg13 || 0) + (returnsBreakdown.return_full.kg13 || 0);
   const returns50kg = (returnsBreakdown.max_empty.kg50 || 0) + (returnsBreakdown.swap_empty.kg50 || 0) + (returnsBreakdown.return_full.kg50 || 0);
-  const cylinderBalance6kg = loadBreakdown.kg6 - returns6kg - (outrightBreakdown.kg6 || 0);
-  const cylinderBalance13kg = loadBreakdown.kg13 - returns13kg - (outrightBreakdown.kg13 || 0);
-  const cylinderBalance50kg = loadBreakdown.kg50 - returns50kg - (outrightBreakdown.kg50 || 0);
+  const cylinderBalance6kg = totalLoad.kg6 - returns6kg - (outrightBreakdown.kg6 || 0);
+  const cylinderBalance13kg = totalLoad.kg13 - returns13kg - (outrightBreakdown.kg13 || 0);
+  const cylinderBalance50kg = totalLoad.kg50 - returns50kg - (outrightBreakdown.kg50 || 0);
   const totalCylinderBalance = cylinderBalance6kg + cylinderBalance13kg + cylinderBalance50kg;
 
   // Update totalLoad when loadBreakdown changes
@@ -333,7 +333,7 @@ export default function AddTransactionForm({ customerId, customerName, onBack, o
                           value={returnsBreakdown.max_empty.kg6 === 0 ? '' : returnsBreakdown.max_empty.kg6}
                           onChange={e => handleBreakdownChange(setReturnsBreakdown, 'max_empty', 'kg6', e.target.value === '' ? 0 : parseInt(e.target.value, 10) || 0)}
                           onFocus={(e) => e.target.select()}
-                          className="w-32 text-lg border-gray-300 focus:border-orange-400 focus:ring-orange-200 px-4 py-3"
+                          className="w-24 text-lg border-gray-300 focus:border-orange-400 focus:ring-orange-200 px-3 py-2"
                           placeholder="0"
                         />
                         <span className="text-sm text-gray-600">6kg @ Ksh</span>
@@ -352,7 +352,7 @@ export default function AddTransactionForm({ customerId, customerName, onBack, o
                           value={returnsBreakdown.max_empty.kg13 === 0 ? '' : returnsBreakdown.max_empty.kg13}
                           onChange={e => handleBreakdownChange(setReturnsBreakdown, 'max_empty', 'kg13', e.target.value === '' ? 0 : parseInt(e.target.value, 10) || 0)}
                           onFocus={(e) => e.target.select()}
-                          className="w-32 text-lg border-gray-300 focus:border-orange-400 focus:ring-orange-200 px-4 py-3"
+                          className="w-24 text-lg border-gray-300 focus:border-orange-400 focus:ring-orange-200 px-3 py-2"
                           placeholder="0"
                         />
                         <span className="text-sm text-gray-600">13kg @ Ksh</span>
@@ -371,7 +371,7 @@ export default function AddTransactionForm({ customerId, customerName, onBack, o
                           value={returnsBreakdown.max_empty.kg50 === 0 ? '' : returnsBreakdown.max_empty.kg50}
                           onChange={e => handleBreakdownChange(setReturnsBreakdown, 'max_empty', 'kg50', e.target.value === '' ? 0 : parseInt(e.target.value, 10) || 0)}
                           onFocus={(e) => e.target.select()}
-                          className="w-32 text-lg border-gray-300 focus:border-orange-400 focus:ring-orange-200 px-4 py-3"
+                          className="w-24 text-lg border-gray-300 focus:border-orange-400 focus:ring-orange-200 px-3 py-2"
                           placeholder="0"
                         />
                         <span className="text-sm text-gray-600">50kg @ Ksh</span>
@@ -396,7 +396,7 @@ export default function AddTransactionForm({ customerId, customerName, onBack, o
                           value={returnsBreakdown.swap_empty.kg6 === 0 ? '' : returnsBreakdown.swap_empty.kg6}
                           onChange={e => handleBreakdownChange(setReturnsBreakdown, 'swap_empty', 'kg6', e.target.value === '' ? 0 : parseInt(e.target.value, 10) || 0)}
                           onFocus={(e) => e.target.select()}
-                          className="w-32 text-lg border-gray-300 focus:border-blue-400 focus:ring-blue-200 px-4 py-3"
+                          className="w-24 text-lg border-gray-300 focus:border-blue-400 focus:ring-blue-200 px-3 py-2"
                           placeholder="0"
                         />
                         <span className="text-sm text-gray-600">6kg @ Ksh</span>
@@ -415,7 +415,7 @@ export default function AddTransactionForm({ customerId, customerName, onBack, o
                           value={returnsBreakdown.swap_empty.kg13 === 0 ? '' : returnsBreakdown.swap_empty.kg13}
                           onChange={e => handleBreakdownChange(setReturnsBreakdown, 'swap_empty', 'kg13', e.target.value === '' ? 0 : parseInt(e.target.value, 10) || 0)}
                           onFocus={(e) => e.target.select()}
-                          className="w-32 text-lg border-gray-300 focus:border-blue-400 focus:ring-blue-200 px-4 py-3"
+                          className="w-24 text-lg border-gray-300 focus:border-blue-400 focus:ring-blue-200 px-3 py-2"
                           placeholder="0"
                         />
                         <span className="text-sm text-gray-600">13kg @ Ksh</span>
@@ -434,7 +434,7 @@ export default function AddTransactionForm({ customerId, customerName, onBack, o
                           value={returnsBreakdown.swap_empty.kg50 === 0 ? '' : returnsBreakdown.swap_empty.kg50}
                           onChange={e => handleBreakdownChange(setReturnsBreakdown, 'swap_empty', 'kg50', e.target.value === '' ? 0 : parseInt(e.target.value, 10) || 0)}
                           onFocus={(e) => e.target.select()}
-                          className="w-32 text-lg border-gray-300 focus:border-blue-400 focus:ring-blue-200 px-4 py-3"
+                          className="w-24 text-lg border-gray-300 focus:border-blue-400 focus:ring-blue-200 px-3 py-2"
                           placeholder="0"
                         />
                         <span className="text-sm text-gray-600">50kg @ Ksh</span>
@@ -459,7 +459,7 @@ export default function AddTransactionForm({ customerId, customerName, onBack, o
                           value={returnsBreakdown.return_full.kg6 === 0 ? '' : returnsBreakdown.return_full.kg6}
                           onChange={e => handleBreakdownChange(setReturnsBreakdown, 'return_full', 'kg6', e.target.value === '' ? 0 : parseInt(e.target.value, 10) || 0)}
                           onFocus={(e) => e.target.select()}
-                          className="w-32 text-lg border-gray-300 focus:border-green-400 focus:ring-green-200 px-4 py-3"
+                          className="w-24 text-lg border-gray-300 focus:border-green-400 focus:ring-green-200 px-3 py-2"
                           placeholder="0"
                         />
                         <span className="text-sm text-gray-600">6kg cylinders</span>
@@ -472,7 +472,7 @@ export default function AddTransactionForm({ customerId, customerName, onBack, o
                           value={returnsBreakdown.return_full.kg13 === 0 ? '' : returnsBreakdown.return_full.kg13}
                           onChange={e => handleBreakdownChange(setReturnsBreakdown, 'return_full', 'kg13', e.target.value === '' ? 0 : parseInt(e.target.value, 10) || 0)}
                           onFocus={(e) => e.target.select()}
-                          className="w-32 text-lg border-gray-300 focus:border-green-400 focus:ring-green-200 px-4 py-3"
+                          className="w-24 text-lg border-gray-300 focus:border-green-400 focus:ring-green-200 px-3 py-2"
                           placeholder="0"
                         />
                         <span className="text-sm text-gray-600">13kg cylinders</span>
@@ -485,7 +485,7 @@ export default function AddTransactionForm({ customerId, customerName, onBack, o
                           value={returnsBreakdown.return_full.kg50 === 0 ? '' : returnsBreakdown.return_full.kg50}
                           onChange={e => handleBreakdownChange(setReturnsBreakdown, 'return_full', 'kg50', e.target.value === '' ? 0 : parseInt(e.target.value, 10) || 0)}
                           onFocus={(e) => e.target.select()}
-                          className="w-32 text-lg border-gray-300 focus:border-green-400 focus:ring-green-200 px-4 py-3"
+                          className="w-24 text-lg border-gray-300 focus:border-green-400 focus:ring-green-200 px-3 py-2"
                           placeholder="0"
                         />
                         <span className="text-sm text-gray-600">50kg cylinders</span>
@@ -559,7 +559,7 @@ export default function AddTransactionForm({ customerId, customerName, onBack, o
                       value={outrightBreakdown.kg6 === 0 ? '' : outrightBreakdown.kg6}
                       onChange={e => setOutrightBreakdown(prev => ({...prev, kg6: e.target.value === '' ? 0 : parseInt(e.target.value, 10) || 0}))}
                       onFocus={(e) => e.target.select()}
-                      className="w-32 text-lg border-gray-300 focus:border-orange-400 focus:ring-orange-200 px-4 py-3"
+                      className="w-24 text-lg border-gray-300 focus:border-orange-400 focus:ring-orange-200 px-3 py-2"
                       placeholder="0"
                     />
                     <span className="text-sm text-gray-600">6kg @ Ksh</span>
@@ -578,7 +578,7 @@ export default function AddTransactionForm({ customerId, customerName, onBack, o
                       value={outrightBreakdown.kg13 === 0 ? '' : outrightBreakdown.kg13}
                       onChange={e => setOutrightBreakdown(prev => ({...prev, kg13: e.target.value === '' ? 0 : parseInt(e.target.value, 10) || 0}))}
                       onFocus={(e) => e.target.select()}
-                      className="w-32 text-lg border-gray-300 focus:border-orange-400 focus:ring-orange-200 px-4 py-3"
+                      className="w-24 text-lg border-gray-300 focus:border-orange-400 focus:ring-orange-200 px-3 py-2"
                       placeholder="0"
                     />
                     <span className="text-sm text-gray-600">13kg @ Ksh</span>
@@ -597,7 +597,7 @@ export default function AddTransactionForm({ customerId, customerName, onBack, o
                       value={outrightBreakdown.kg50 === 0 ? '' : outrightBreakdown.kg50}
                       onChange={e => setOutrightBreakdown(prev => ({...prev, kg50: e.target.value === '' ? 0 : parseInt(e.target.value, 10) || 0}))}
                       onFocus={(e) => e.target.select()}
-                      className="w-32 text-lg border-gray-300 focus:border-orange-400 focus:ring-orange-200 px-4 py-3"
+                      className="w-24 text-lg border-gray-300 focus:border-orange-400 focus:ring-orange-200 px-3 py-2"
                       placeholder="0"
                     />
                     <span className="text-sm text-gray-600">50kg @ Ksh</span>

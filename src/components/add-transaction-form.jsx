@@ -327,7 +327,7 @@ export default function AddTransactionForm({ customerId, customerName, onBack, o
                   <h5 className="font-medium text-orange-700 mb-3 md:mb-6">Max Empty</h5>
                   <div className="grid grid-cols-1 gap-4 md:gap-8 sm:grid-cols-3">
                     <div>
-                      <div className="flex items-center gap-2 md:gap-6 md:mb-4">
+                      <div className="flex flex-col items-start gap-1">
                         <Input
                           type="number"
                           value={returnsBreakdown.max_empty.kg6 === 0 ? '' : returnsBreakdown.max_empty.kg6}
@@ -336,18 +336,17 @@ export default function AddTransactionForm({ customerId, customerName, onBack, o
                           className="w-24 md:w-40 text-lg md:text-2xl border-gray-300 focus:border-orange-400 focus:ring-orange-200 px-3 py-2 md:px-6 md:py-4"
                           placeholder="0"
                         />
-                        <Label htmlFor="max_empty-kg6" className="w-20 text-xs font-medium text-orange-700">6kg</Label>
-                        <span className="text-xs text-gray-600">@ Ksh</span>
+                        <label className="text-xs text-gray-500 mt-1">Price (Ksh)</label>
                         <Input
                           type="number"
                           value={returnsBreakdown.max_empty.price6}
                           onChange={e => handleBreakdownChange(setReturnsBreakdown, 'max_empty', 'price6', parseFloat(e.target.value) || 0)}
-                          className="w-16 md:w-28 border-gray-300 focus:border-orange-400 focus:ring-orange-200"
+                          className="w-20 md:w-28 text-base border-gray-300 focus:border-orange-400 focus:ring-orange-200"
                         />
                       </div>
                     </div>
                     <div>
-                      <div className="flex items-center gap-2 md:gap-6 md:mb-4">
+                      <div className="flex flex-col items-start gap-1">
                         <Input
                           type="number"
                           value={returnsBreakdown.max_empty.kg13 === 0 ? '' : returnsBreakdown.max_empty.kg13}
@@ -356,18 +355,17 @@ export default function AddTransactionForm({ customerId, customerName, onBack, o
                           className="w-24 md:w-40 text-lg md:text-2xl border-gray-300 focus:border-orange-400 focus:ring-orange-200 px-3 py-2 md:px-6 md:py-4"
                           placeholder="0"
                         />
-                        <Label htmlFor="max_empty-kg13" className="w-20 text-xs font-medium text-orange-700">13kg</Label>
-                        <span className="text-xs text-gray-600">@ Ksh</span>
+                        <label className="text-xs text-gray-500 mt-1">Price (Ksh)</label>
                         <Input
                           type="number"
                           value={returnsBreakdown.max_empty.price13}
                           onChange={e => handleBreakdownChange(setReturnsBreakdown, 'max_empty', 'price13', parseFloat(e.target.value) || 0)}
-                          className="w-16 md:w-28 border-gray-300 focus:border-orange-400 focus:ring-orange-200"
+                          className="w-20 md:w-28 text-base border-gray-300 focus:border-orange-400 focus:ring-orange-200"
                         />
                       </div>
                     </div>
                     <div>
-                      <div className="flex items-center gap-2 md:gap-6 md:mb-4">
+                      <div className="flex flex-col items-start gap-1">
                         <Input
                           type="number"
                           value={returnsBreakdown.max_empty.kg50 === 0 ? '' : returnsBreakdown.max_empty.kg50}
@@ -376,13 +374,12 @@ export default function AddTransactionForm({ customerId, customerName, onBack, o
                           className="w-24 md:w-40 text-lg md:text-2xl border-gray-300 focus:border-orange-400 focus:ring-orange-200 px-3 py-2 md:px-6 md:py-4"
                           placeholder="0"
                         />
-                        <Label htmlFor="max_empty-kg50" className="w-20 text-xs font-medium text-orange-700">50kg</Label>
-                        <span className="text-xs text-gray-600">@ Ksh</span>
+                        <label className="text-xs text-gray-500 mt-1">Price (Ksh)</label>
                         <Input
                           type="number"
                           value={returnsBreakdown.max_empty.price50}
                           onChange={e => handleBreakdownChange(setReturnsBreakdown, 'max_empty', 'price50', parseFloat(e.target.value) || 0)}
-                          className="w-16 md:w-28 border-gray-300 focus:border-orange-400 focus:ring-orange-200"
+                          className="w-20 md:w-28 text-base border-gray-300 focus:border-orange-400 focus:ring-orange-200"
                         />
                       </div>
                     </div>
@@ -393,7 +390,7 @@ export default function AddTransactionForm({ customerId, customerName, onBack, o
                   <h5 className="font-medium text-blue-700 mb-3 md:mb-6">Swap Empty</h5>
                   <div className="grid grid-cols-1 gap-4 md:gap-8 sm:grid-cols-3">
                     <div>
-                      <div className="flex items-center gap-2 md:gap-6 md:mb-4">
+                      <div className="flex flex-col items-start gap-1">
                         <Input
                           type="number"
                           value={returnsBreakdown.swap_empty.kg6 === 0 ? '' : returnsBreakdown.swap_empty.kg6}
@@ -402,18 +399,17 @@ export default function AddTransactionForm({ customerId, customerName, onBack, o
                           className="w-24 md:w-40 text-lg md:text-2xl border-gray-300 focus:border-blue-400 focus:ring-blue-200 px-3 py-2 md:px-6 md:py-4"
                           placeholder="0"
                         />
-                        <Label htmlFor="swap_empty-kg6" className="w-20 text-xs font-medium text-blue-700">6kg</Label>
-                        <span className="text-xs text-gray-600">@ Ksh</span>
+                        <label className="text-xs text-gray-500 mt-1">Price (Ksh)</label>
                         <Input
                           type="number"
                           value={returnsBreakdown.swap_empty.price6}
                           onChange={e => handleBreakdownChange(setReturnsBreakdown, 'swap_empty', 'price6', parseFloat(e.target.value) || 0)}
-                          className="w-16 md:w-28 border-gray-300 focus:border-blue-400 focus:ring-blue-200"
+                          className="w-20 md:w-28 text-base border-gray-300 focus:border-blue-400 focus:ring-blue-200"
                         />
                       </div>
                     </div>
                     <div>
-                      <div className="flex items-center gap-2 md:gap-6 md:mb-4">
+                      <div className="flex flex-col items-start gap-1">
                         <Input
                           type="number"
                           value={returnsBreakdown.swap_empty.kg13 === 0 ? '' : returnsBreakdown.swap_empty.kg13}
@@ -422,18 +418,17 @@ export default function AddTransactionForm({ customerId, customerName, onBack, o
                           className="w-24 md:w-40 text-lg md:text-2xl border-gray-300 focus:border-blue-400 focus:ring-blue-200 px-3 py-2 md:px-6 md:py-4"
                           placeholder="0"
                         />
-                        <Label htmlFor="swap_empty-kg13" className="w-20 text-xs font-medium text-blue-700">13kg</Label>
-                        <span className="text-xs text-gray-600">@ Ksh</span>
+                        <label className="text-xs text-gray-500 mt-1">Price (Ksh)</label>
                         <Input
                           type="number"
                           value={returnsBreakdown.swap_empty.price13}
                           onChange={e => handleBreakdownChange(setReturnsBreakdown, 'swap_empty', 'price13', parseFloat(e.target.value) || 0)}
-                          className="w-16 md:w-28 border-gray-300 focus:border-blue-400 focus:ring-blue-200"
+                          className="w-20 md:w-28 text-base border-gray-300 focus:border-blue-400 focus:ring-blue-200"
                         />
                       </div>
                     </div>
                     <div>
-                      <div className="flex items-center gap-2 md:gap-6 md:mb-4">
+                      <div className="flex flex-col items-start gap-1">
                         <Input
                           type="number"
                           value={returnsBreakdown.swap_empty.kg50 === 0 ? '' : returnsBreakdown.swap_empty.kg50}
@@ -442,13 +437,12 @@ export default function AddTransactionForm({ customerId, customerName, onBack, o
                           className="w-24 md:w-40 text-lg md:text-2xl border-gray-300 focus:border-blue-400 focus:ring-blue-200 px-3 py-2 md:px-6 md:py-4"
                           placeholder="0"
                         />
-                        <Label htmlFor="swap_empty-kg50" className="w-20 text-xs font-medium text-blue-700">50kg</Label>
-                        <span className="text-xs text-gray-600">@ Ksh</span>
+                        <label className="text-xs text-gray-500 mt-1">Price (Ksh)</label>
                         <Input
                           type="number"
                           value={returnsBreakdown.swap_empty.price50}
                           onChange={e => handleBreakdownChange(setReturnsBreakdown, 'swap_empty', 'price50', parseFloat(e.target.value) || 0)}
-                          className="w-16 md:w-28 border-gray-300 focus:border-blue-400 focus:ring-blue-200"
+                          className="w-20 md:w-28 text-base border-gray-300 focus:border-blue-400 focus:ring-blue-200"
                         />
                       </div>
                     </div>
@@ -459,7 +453,7 @@ export default function AddTransactionForm({ customerId, customerName, onBack, o
                   <h5 className="font-medium text-green-700 mb-3 md:mb-6">Return Full</h5>
                   <div className="grid grid-cols-1 gap-4 md:gap-8 sm:grid-cols-3">
                     <div>
-                      <div className="flex items-center gap-2 md:gap-6 md:mb-4">
+                      <div className="flex flex-col items-start gap-1">
                         <Input
                           type="number"
                           value={returnsBreakdown.return_full.kg6 === 0 ? '' : returnsBreakdown.return_full.kg6}
@@ -468,12 +462,17 @@ export default function AddTransactionForm({ customerId, customerName, onBack, o
                           className="w-24 md:w-40 text-lg md:text-2xl border-gray-300 focus:border-green-400 focus:ring-green-200 px-3 py-2 md:px-6 md:py-4"
                           placeholder="0"
                         />
-                        <Label htmlFor="return_full-kg6" className="w-20 text-xs font-medium text-green-700">6kg</Label>
-                        <span className="text-xs text-gray-600">cylinders</span>
+                        <label className="text-xs text-gray-500 mt-1">Price (Ksh)</label>
+                        <Input
+                          type="number"
+                          value={returnsBreakdown.return_full.price6}
+                          onChange={e => handleBreakdownChange(setReturnsBreakdown, 'return_full', 'price6', parseFloat(e.target.value) || 0)}
+                          className="w-20 md:w-28 text-base border-gray-300 focus:border-green-400 focus:ring-green-200"
+                        />
                       </div>
                     </div>
                     <div>
-                      <div className="flex items-center gap-2 md:gap-6 md:mb-4">
+                      <div className="flex flex-col items-start gap-1">
                         <Input
                           type="number"
                           value={returnsBreakdown.return_full.kg13 === 0 ? '' : returnsBreakdown.return_full.kg13}
@@ -482,12 +481,17 @@ export default function AddTransactionForm({ customerId, customerName, onBack, o
                           className="w-24 md:w-40 text-lg md:text-2xl border-gray-300 focus:border-green-400 focus:ring-green-200 px-3 py-2 md:px-6 md:py-4"
                           placeholder="0"
                         />
-                        <Label htmlFor="return_full-kg13" className="w-20 text-xs font-medium text-green-700">13kg</Label>
-                        <span className="text-xs text-gray-600">cylinders</span>
+                        <label className="text-xs text-gray-500 mt-1">Price (Ksh)</label>
+                        <Input
+                          type="number"
+                          value={returnsBreakdown.return_full.price13}
+                          onChange={e => handleBreakdownChange(setReturnsBreakdown, 'return_full', 'price13', parseFloat(e.target.value) || 0)}
+                          className="w-20 md:w-28 text-base border-gray-300 focus:border-green-400 focus:ring-green-200"
+                        />
                       </div>
                     </div>
                     <div>
-                      <div className="flex items-center gap-2 md:gap-6 md:mb-4">
+                      <div className="flex flex-col items-start gap-1">
                         <Input
                           type="number"
                           value={returnsBreakdown.return_full.kg50 === 0 ? '' : returnsBreakdown.return_full.kg50}
@@ -496,8 +500,13 @@ export default function AddTransactionForm({ customerId, customerName, onBack, o
                           className="w-24 md:w-40 text-lg md:text-2xl border-gray-300 focus:border-green-400 focus:ring-green-200 px-3 py-2 md:px-6 md:py-4"
                           placeholder="0"
                         />
-                        <Label htmlFor="return_full-kg50" className="w-20 text-xs font-medium text-green-700">50kg</Label>
-                        <span className="text-xs text-gray-600">cylinders</span>
+                        <label className="text-xs text-gray-500 mt-1">Price (Ksh)</label>
+                        <Input
+                          type="number"
+                          value={returnsBreakdown.return_full.price50}
+                          onChange={e => handleBreakdownChange(setReturnsBreakdown, 'return_full', 'price50', parseFloat(e.target.value) || 0)}
+                          className="w-20 md:w-28 text-base border-gray-300 focus:border-green-400 focus:ring-green-200"
+                        />
                       </div>
                     </div>
                   </div>

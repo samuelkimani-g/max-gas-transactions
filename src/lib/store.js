@@ -827,46 +827,33 @@ export const useStore = create()(
 
         getCustomerCylinderBalance: (customerId) => {
           const state = get()
-          const customerTransactions = state.transactions.filter((t) => t.customerId === customerId)
-          
+          const customerTransactions = state.transactions.filter((t) => t.customerId === customerId || t.customer_id === customerId)
           let balance = {
             '6kg': 0,
             '13kg': 0,
             '50kg': 0,
           }
-
           customerTransactions.forEach((transaction) => {
-            // CORRECTED FORMULA: Balance = Load - Max Returns - Swipes - Outright
-            
-            // LOAD (Cylinders given to customer for the day)
-            const load6kg = (transaction.maxGas6kgLoad || 0)
-            const load13kg = (transaction.maxGas13kgLoad || 0)
-            const load50kg = (transaction.maxGas50kgLoad || 0)
-
-            // MAX RETURNS (Our company cylinders returned for refill)
-            const maxReturns6kg = (transaction.return6kg || 0)
-            const maxReturns13kg = (transaction.return13kg || 0)
-            const maxReturns50kg = (transaction.return50kg || 0)
-
-            // SWIPES (Other company cylinders returned)
-            const swipes6kg = (transaction.swipeReturn6kg || 0)
-            const swipes13kg = (transaction.swipeReturn13kg || 0)
-            const swipes50kg = (transaction.swipeReturn50kg || 0)
-
-            // OUTRIGHT (Full cylinders sold - customer keeps these)
-            const outright6kg = (transaction.outright6kg || 0)
-            const outright13kg = (transaction.outright13kg || 0)
-            const outright50kg = (transaction.outright50kg || 0)
-            
-
-            
-            // CALCULATE BALANCE: Load - Max Returns - Swipes - Outright
-            balance['6kg'] += load6kg - maxReturns6kg - swipes6kg - outright6kg
-            balance['13kg'] += load13kg - maxReturns13kg - swipes13kg - outright13kg
-            balance['50kg'] += load50kg - maxReturns50kg - swipes50kg - outright50kg
+            // New structure: Load - (Max Empty + Swap Empty + Return Full) - Outright
+            const load6kg = transaction.load_6kg || 0;
+            const load13kg = transaction.load_13kg || 0;
+            const load50kg = transaction.load_50kg || 0;
+            const maxEmpty6kg = transaction.returns_breakdown?.max_empty?.kg6 || 0;
+            const maxEmpty13kg = transaction.returns_breakdown?.max_empty?.kg13 || 0;
+            const maxEmpty50kg = transaction.returns_breakdown?.max_empty?.kg50 || 0;
+            const swapEmpty6kg = transaction.returns_breakdown?.swap_empty?.kg6 || 0;
+            const swapEmpty13kg = transaction.returns_breakdown?.swap_empty?.kg13 || 0;
+            const swapEmpty50kg = transaction.returns_breakdown?.swap_empty?.kg50 || 0;
+            const returnFull6kg = transaction.returns_breakdown?.return_full?.kg6 || 0;
+            const returnFull13kg = transaction.returns_breakdown?.return_full?.kg13 || 0;
+            const returnFull50kg = transaction.returns_breakdown?.return_full?.kg50 || 0;
+            const outright6kg = transaction.outright_breakdown?.kg6 || 0;
+            const outright13kg = transaction.outright_breakdown?.kg13 || 0;
+            const outright50kg = transaction.outright_breakdown?.kg50 || 0;
+            balance['6kg'] += load6kg - (maxEmpty6kg + swapEmpty6kg + returnFull6kg) - outright6kg;
+            balance['13kg'] += load13kg - (maxEmpty13kg + swapEmpty13kg + returnFull13kg) - outright13kg;
+            balance['50kg'] += load50kg - (maxEmpty50kg + swapEmpty50kg + returnFull50kg) - outright50kg;
           })
-
-
           return balance
         },
       }),

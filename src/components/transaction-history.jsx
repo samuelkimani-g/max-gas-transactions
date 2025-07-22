@@ -143,34 +143,41 @@ export default function TransactionHistory({ transactions = [], customerId, onEd
 
       {/* Transaction Details Modal */}
       <Dialog open={!!modalTransaction} onOpenChange={open => { if (!open) setModalTransaction(null); }}>
-        <DialogContent className="max-w-2xl">
-          <DialogHeader>
-            <DialogTitle>Transaction Details #{modalTransaction?.transaction_number}</DialogTitle>
-            <DialogDescription>
-              Date: {modalTransaction ? format(new Date(modalTransaction.date), 'PPpp') : ''}
-            </DialogDescription>
-          </DialogHeader>
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto p-0">
+          <div className="flex justify-between items-center px-6 pt-6 pb-2 border-b">
+            <div>
+              <DialogTitle className="text-xl font-bold">Transaction Details #{modalTransaction?.transaction_number}</DialogTitle>
+              <DialogDescription className="text-gray-500">
+                Date: {modalTransaction ? format(new Date(modalTransaction.date), 'PPpp') : ''}
+              </DialogDescription>
+            </div>
+            <DialogClose asChild>
+              <Button variant="ghost" size="icon" className="text-gray-400 hover:text-gray-700">
+                ×
+              </Button>
+            </DialogClose>
+          </div>
           {modalTransaction && (
-            <div className="space-y-4">
-              <div className="flex gap-2 flex-wrap">
-                <Button size="sm" onClick={() => window.open(`/transaction/${modalTransaction.id}`, '_blank')}>Open in New Tab</Button>
-                <Button size="sm" onClick={() => { setShowReceipt(true); }}>View Receipt</Button>
-                <Button size="sm" onClick={() => { setShowReport(true); }}>View Report</Button>
-                <Button size="sm" onClick={() => { setModalTransaction(null); handleEdit(modalTransaction); }}>Edit</Button>
+            <div className="p-6 space-y-6">
+              <div className="flex gap-2 flex-wrap mb-4">
+                <Button size="sm" variant="outline" onClick={() => window.open(`/transaction/${modalTransaction.id}`, '_blank')}>Open in New Tab</Button>
+                <Button size="sm" variant="outline" onClick={() => { setShowReceipt(true); }}>View Receipt</Button>
+                {/* Only show View Report and Edit if onEdit/showReport are provided */}
+                {onEdit && <Button size="sm" variant="outline" onClick={() => { setModalTransaction(null); handleEdit(modalTransaction); }}>Edit</Button>}
               </div>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div>
-                  <h4 className="font-bold">Returns Breakdown</h4>
+                <div className="bg-gray-50 rounded-lg p-4 border">
+                  <h4 className="font-bold mb-2 text-orange-600">Returns Breakdown</h4>
                   <p>Max Empty: {modalTransaction.returns_breakdown?.max_empty ? `${modalTransaction.returns_breakdown.max_empty.kg6 || 0} x 6kg, ${modalTransaction.returns_breakdown.max_empty.kg13 || 0} x 13kg, ${modalTransaction.returns_breakdown.max_empty.kg50 || 0} x 50kg` : '-'}</p>
                   <p>Swap Empty: {modalTransaction.returns_breakdown?.swap_empty ? `${modalTransaction.returns_breakdown.swap_empty.kg6 || 0} x 6kg, ${modalTransaction.returns_breakdown.swap_empty.kg13 || 0} x 13kg, ${modalTransaction.returns_breakdown.swap_empty.kg50 || 0} x 50kg` : '-'}</p>
                   <p>Return Full: {modalTransaction.returns_breakdown?.return_full ? `${modalTransaction.returns_breakdown.return_full.kg6 || 0} x 6kg, ${modalTransaction.returns_breakdown.return_full.kg13 || 0} x 13kg, ${modalTransaction.returns_breakdown.return_full.kg50 || 0} x 50kg` : '-'}</p>
                 </div>
-                <div>
-                  <h4 className="font-bold">Outright Breakdown</h4>
+                <div className="bg-gray-50 rounded-lg p-4 border">
+                  <h4 className="font-bold mb-2 text-orange-600">Outright Breakdown</h4>
                   <p>{modalTransaction.outright_breakdown ? `${modalTransaction.outright_breakdown.kg6 || 0} x 6kg @ Ksh ${modalTransaction.outright_breakdown.price6 || 0}, ${modalTransaction.outright_breakdown.kg13 || 0} x 13kg @ Ksh ${modalTransaction.outright_breakdown.price13 || 0}, ${modalTransaction.outright_breakdown.kg50 || 0} x 50kg @ Ksh ${modalTransaction.outright_breakdown.price50 || 0}` : '-'}</p>
                 </div>
-                <div>
-                  <h4 className="font-bold">Load & Totals</h4>
+                <div className="bg-gray-50 rounded-lg p-4 border">
+                  <h4 className="font-bold mb-2 text-orange-600">Load & Totals</h4>
                   <p>Load: {modalTransaction.load_6kg || 0} x 6kg, {modalTransaction.load_13kg || 0} x 13kg, {modalTransaction.load_50kg || 0} x 50kg</p>
                   <p>Total Load: {modalTransaction.total_load || 0}</p>
                   <p>Total Returns: {modalTransaction.total_returns || 0}</p>
@@ -182,25 +189,22 @@ export default function TransactionHistory({ transactions = [], customerId, onEd
               </div>
             </div>
           )}
-          <DialogFooter>
-            <DialogClose asChild>
-              <Button variant="outline">Close</Button>
-            </DialogClose>
-          </DialogFooter>
         </DialogContent>
       </Dialog>
       {/* Receipt Modal */}
       <Dialog open={showReceipt} onOpenChange={open => setShowReceipt(open)}>
-        <DialogContent className="max-w-lg">
-          <DialogHeader>
-            <DialogTitle>Transaction Receipt</DialogTitle>
-          </DialogHeader>
-          {modalTransaction && <ReceiptGenerator transaction={modalTransaction} customer={modalTransaction.Customer} />}
-          <DialogFooter>
+        <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto p-0">
+          <div className="flex justify-between items-center px-6 pt-6 pb-2 border-b">
+            <DialogTitle className="text-xl font-bold">Transaction Receipt</DialogTitle>
             <DialogClose asChild>
-              <Button variant="outline">Close</Button>
+              <Button variant="ghost" size="icon" className="text-gray-400 hover:text-gray-700">
+                ×
+              </Button>
             </DialogClose>
-          </DialogFooter>
+          </div>
+          <div className="p-6">
+            {modalTransaction && <ReceiptGenerator transaction={modalTransaction} customer={modalTransaction.Customer} />}
+          </div>
         </DialogContent>
       </Dialog>
       {/* Report Modal */}

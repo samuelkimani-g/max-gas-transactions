@@ -618,30 +618,39 @@ export default function AddTransactionForm({ customerId, customerName, onBack, o
                 <Label className="text-sm font-medium text-gray-700 block mb-2">6kg</Label>
                 <div className="p-3 bg-white border border-blue-200 rounded text-center">
                   <div className="text-2xl font-bold text-blue-600">
-                    {(returnsBreakdown.max_empty.kg6 + returnsBreakdown.swap_empty.kg6 + returnsBreakdown.return_full.kg6 + outrightBreakdown.kg6)}
+                    {(returnsBreakdown.max_empty.kg6 + returnsBreakdown.swap_empty.kg6 + returnsBreakdown.return_full.kg6) + outrightBreakdown.kg6}
                   </div>
                 </div>
                 <div className="text-sm text-gray-600 mt-1">cylinders</div>
+                <div className="text-xs text-gray-500 mt-1">
+                  ({(returnsBreakdown.max_empty.kg6 + returnsBreakdown.swap_empty.kg6 + returnsBreakdown.return_full.kg6)} returns + {outrightBreakdown.kg6} outright)
+                </div>
               </div>
               
               <div className="text-center">
                 <Label className="text-sm font-medium text-gray-700 block mb-2">13kg</Label>
                 <div className="p-3 bg-white border border-blue-200 rounded text-center">
                   <div className="text-2xl font-bold text-blue-600">
-                    {(returnsBreakdown.max_empty.kg13 + returnsBreakdown.swap_empty.kg13 + returnsBreakdown.return_full.kg13 + outrightBreakdown.kg13)}
+                    {(returnsBreakdown.max_empty.kg13 + returnsBreakdown.swap_empty.kg13 + returnsBreakdown.return_full.kg13) + outrightBreakdown.kg13}
                   </div>
                 </div>
                 <div className="text-sm text-gray-600 mt-1">cylinders</div>
+                <div className="text-xs text-gray-500 mt-1">
+                  ({(returnsBreakdown.max_empty.kg13 + returnsBreakdown.swap_empty.kg13 + returnsBreakdown.return_full.kg13)} returns + {outrightBreakdown.kg13} outright)
+                </div>
               </div>
               
               <div className="text-center">
                 <Label className="text-sm font-medium text-gray-700 block mb-2">50kg</Label>
                 <div className="p-3 bg-white border border-blue-200 rounded text-center">
                   <div className="text-2xl font-bold text-blue-600">
-                    {(returnsBreakdown.max_empty.kg50 + returnsBreakdown.swap_empty.kg50 + returnsBreakdown.return_full.kg50 + outrightBreakdown.kg50)}
+                    {(returnsBreakdown.max_empty.kg50 + returnsBreakdown.swap_empty.kg50 + returnsBreakdown.return_full.kg50) + outrightBreakdown.kg50}
                   </div>
                 </div>
                 <div className="text-sm text-gray-600 mt-1">cylinders</div>
+                <div className="text-xs text-gray-500 mt-1">
+                  ({(returnsBreakdown.max_empty.kg50 + returnsBreakdown.swap_empty.kg50 + returnsBreakdown.return_full.kg50)} returns + {outrightBreakdown.kg50} outright)
+                </div>
               </div>
             </div>
             
@@ -649,10 +658,12 @@ export default function AddTransactionForm({ customerId, customerName, onBack, o
               <div className="flex justify-between items-center">
                 <span className="font-medium text-gray-700">Total Load:</span>
                 <span className="text-2xl font-bold text-blue-600">
-                  {(calculatedTotalReturns + outrightBreakdown.kg6 + outrightBreakdown.kg13 + outrightBreakdown.kg50)} cylinders
+                  {calculatedTotalReturns + outrightBreakdown.kg6 + outrightBreakdown.kg13 + outrightBreakdown.kg50} cylinders
                 </span>
               </div>
-              <div className="text-sm text-gray-600 mt-1">Returns + Outright = Total Load</div>
+              <div className="text-sm text-gray-600 mt-1">
+                Returns ({calculatedTotalReturns}) + Outright ({outrightBreakdown.kg6 + outrightBreakdown.kg13 + outrightBreakdown.kg50}) = Total Load
+              </div>
             </div>
           </div>
         </div>

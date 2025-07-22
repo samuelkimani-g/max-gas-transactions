@@ -201,7 +201,7 @@ export default function AddTransactionForm({ customerId, customerName, onBack, o
         loadBreakdown,
         returnsBreakdown,
         outrightBreakdown,
-        totalLoad: calculatedTotalReturns + outrightBreakdown.kg6 + outrightBreakdown.kg13 + outrightBreakdown.kg50,
+        totalLoad: totalLoad.kg6 + totalLoad.kg13 + totalLoad.kg50,
         amountPaid,
         paymentMethod,
         notes
@@ -611,45 +611,54 @@ export default function AddTransactionForm({ customerId, customerName, onBack, o
         <div className="space-y-4">
           <div className="bg-blue-50 p-4 rounded border border-blue-200">
             <h4 className="font-semibold text-blue-800 mb-3">Cylinder Load Breakdown</h4>
-            <div className="text-sm text-blue-600 mb-3">Cylinders given to the customer (auto-calculated)</div>
+            <div className="text-sm text-blue-600 mb-3">Cylinders given to the customer (editable, auto-suggested)</div>
             
             <div className="grid grid-cols-3 gap-6">
               <div className="text-center">
                 <Label className="text-sm font-medium text-gray-700 block mb-2">6kg</Label>
-                <div className="p-3 bg-white border border-blue-200 rounded text-center">
-                  <div className="text-2xl font-bold text-blue-600">
-                    {(returnsBreakdown.max_empty.kg6 + returnsBreakdown.swap_empty.kg6 + returnsBreakdown.return_full.kg6) + outrightBreakdown.kg6}
-                  </div>
-                </div>
+                <Input
+                  type="number"
+                  value={totalLoad.kg6 === 0 ? '' : totalLoad.kg6}
+                  onChange={e => setTotalLoad(prev => ({...prev, kg6: e.target.value === '' ? 0 : parseInt(e.target.value, 10) || 0}))}
+                  onFocus={(e) => e.target.select()}
+                  className="text-center border-gray-300 focus:border-blue-400 focus:ring-blue-200 text-lg font-semibold"
+                  placeholder={(returnsBreakdown.max_empty.kg6 + returnsBreakdown.swap_empty.kg6 + returnsBreakdown.return_full.kg6) + outrightBreakdown.kg6}
+                />
                 <div className="text-sm text-gray-600 mt-1">cylinders</div>
                 <div className="text-xs text-gray-500 mt-1">
-                  ({(returnsBreakdown.max_empty.kg6 + returnsBreakdown.swap_empty.kg6 + returnsBreakdown.return_full.kg6)} returns + {outrightBreakdown.kg6} outright)
+                  Suggested: {(returnsBreakdown.max_empty.kg6 + returnsBreakdown.swap_empty.kg6 + returnsBreakdown.return_full.kg6)} returns + {outrightBreakdown.kg6} outright
                 </div>
               </div>
               
               <div className="text-center">
                 <Label className="text-sm font-medium text-gray-700 block mb-2">13kg</Label>
-                <div className="p-3 bg-white border border-blue-200 rounded text-center">
-                  <div className="text-2xl font-bold text-blue-600">
-                    {(returnsBreakdown.max_empty.kg13 + returnsBreakdown.swap_empty.kg13 + returnsBreakdown.return_full.kg13) + outrightBreakdown.kg13}
-                  </div>
-                </div>
+                <Input
+                  type="number"
+                  value={totalLoad.kg13 === 0 ? '' : totalLoad.kg13}
+                  onChange={e => setTotalLoad(prev => ({...prev, kg13: e.target.value === '' ? 0 : parseInt(e.target.value, 10) || 0}))}
+                  onFocus={(e) => e.target.select()}
+                  className="text-center border-gray-300 focus:border-blue-400 focus:ring-blue-200 text-lg font-semibold"
+                  placeholder={(returnsBreakdown.max_empty.kg13 + returnsBreakdown.swap_empty.kg13 + returnsBreakdown.return_full.kg13) + outrightBreakdown.kg13}
+                />
                 <div className="text-sm text-gray-600 mt-1">cylinders</div>
                 <div className="text-xs text-gray-500 mt-1">
-                  ({(returnsBreakdown.max_empty.kg13 + returnsBreakdown.swap_empty.kg13 + returnsBreakdown.return_full.kg13)} returns + {outrightBreakdown.kg13} outright)
+                  Suggested: {(returnsBreakdown.max_empty.kg13 + returnsBreakdown.swap_empty.kg13 + returnsBreakdown.return_full.kg13)} returns + {outrightBreakdown.kg13} outright
                 </div>
               </div>
               
               <div className="text-center">
                 <Label className="text-sm font-medium text-gray-700 block mb-2">50kg</Label>
-                <div className="p-3 bg-white border border-blue-200 rounded text-center">
-                  <div className="text-2xl font-bold text-blue-600">
-                    {(returnsBreakdown.max_empty.kg50 + returnsBreakdown.swap_empty.kg50 + returnsBreakdown.return_full.kg50) + outrightBreakdown.kg50}
-                  </div>
-                </div>
+                <Input
+                  type="number"
+                  value={totalLoad.kg50 === 0 ? '' : totalLoad.kg50}
+                  onChange={e => setTotalLoad(prev => ({...prev, kg50: e.target.value === '' ? 0 : parseInt(e.target.value, 10) || 0}))}
+                  onFocus={(e) => e.target.select()}
+                  className="text-center border-gray-300 focus:border-blue-400 focus:ring-blue-200 text-lg font-semibold"
+                  placeholder={(returnsBreakdown.max_empty.kg50 + returnsBreakdown.swap_empty.kg50 + returnsBreakdown.return_full.kg50) + outrightBreakdown.kg50}
+                />
                 <div className="text-sm text-gray-600 mt-1">cylinders</div>
                 <div className="text-xs text-gray-500 mt-1">
-                  ({(returnsBreakdown.max_empty.kg50 + returnsBreakdown.swap_empty.kg50 + returnsBreakdown.return_full.kg50)} returns + {outrightBreakdown.kg50} outright)
+                  Suggested: {(returnsBreakdown.max_empty.kg50 + returnsBreakdown.swap_empty.kg50 + returnsBreakdown.return_full.kg50)} returns + {outrightBreakdown.kg50} outright
                 </div>
               </div>
             </div>
@@ -658,12 +667,33 @@ export default function AddTransactionForm({ customerId, customerName, onBack, o
               <div className="flex justify-between items-center">
                 <span className="font-medium text-gray-700">Total Load:</span>
                 <span className="text-2xl font-bold text-blue-600">
-                  {calculatedTotalReturns + outrightBreakdown.kg6 + outrightBreakdown.kg13 + outrightBreakdown.kg50} cylinders
+                  {totalLoad.kg6 + totalLoad.kg13 + totalLoad.kg50} cylinders
                 </span>
               </div>
               <div className="text-sm text-gray-600 mt-1">
-                Returns ({calculatedTotalReturns}) + Outright ({outrightBreakdown.kg6 + outrightBreakdown.kg13 + outrightBreakdown.kg50}) = Total Load
+                Manual Total: {totalLoad.kg6 + totalLoad.kg13 + totalLoad.kg50} | Suggested: {calculatedTotalReturns + outrightBreakdown.kg6 + outrightBreakdown.kg13 + outrightBreakdown.kg50}
+                {(totalLoad.kg6 + totalLoad.kg13 + totalLoad.kg50) !== (calculatedTotalReturns + outrightBreakdown.kg6 + outrightBreakdown.kg13 + outrightBreakdown.kg50) && (
+                  <span className="ml-2 text-orange-600 font-medium">⚠️ Manual override</span>
+                )}
               </div>
+            </div>
+            
+            {/* Auto-fill button for convenience */}
+            <div className="mt-3 text-center">
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  const suggested6kg = (returnsBreakdown.max_empty.kg6 + returnsBreakdown.swap_empty.kg6 + returnsBreakdown.return_full.kg6) + outrightBreakdown.kg6;
+                  const suggested13kg = (returnsBreakdown.max_empty.kg13 + returnsBreakdown.swap_empty.kg13 + returnsBreakdown.return_full.kg13) + outrightBreakdown.kg13;
+                  const suggested50kg = (returnsBreakdown.max_empty.kg50 + returnsBreakdown.swap_empty.kg50 + returnsBreakdown.return_full.kg50) + outrightBreakdown.kg50;
+                  setTotalLoad({ kg6: suggested6kg, kg13: suggested13kg, kg50: suggested50kg });
+                }}
+                className="border-blue-300 text-blue-600 hover:bg-blue-50"
+              >
+                Auto-Fill Suggested Values
+              </Button>
             </div>
           </div>
         </div>

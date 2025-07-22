@@ -103,13 +103,19 @@ async function migrate() {
     
     console.log('🎉 Migration completed successfully!');
     
-    await sequelize.close();
+    // Only close sequelize if the script is run directly
+    if (require.main === module) {
+      await sequelize.close();
+    }
     return true;
   } catch (error) {
     console.error('❌ Migration failed:', error.message);
     console.error('Full error:', error);
     try {
-      await sequelize.close();
+      // Only close sequelize if the script is run directly
+      if (require.main === module) {
+        await sequelize.close();
+      }
     } catch (closeError) {
       console.error('Error closing connection:', closeError.message);
     }
@@ -119,9 +125,7 @@ async function migrate() {
 
 // Run migration if called directly
 if (require.main === module) {
-  migrate().then(success => {
-    process.exit(success ? 0 : 1);
-  });
+  migrate().then(() => process.exit(0));
 }
 
 module.exports = migrate; 

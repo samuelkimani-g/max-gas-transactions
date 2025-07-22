@@ -1012,16 +1012,13 @@ export default function ExportImport() {
                 const state = useStore.getState()
                 const transactions = state.transactions
                 const customers = state.customers
-                
                 console.log("Current data state:")
                 console.log("Customers:", (customers || []).length)
                 console.log("Transactions:", transactions.length)
-                
                 if (transactions.length > 0) {
                   console.log("Sample transaction:", transactions[0])
                 }
-                
-                alert(`Current data: ${(customers || []).length} customers, ${transactions.length} transactions. Check console for details.`)
+                toast({ title: 'Current Data', description: `${(customers || []).length} customers, ${transactions.length} transactions. Check console for details.`, variant: 'info' })
               }}
               variant="outline"
               className="w-full"

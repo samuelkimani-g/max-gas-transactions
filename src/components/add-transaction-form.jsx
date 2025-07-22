@@ -76,6 +76,7 @@ const LiveSummary = ({ summary }) => (
             {summary.cylinderBalance || 0}
           </div>
           <div className="text-sm text-gray-600">Cylinder Balance</div>
+          <div className="text-xs text-gray-500 mt-1">6kg: {summary.cylinderBalance6kg || 0}, 13kg: {summary.cylinderBalance13kg || 0}, 50kg: {summary.cylinderBalance50kg || 0}</div>
         </div>
         <div>
           <div className="text-xl font-bold text-gray-900">
@@ -179,6 +180,18 @@ export default function AddTransactionForm({ customerId, customerName, onBack, o
   const calculatedFinancialBalance = useMemo(() => {
     return calculatedTotalBill - amountPaid;
   }, [calculatedTotalBill, amountPaid]);
+
+  // Live cylinder balance calculation (per size)
+  const cylinderBalance6kg = loadBreakdown.kg6 - (
+    (returnsBreakdown.max_empty.kg6 || 0) + (returnsBreakdown.swap_empty.kg6 || 0) + (returnsBreakdown.return_full.kg6 || 0) + (outrightBreakdown.kg6 || 0)
+  );
+  const cylinderBalance13kg = loadBreakdown.kg13 - (
+    (returnsBreakdown.max_empty.kg13 || 0) + (returnsBreakdown.swap_empty.kg13 || 0) + (returnsBreakdown.return_full.kg13 || 0) + (outrightBreakdown.kg13 || 0)
+  );
+  const cylinderBalance50kg = loadBreakdown.kg50 - (
+    (returnsBreakdown.max_empty.kg50 || 0) + (returnsBreakdown.swap_empty.kg50 || 0) + (returnsBreakdown.return_full.kg50 || 0) + (outrightBreakdown.kg50 || 0)
+  );
+  const totalCylinderBalance = cylinderBalance6kg + cylinderBalance13kg + cylinderBalance50kg;
 
   // Update totalLoad when loadBreakdown changes
   useEffect(() => {
@@ -754,12 +767,17 @@ export default function AddTransactionForm({ customerId, customerName, onBack, o
         </div>
       </SectionCard>
 
-      <LiveSummary summary={{
-        financialBalance: calculatedFinancialBalance,
-        totalBill: calculatedTotalBill,
-        cylinderBalance: 0, // This will be calculated on the backend
-        amountPaid: amountPaid,
-      }} />
+      <LiveSummary
+        summary={{
+          financialBalance: calculatedFinancialBalance,
+          totalBill: calculatedTotalBill,
+          cylinderBalance: totalCylinderBalance,
+          amountPaid: amountPaid,
+          cylinderBalance6kg,
+          cylinderBalance13kg,
+          cylinderBalance50kg,
+        }}
+      />
 
       <div className="flex justify-between">
         <Button 

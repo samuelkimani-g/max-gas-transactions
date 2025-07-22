@@ -53,10 +53,13 @@ router.post('/', authenticateToken, async (req, res) => {
                         (returnsBreakdown?.return_full?.kg50 || 0);
     const total_returns = returns_6kg + returns_13kg + returns_50kg;
 
-    // Calculate outright totals by size
-    const outright_6kg = outrightBreakdown?.kg6?.count || 0;
-    const outright_13kg = outrightBreakdown?.kg13?.count || 0;
-    const outright_50kg = outrightBreakdown?.kg50?.count || 0;
+    // Fix outright breakdown structure to match frontend
+    const outright_6kg = outrightBreakdown?.kg6 || 0;
+    const outright_13kg = outrightBreakdown?.kg13 || 0;
+    const outright_50kg = outrightBreakdown?.kg50 || 0;
+    const outright_price6 = outrightBreakdown?.price6 || 0;
+    const outright_price13 = outrightBreakdown?.price13 || 0;
+    const outright_price50 = outrightBreakdown?.price50 || 0;
 
     // Calculate detailed cylinder balances
     const cylinder_balance_6kg = load_6kg - (returns_6kg + outright_6kg);
@@ -73,42 +76,59 @@ router.post('/', authenticateToken, async (req, res) => {
                           ((returnsBreakdown?.swap_empty?.kg13 || 0) * (returnsBreakdown?.swap_empty?.price13 || 0)) +
                           ((returnsBreakdown?.swap_empty?.kg50 || 0) * (returnsBreakdown?.swap_empty?.price50 || 0));
     
-    const outrightTotal = ((outrightBreakdown?.kg6?.count || 0) * (outrightBreakdown?.kg6?.price || 0)) +
-                         ((outrightBreakdown?.kg13?.count || 0) * (outrightBreakdown?.kg13?.price || 0)) +
-                         ((outrightBreakdown?.kg50?.count || 0) * (outrightBreakdown?.kg50?.price || 0));
+    const outrightTotal = (outright_6kg * outright_price6) +
+                         (outright_13kg * outright_price13) +
+                         (outright_50kg * outright_price50);
     
     const total_bill = maxEmptyTotal + swapEmptyTotal + outrightTotal;
     const financial_balance = total_bill - (amountPaid || 0);
 
-    // Create transaction record
-    const newTransaction = await Transaction.create({
+    // Debug log
+    console.log('[DEBUG] Creating transaction with:', {
       customerId,
       userId: req.user.id,
-      
-      // Detailed load tracking
       load_6kg,
       load_13kg,
       load_50kg,
       total_load,
-      
-      // Breakdown data
+      returnsBreakdown,
+      outrightBreakdown,
+      outright_6kg, outright_13kg, outright_50kg,
+      outright_price6, outright_price13, outright_price50,
+      total_returns,
+      cylinder_balance_6kg, cylinder_balance_13kg, cylinder_balance_50kg, cylinder_balance,
+      total_bill, amountPaid, financial_balance
+    });
+
+    // Create transaction record
+    let newTransaction = await Transaction.create({
+      customerId,
+      userId: req.user.id,
+      load_6kg,
+      load_13kg,
+      load_50kg,
+      total_load,
       returns_breakdown: returnsBreakdown || {},
       outright_breakdown: outrightBreakdown || {},
       total_returns,
-      
-      // Detailed cylinder balances
       cylinder_balance_6kg,
       cylinder_balance_13kg,
       cylinder_balance_50kg,
       cylinder_balance,
-      
-      // Financial data
       total_bill,
       amount_paid: amountPaid || 0,
       financial_balance,
       payment_method: paymentMethod || 'cash',
       notes: notes || ''
     }, { transaction });
+
+    // Failsafe: If transaction_number is still null, generate and update it
+    if (!newTransaction.transaction_number) {
+      const TransactionModel = require('../models/Transaction');
+      const generateTransactionNumber = TransactionModel.generateTransactionNumber || (await import('../models/Transaction')).generateTransactionNumber;
+      const transaction_number = await (typeof generateTransactionNumber === 'function' ? generateTransactionNumber() : 'A0001');
+      await newTransaction.update({ transaction_number }, { transaction });
+    }
 
     // Update customer balances with detailed tracking
     const currentCustomer = await Customer.findByPk(customerId, { transaction });

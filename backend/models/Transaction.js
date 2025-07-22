@@ -7,6 +7,11 @@ const Transaction = sequelize.define('Transaction', {
     primaryKey: true,
     autoIncrement: true
   },
+  transaction_number: {
+    type: DataTypes.STRING(20),
+    unique: true,
+    allowNull: false
+  },
   customerId: {
     type: DataTypes.INTEGER,
     allowNull: false,
@@ -19,7 +24,7 @@ const Transaction = sequelize.define('Transaction', {
     type: DataTypes.INTEGER,
     allowNull: false,
     references: {
-      model: 'users',
+      model: 'users', 
       key: 'id'
     }
   },
@@ -29,85 +34,78 @@ const Transaction = sequelize.define('Transaction', {
     defaultValue: DataTypes.NOW
   },
   
-  // -- NEW Reconciled Ledger System Fields --
-
-  // Part 1: Cylinders IN
-  total_returns: {
+  // Detailed Load Tracking (What customer took)
+  load_6kg: {
     type: DataTypes.INTEGER,
-    allowNull: false,
-    defaultValue: 0,
-    comment: 'Total physical cylinders customer brought IN.'
+    defaultValue: 0
   },
-  returns_breakdown: {
-    type: DataTypes.JSONB,
-    allowNull: true,
-    comment: 'JSON object detailing the breakdown of returned cylinders (max_empty, swap_empty, return_full).'
-    // Example: { 
-    //   "max_empty": { "kg6": 5, "kg13": 0, "kg50": 0, "price6": 135, "price13": 135, "price50": 135 },
-    //   "swap_empty": { "kg6": 0, "kg13": 2, "kg50": 0, "price6": 160, "price13": 160, "price50": 160 },
-    //   "return_full": { "kg6": 0, "kg13": 0, "kg50": 1 }
-    // }
-  },
-
-  // Part 2: Cylinders BOUGHT
-  outright_breakdown: {
-    type: DataTypes.JSONB,
-    allowNull: true,
-    comment: 'JSON object detailing new cylinders purchased outright.'
-    // Example: { 
-    //   "kg6": { "count": 1, "price": 2200 },
-    //   "kg13": { "count": 0, "price": 4400 },
-    //   "kg50": { "count": 0, "price": 8000 }
-    // }
-  },
-
-  // Part 3: Cylinders OUT
-  total_load: {
+  load_13kg: {
     type: DataTypes.INTEGER,
-    allowNull: false,
-    defaultValue: 0,
-    comment: 'Total physical cylinders customer took OUT.'
+    defaultValue: 0
+  },
+  load_50kg: {
+    type: DataTypes.INTEGER,
+    defaultValue: 0
   },
   
-  // Part 4: Balances & Payment
+  // Returns breakdown (JSONB for flexibility)
+  returns_breakdown: {
+    type: DataTypes.JSONB,
+    defaultValue: {}
+  },
+  outright_breakdown: {
+    type: DataTypes.JSONB,
+    defaultValue: {}
+  },
+  
+  // Calculated totals
+  total_returns: {
+    type: DataTypes.INTEGER,
+    defaultValue: 0
+  },
+  total_load: {
+    type: DataTypes.INTEGER,
+    defaultValue: 0
+  },
+  
+  // Detailed cylinder balance by size
+  cylinder_balance_6kg: {
+    type: DataTypes.INTEGER,
+    defaultValue: 0
+  },
+  cylinder_balance_13kg: {
+    type: DataTypes.INTEGER,
+    defaultValue: 0
+  },
+  cylinder_balance_50kg: {
+    type: DataTypes.INTEGER,
+    defaultValue: 0
+  },
   cylinder_balance: {
     type: DataTypes.INTEGER,
-    allowNull: false,
-    defaultValue: 0,
-    comment: 'The physical cylinder balance. Positive means customer owes us cylinders.'
+    defaultValue: 0
   },
+  
+  // Financial fields
   financial_balance: {
     type: DataTypes.DECIMAL(10, 2),
-    allowNull: false,
-    defaultValue: 0.00,
-    comment: 'The monetary balance. Positive means customer owes us money.'
+    defaultValue: 0.00
   },
   total_bill: {
     type: DataTypes.DECIMAL(10, 2),
-    allowNull: false,
-    defaultValue: 0.00,
-    comment: 'The total monetary value of the services rendered (refills, swaps, outright).'
+    defaultValue: 0.00
   },
   amount_paid: {
     type: DataTypes.DECIMAL(10, 2),
-    allowNull: false,
     defaultValue: 0.00
   },
   payment_method: {
     type: DataTypes.ENUM('cash', 'mpesa', 'card', 'transfer', 'credit'),
-    defaultValue: 'credit',
-    allowNull: true
+    defaultValue: 'cash'
   },
-
-  // -- Standard Fields --
   notes: {
     type: DataTypes.TEXT,
     allowNull: true
-  },
-  status: {
-    type: DataTypes.ENUM('completed', 'pending', 'cancelled'),
-    defaultValue: 'completed',
-    allowNull: false
   }
 }, {
   tableName: 'transactions',
@@ -117,7 +115,74 @@ const Transaction = sequelize.define('Transaction', {
     { fields: ['customer_id'] },
     { fields: ['user_id'] },
     { fields: ['date'] },
+    { fields: ['transaction_number'], unique: true }
   ]
+});
+
+// Advanced transaction number generator
+const generateTransactionNumber = async () => {
+  const lastTransaction = await Transaction.findOne({
+    order: [['id', 'DESC']],
+    attributes: ['transaction_number']
+  });
+
+  if (!lastTransaction || !lastTransaction.transaction_number) {
+    return 'A0001';
+  }
+
+  const lastNumber = lastTransaction.transaction_number;
+  
+  // Parse the current number
+  const match = lastNumber.match(/^([A-Z]+)(\d{4})([A-Z]*)$/);
+  if (!match) return 'A0001';
+  
+  const [, prefix, digits, suffix] = match;
+  const currentNum = parseInt(digits, 10);
+  
+  // If we can increment the number (not at 9999)
+  if (currentNum < 9999) {
+    return `${prefix}${String(currentNum + 1).padStart(4, '0')}${suffix}`;
+  }
+  
+  // Need to increment prefix
+  if (!suffix) {
+    // Single letter prefix (A9999 -> B0001)
+    if (prefix === 'Z') {
+      return 'AA0001'; // Z9999 -> AA0001
+    } else {
+      const nextChar = String.fromCharCode(prefix.charCodeAt(0) + 1);
+      return `${nextChar}0001`;
+    }
+  } else {
+    // Has suffix (AA0001A format)
+    const suffixChar = suffix.charCodeAt(0);
+    if (suffixChar < 90) { // Not Z
+      return `${prefix}0001${String.fromCharCode(suffixChar + 1)}`;
+    } else {
+      // Suffix is Z, need to increment prefix
+      if (prefix === 'ZZ') {
+        return 'AA0001A'; // ZZ9999Z -> AA0001A (restart with suffix)
+      } else if (prefix.length === 1) {
+        return 'AA0001'; // Shouldn't happen, but safety
+      } else {
+        // Increment double letter prefix
+        let newPrefix = prefix;
+        if (prefix[1] === 'Z') {
+          const firstChar = String.fromCharCode(prefix.charCodeAt(0) + 1);
+          newPrefix = `${firstChar}A`;
+        } else {
+          const secondChar = String.fromCharCode(prefix.charCodeAt(1) + 1);
+          newPrefix = `${prefix[0]}${secondChar}`;
+        }
+        return `${newPrefix}0001`;
+      }
+    }
+  }
+};
+
+// Add the hook after model definition
+Transaction.addHook('beforeCreate', async (transaction) => {
+  transaction.transaction_number = await generateTransactionNumber();
 });
 
 module.exports = Transaction; 

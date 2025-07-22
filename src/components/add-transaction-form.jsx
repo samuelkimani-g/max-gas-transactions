@@ -53,28 +53,38 @@ const LiveSummary = ({ summary }) => (
         Live Transaction Summary
       </CardTitle>
     </CardHeader>
-    <CardContent className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
-      <div className="bg-white p-3 rounded-lg shadow">
-        <div className="text-sm text-gray-500">Cylinder Balance</div>
-        <div className={`text-2xl font-bold ${summary.cylinderBalance > 0 ? 'text-red-600' : 'text-green-600'}`}>
-          {summary.cylinderBalance > 0 ? `+${summary.cylinderBalance}` : summary.cylinderBalance}
+    <CardContent className="space-y-4">
+      <div className="grid grid-cols-2 gap-4">
+        <div className="text-center p-3 bg-white/70 rounded-lg border border-orange-200">
+          <div className="text-2xl font-bold text-orange-800">
+            {isNaN(summary.cylinderBalance) ? 0 : summary.cylinderBalance}
+          </div>
+          <div className="text-sm text-orange-600">
+            {summary.cylinderBalance > 0 ? 'Owed to Customer' : 'Owed to Us'}
+          </div>
+          <div className="text-xs text-orange-500 font-medium">Cylinder Balance</div>
         </div>
-        <div className="text-xs text-gray-500">{summary.cylinderBalance > 0 ? 'Owed by Customer' : 'Owed to Customer'}</div>
-      </div>
-      <div className="bg-white p-3 rounded-lg shadow">
-        <div className="text-sm text-gray-500">Financial Balance</div>
-        <div className={`text-2xl font-bold ${summary.financialBalance > 0 ? 'text-red-600' : 'text-green-600'}`}>
-          {summary.financialBalance.toFixed(2)}
+        <div className="text-center p-3 bg-white/70 rounded-lg border border-orange-200">
+          <div className="text-2xl font-bold text-orange-800">
+            {isNaN(summary.financialBalance) ? 0 : summary.financialBalance.toFixed(2)}
+          </div>
+          <div className="text-sm text-orange-600">
+            {summary.financialBalance > 0 ? 'Credit' : 'Debt'}
+          </div>
+          <div className="text-xs text-orange-500 font-medium">Financial Balance</div>
         </div>
-        <div className="text-xs text-gray-500">{summary.financialBalance > 0 ? 'Owed by Customer' : 'Credit'}</div>
-      </div>
-      <div className="bg-white p-3 rounded-lg shadow">
-        <div className="text-sm text-gray-500">Total Bill</div>
-        <div className="text-2xl font-bold text-gray-800">{summary.totalBill.toFixed(2)}</div>
-      </div>
-      <div className="bg-white p-3 rounded-lg shadow">
-        <div className="text-sm text-gray-500">Amount Paid</div>
-        <div className="text-2xl font-bold text-gray-800">{summary.amountPaid.toFixed(2)}</div>
+        <div className="text-center p-3 bg-white/70 rounded-lg border border-orange-200">
+          <div className="text-2xl font-bold text-orange-800">
+            {isNaN(summary.totalBill) ? 0 : summary.totalBill.toFixed(2)}
+          </div>
+          <div className="text-xs text-orange-500 font-medium">Total Bill</div>
+        </div>
+        <div className="text-center p-3 bg-white/70 rounded-lg border border-orange-200">
+          <div className="text-2xl font-bold text-orange-800">
+            {summary.amountPaid.toFixed(2)}
+          </div>
+          <div className="text-xs text-orange-500 font-medium">Amount Paid</div>
+        </div>
       </div>
     </CardContent>
   </Card>
@@ -91,6 +101,13 @@ export default function AddTransactionForm({ customerId, customerName, onBack, o
   const [notes, setNotes] = useState('')
   const [error, setError] = useState('')
 
+  // Detailed load tracking
+  const [loadBreakdown, setLoadBreakdown] = useState({
+    kg6: 0,
+    kg13: 0,
+    kg50: 0
+  })
+
   const [returnsBreakdown, setReturnsBreakdown] = useState({
     max_empty: { kg6: 0, kg13: 0, kg50: 0, price6: 135, price13: 135, price50: 135 },
     swap_empty: { kg6: 0, kg13: 0, kg50: 0, price6: 160, price13: 160, price50: 160 },
@@ -103,12 +120,19 @@ export default function AddTransactionForm({ customerId, customerName, onBack, o
     kg50: { count: 0, price: 8000 },
   })
   
-  const handleBreakdownChange = (setBreakdown, category, size, key, value) => {
+  const handleLoadChange = (size, value) => {
+    setLoadBreakdown(prev => ({
+      ...prev,
+      [size]: value
+    }))
+  }
+  
+  const handleBreakdownChange = (setBreakdown, category, size, value) => {
     setBreakdown(prev => ({
       ...prev,
       [category]: {
         ...prev[category],
-        [size]: { ...prev[category][size], [key]: value }
+        [size]: value
       }
     }))
   }
@@ -151,8 +175,8 @@ export default function AddTransactionForm({ customerId, customerName, onBack, o
   }, [returnsBreakdown]);
 
   const calculatedTotalLoad = useMemo(() => {
-    return outrightBreakdown.kg6.count + outrightBreakdown.kg13.count + outrightBreakdown.kg50.count;
-  }, [outrightBreakdown]);
+    return loadBreakdown.kg6 + loadBreakdown.kg13 + loadBreakdown.kg50;
+  }, [loadBreakdown]);
 
   // Auto-update totals when breakdowns change
   useEffect(() => {
@@ -338,9 +362,59 @@ export default function AddTransactionForm({ customerId, customerName, onBack, o
       </div>
 
       <SectionCard title="Step 3: Cylinders OUT" description="What the customer left the compound with.">
-        <div>
-          <Label htmlFor="total-load">Total Load (Cylinders)</Label>
-          <Input id="total-load" type="number" value={totalLoad} onChange={e => setTotalLoad(parseInt(e.target.value, 10) || 0)} placeholder="Total cylinders leaving" />
+        <div className="space-y-6">
+          <div>
+            <Label className="text-orange-700 font-medium text-lg">Cylinder Load Breakdown</Label>
+            <p className="text-sm text-orange-600 mb-4">Cylinders given to the customer</p>
+          </div>
+          
+          <div className="space-y-3">
+            <div className="flex items-center gap-3 p-3 rounded-lg bg-white/70 border border-orange-100">
+              <Label className="w-20 text-sm font-medium text-orange-700">6kg</Label>
+              <Input
+                type="number"
+                value={loadBreakdown.kg6 === 0 ? '' : loadBreakdown.kg6}
+                onChange={e => handleLoadChange('kg6', e.target.value === '' ? 0 : parseInt(e.target.value, 10) || 0)}
+                onFocus={(e) => e.target.select()}
+                className="flex-1 border-orange-200 focus:border-orange-400 focus:ring-orange-200"
+                placeholder="0"
+              />
+              <span className="text-orange-600 text-sm">cylinders</span>
+            </div>
+            
+            <div className="flex items-center gap-3 p-3 rounded-lg bg-white/70 border border-orange-100">
+              <Label className="w-20 text-sm font-medium text-orange-700">13kg</Label>
+              <Input
+                type="number"
+                value={loadBreakdown.kg13 === 0 ? '' : loadBreakdown.kg13}
+                onChange={e => handleLoadChange('kg13', e.target.value === '' ? 0 : parseInt(e.target.value, 10) || 0)}
+                onFocus={(e) => e.target.select()}
+                className="flex-1 border-orange-200 focus:border-orange-400 focus:ring-orange-200"
+                placeholder="0"
+              />
+              <span className="text-orange-600 text-sm">cylinders</span>
+            </div>
+            
+            <div className="flex items-center gap-3 p-3 rounded-lg bg-white/70 border border-orange-100">
+              <Label className="w-20 text-sm font-medium text-orange-700">50kg</Label>
+              <Input
+                type="number"
+                value={loadBreakdown.kg50 === 0 ? '' : loadBreakdown.kg50}
+                onChange={e => handleLoadChange('kg50', e.target.value === '' ? 0 : parseInt(e.target.value, 10) || 0)}
+                onFocus={(e) => e.target.select()}
+                className="flex-1 border-orange-200 focus:border-orange-400 focus:ring-orange-200"
+                placeholder="0"
+              />
+              <span className="text-orange-600 text-sm">cylinders</span>
+            </div>
+          </div>
+          
+          <div className="mt-4 p-4 bg-orange-100 rounded-lg border-l-4 border-orange-500">
+            <div className="flex justify-between items-center">
+              <span className="font-semibold text-orange-800">Total Load:</span>
+              <span className="text-2xl font-bold text-orange-900">{totalLoad} cylinders</span>
+            </div>
+          </div>
         </div>
       </SectionCard>
 

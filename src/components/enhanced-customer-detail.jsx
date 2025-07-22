@@ -124,6 +124,50 @@ export default function EnhancedCustomerDetail({ customerId, onBack }) {
           </CardContent>
         </Card>
       </div>
+
+      {/* Detailed Cylinder Balance Breakdown */}
+      <Card className="shadow-lg border-orange-200 bg-gradient-to-br from-white to-orange-50">
+        <CardHeader>
+          <CardTitle className="text-xl font-bold text-orange-900 flex items-center gap-2">
+            <Package className="w-5 h-5" />
+            Detailed Cylinder Balance
+          </CardTitle>
+          <CardDescription className="text-orange-600">Breakdown by cylinder size</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="text-center p-4 bg-white/70 rounded-lg border border-orange-200">
+              <div className="text-2xl font-bold text-orange-800">
+                {customer.cylinder_balance_6kg || 0}
+              </div>
+              <div className="text-sm text-orange-600 font-medium">6kg Cylinders</div>
+              <div className="text-xs text-orange-500">
+                {(customer.cylinder_balance_6kg || 0) > 0 ? 'Owed to us' : 'Owed to customer'}
+              </div>
+            </div>
+            
+            <div className="text-center p-4 bg-white/70 rounded-lg border border-orange-200">
+              <div className="text-2xl font-bold text-orange-800">
+                {customer.cylinder_balance_13kg || 0}
+              </div>
+              <div className="text-sm text-orange-600 font-medium">13kg Cylinders</div>
+              <div className="text-xs text-orange-500">
+                {(customer.cylinder_balance_13kg || 0) > 0 ? 'Owed to us' : 'Owed to customer'}
+              </div>
+            </div>
+            
+            <div className="text-center p-4 bg-white/70 rounded-lg border border-orange-200">
+              <div className="text-2xl font-bold text-orange-800">
+                {customer.cylinder_balance_50kg || 0}
+              </div>
+              <div className="text-sm text-orange-600 font-medium">50kg Cylinders</div>
+              <div className="text-xs text-orange-500">
+                {(customer.cylinder_balance_50kg || 0) > 0 ? 'Owed to us' : 'Owed to customer'}
+              </div>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
       
       {/* Transaction History */}
       <Card className="shadow-lg border-orange-200 bg-gradient-to-br from-white to-orange-50">

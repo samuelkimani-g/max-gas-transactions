@@ -9,6 +9,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter }
 import { ArrowLeft, Save, AlertTriangle, ChevronsRight, Minus, Plus } from "lucide-react"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select"
 import { Textarea } from "./ui/textarea"
+import { useToast } from "../hooks/use-toast";
 
 // --- Helper Components for a cleaner structure ---
 
@@ -97,6 +98,7 @@ export default function AddTransactionForm({ customerId, customerName, onBack, o
   const [paymentMethod, setPaymentMethod] = useState('cash');
   const [notes, setNotes] = useState('');
   const [error, setError] = useState('');
+  const { toast } = useToast();
 
   // Detailed load tracking
   const [loadBreakdown, setLoadBreakdown] = useState({ kg6: 0, kg13: 0, kg50: 0 });
@@ -194,12 +196,12 @@ export default function AddTransactionForm({ customerId, customerName, onBack, o
     const returns50kg = returnsBreakdown.max_empty.kg50 + returnsBreakdown.swap_empty.kg50 + returnsBreakdown.return_full.kg50;
 
     if (loadBreakdown.kg6 !== returns6kg || loadBreakdown.kg13 !== returns13kg || loadBreakdown.kg50 !== returns50kg) {
-      alert('Error: Returns breakdown must match cylinders brought in by size');
+      toast({ title: 'Validation Error', description: 'Returns breakdown must match cylinders brought in by size', variant: 'destructive' });
       return;
     }
 
     if (!customerId) {
-      alert('Please select a customer');
+      toast({ title: 'Validation Error', description: 'Please select a customer', variant: 'destructive' });
       return;
     }
 

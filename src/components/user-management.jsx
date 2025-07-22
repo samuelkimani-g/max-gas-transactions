@@ -8,6 +8,7 @@ import { useRBAC } from "../lib/rbac"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "./ui/dialog"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select"
 import { Label } from "./ui/label"
+import { toast } from "../hooks/use-toast";
 
 // Get the API base URL from the store
 const API_BASE_URL = import.meta.env.VITE_API_URL || 
@@ -87,11 +88,11 @@ export default function UserManagement() {
         loadUsers()
       } else {
         const error = await response.json()
-        alert(error.message || 'Failed to create user')
+        toast({ title: 'User Creation Error', description: error.message || 'Failed to create user', variant: 'destructive' })
       }
     } catch (error) {
       console.error('Failed to create user:', error)
-      alert('Failed to create user')
+      toast({ title: 'User Creation Error', description: 'Failed to create user', variant: 'destructive' })
     }
   }
 
@@ -122,11 +123,11 @@ export default function UserManagement() {
         loadUsers()
       } else {
         const error = await response.json()
-        alert(error.message || 'Failed to update user')
+        toast({ title: 'User Update Error', description: error.message || 'Failed to update user', variant: 'destructive' })
       }
     } catch (error) {
       console.error('Failed to update user:', error)
-      alert('Failed to update user')
+      toast({ title: 'User Update Error', description: 'Failed to update user', variant: 'destructive' })
     }
   }
 
@@ -145,11 +146,11 @@ export default function UserManagement() {
         loadUsers()
       } else {
         const error = await response.json()
-        alert(error.message || 'Failed to delete user')
+        toast({ title: 'User Deletion Error', description: error.message || 'Failed to delete user', variant: 'destructive' })
       }
     } catch (error) {
       console.error('Failed to delete user:', error)
-      alert('Failed to delete user')
+      toast({ title: 'User Deletion Error', description: 'Failed to delete user', variant: 'destructive' })
     }
   }
 

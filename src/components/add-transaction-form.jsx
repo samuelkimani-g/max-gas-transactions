@@ -160,18 +160,17 @@ export default function AddTransactionForm({ customerId, customerName, onBack, o
   }, [returnsBreakdown]);
 
   const calculatedTotalBill = useMemo(() => {
-    const maxEmptyTotal = (returnsBreakdown.max_empty.kg6 * returnsBreakdown.max_empty.price6) +
-                          (returnsBreakdown.max_empty.kg13 * returnsBreakdown.max_empty.price13) +
-                          (returnsBreakdown.max_empty.kg50 * returnsBreakdown.max_empty.price50);
-    
-    const swapEmptyTotal = (returnsBreakdown.swap_empty.kg6 * returnsBreakdown.swap_empty.price6) +
-                           (returnsBreakdown.swap_empty.kg13 * returnsBreakdown.swap_empty.price13) +
-                           (returnsBreakdown.swap_empty.kg50 * returnsBreakdown.swap_empty.price50);
-    
+    // Refills (Max Empty and Swap Empty): count * price * kg
+    const maxEmptyTotal = (returnsBreakdown.max_empty.kg6 * returnsBreakdown.max_empty.price6 * 6) +
+                         (returnsBreakdown.max_empty.kg13 * returnsBreakdown.max_empty.price13 * 13) +
+                         (returnsBreakdown.max_empty.kg50 * returnsBreakdown.max_empty.price50 * 50);
+    const swapEmptyTotal = (returnsBreakdown.swap_empty.kg6 * returnsBreakdown.swap_empty.price6 * 6) +
+                          (returnsBreakdown.swap_empty.kg13 * returnsBreakdown.swap_empty.price13 * 13) +
+                          (returnsBreakdown.swap_empty.kg50 * returnsBreakdown.swap_empty.price50 * 50);
+    // Outright: count * price
     const outrightTotal = (outrightBreakdown.kg6 * outrightBreakdown.price6) +
-                          (outrightBreakdown.kg13 * outrightBreakdown.price13) +
-                          (outrightBreakdown.kg50 * outrightBreakdown.price50);
-    
+                         (outrightBreakdown.kg13 * outrightBreakdown.price13) +
+                         (outrightBreakdown.kg50 * outrightBreakdown.price50);
     return maxEmptyTotal + swapEmptyTotal + outrightTotal;
   }, [returnsBreakdown, outrightBreakdown]);
 

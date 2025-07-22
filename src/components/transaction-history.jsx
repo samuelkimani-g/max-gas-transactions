@@ -6,12 +6,13 @@ import { useRBAC } from '../lib/rbac';
 import { Button } from './ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from './ui/table';
 import { Badge } from './ui/badge';
-import { ChevronDown, ChevronRight, Edit, Trash2 } from 'lucide-react';
+import { ChevronDown, ChevronRight, Edit, Trash2, Package, RefreshCw, ShoppingCart, DollarSign, CheckCircle } from 'lucide-react';
 import { format } from 'date-fns';
 import { useToast } from '../hooks/use-toast';
 import { Dialog, DialogTrigger, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogClose } from './ui/dialog';
 import ReceiptGenerator from './receipt-generator';
 import ReportingInsights from './reporting-insights';
+import EditTransactionForm from './edit-transaction-form';
 
 const formatNumber = (num) => new Intl.NumberFormat('en-US').format(num);
 
@@ -23,6 +24,7 @@ export default function TransactionHistory({ transactions = [], customerId, onEd
   const [modalTransaction, setModalTransaction] = useState(null);
   const [showReceipt, setShowReceipt] = useState(false);
   const [showReport, setShowReport] = useState(false);
+  const [editingTransaction, setEditingTransaction] = useState(null);
 
   const toggleRow = (id) => {
     setExpandedRow(expandedRow === id ? null : id);
@@ -141,13 +143,27 @@ export default function TransactionHistory({ transactions = [], customerId, onEd
         </TableBody>
       </Table>
 
+      {editingTransaction && (
+        <Dialog open={!!editingTransaction} onOpenChange={open => { if (!open) setEditingTransaction(null); }}>
+          <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto p-0">
+            <EditTransactionForm
+              transaction={editingTransaction}
+              onBack={() => setEditingTransaction(null)}
+              onSuccess={() => setEditingTransaction(null)}
+            />
+          </DialogContent>
+        </Dialog>
+      )}
       {/* Transaction Details Modal */}
       <Dialog open={!!modalTransaction} onOpenChange={open => { if (!open) setModalTransaction(null); }}>
-        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto p-0">
-          <div className="flex justify-between items-center px-6 pt-6 pb-2 border-b">
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto p-0 bg-white rounded-xl shadow-2xl">
+          <div className="flex justify-between items-center px-8 pt-8 pb-4 border-b">
             <div>
-              <DialogTitle className="text-xl font-bold">Transaction Details #{modalTransaction?.transaction_number}</DialogTitle>
-              <DialogDescription className="text-gray-500">
+              <DialogTitle className="text-2xl font-extrabold text-orange-600 flex items-center gap-2">
+                <Package className="w-7 h-7 text-orange-400" />
+                Transaction Details #{modalTransaction?.transaction_number}
+              </DialogTitle>
+              <DialogDescription className="text-gray-500 mt-1">
                 Date: {modalTransaction ? format(new Date(modalTransaction.date), 'PPpp') : ''}
               </DialogDescription>
             </div>
@@ -158,33 +174,44 @@ export default function TransactionHistory({ transactions = [], customerId, onEd
             </DialogClose>
           </div>
           {modalTransaction && (
-            <div className="p-6 space-y-6">
-              <div className="flex gap-2 flex-wrap mb-4">
-                <Button size="sm" variant="outline" onClick={() => window.open(`/transaction/${modalTransaction.id}`, '_blank')}>Open in New Tab</Button>
-                <Button size="sm" variant="outline" onClick={() => { setShowReceipt(true); }}>View Receipt</Button>
-                {/* Only show View Report and Edit if onEdit/showReport are provided */}
-                {onEdit && <Button size="sm" variant="outline" onClick={() => { setModalTransaction(null); handleEdit(modalTransaction); }}>Edit</Button>}
+            <div className="p-8 space-y-8">
+              <div className="flex gap-4 flex-wrap mb-6">
+                <Button size="sm" variant="outline" onClick={() => window.open(`/transaction/${modalTransaction.id}`, '_blank')}>
+                  <RefreshCw className="w-4 h-4 mr-1" /> Open in New Tab
+                </Button>
+                <Button size="sm" variant="outline" onClick={() => { setShowReceipt(true); }}>
+                  <ReceiptGenerator className="w-4 h-4 mr-1" /> View Receipt
+                </Button>
+                {onEdit && <Button size="sm" variant="outline" onClick={() => { setModalTransaction(null); setEditingTransaction(modalTransaction); }}>
+                  <Edit className="w-4 h-4 mr-1" /> Edit
+                </Button>}
               </div>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div className="bg-gray-50 rounded-lg p-4 border">
-                  <h4 className="font-bold mb-2 text-orange-600">Returns Breakdown</h4>
-                  <p>Max Empty: {modalTransaction.returns_breakdown?.max_empty ? `${modalTransaction.returns_breakdown.max_empty.kg6 || 0} x 6kg, ${modalTransaction.returns_breakdown.max_empty.kg13 || 0} x 13kg, ${modalTransaction.returns_breakdown.max_empty.kg50 || 0} x 50kg` : '-'}</p>
-                  <p>Swap Empty: {modalTransaction.returns_breakdown?.swap_empty ? `${modalTransaction.returns_breakdown.swap_empty.kg6 || 0} x 6kg, ${modalTransaction.returns_breakdown.swap_empty.kg13 || 0} x 13kg, ${modalTransaction.returns_breakdown.swap_empty.kg50 || 0} x 50kg` : '-'}</p>
-                  <p>Return Full: {modalTransaction.returns_breakdown?.return_full ? `${modalTransaction.returns_breakdown.return_full.kg6 || 0} x 6kg, ${modalTransaction.returns_breakdown.return_full.kg13 || 0} x 13kg, ${modalTransaction.returns_breakdown.return_full.kg50 || 0} x 50kg` : '-'}</p>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div className="bg-orange-50 rounded-xl p-6 border shadow flex flex-col items-start">
+                  <h4 className="font-bold mb-3 text-orange-700 flex items-center gap-2"><RefreshCw className="w-5 h-5" /> Returns Breakdown</h4>
+                  <div className="space-y-1 text-lg">
+                    <div>Max Empty: <span className="font-bold text-gray-900">{modalTransaction.returns_breakdown?.max_empty ? `${modalTransaction.returns_breakdown.max_empty.kg6 || 0} x 6kg, ${modalTransaction.returns_breakdown.max_empty.kg13 || 0} x 13kg, ${modalTransaction.returns_breakdown.max_empty.kg50 || 0} x 50kg` : '-'}</span></div>
+                    <div>Swap Empty: <span className="font-bold text-gray-900">{modalTransaction.returns_breakdown?.swap_empty ? `${modalTransaction.returns_breakdown.swap_empty.kg6 || 0} x 6kg, ${modalTransaction.returns_breakdown.swap_empty.kg13 || 0} x 13kg, ${modalTransaction.returns_breakdown.swap_empty.kg50 || 0} x 50kg` : '-'}</span></div>
+                    <div>Return Full: <span className="font-bold text-gray-900">{modalTransaction.returns_breakdown?.return_full ? `${modalTransaction.returns_breakdown.return_full.kg6 || 0} x 6kg, ${modalTransaction.returns_breakdown.return_full.kg13 || 0} x 13kg, ${modalTransaction.returns_breakdown.return_full.kg50 || 0} x 50kg` : '-'}</span></div>
+                  </div>
                 </div>
-                <div className="bg-gray-50 rounded-lg p-4 border">
-                  <h4 className="font-bold mb-2 text-orange-600">Outright Breakdown</h4>
-                  <p>{modalTransaction.outright_breakdown ? `${modalTransaction.outright_breakdown.kg6 || 0} x 6kg @ Ksh ${modalTransaction.outright_breakdown.price6 || 0}, ${modalTransaction.outright_breakdown.kg13 || 0} x 13kg @ Ksh ${modalTransaction.outright_breakdown.price13 || 0}, ${modalTransaction.outright_breakdown.kg50 || 0} x 50kg @ Ksh ${modalTransaction.outright_breakdown.price50 || 0}` : '-'}</p>
+                <div className="bg-blue-50 rounded-xl p-6 border shadow flex flex-col items-start">
+                  <h4 className="font-bold mb-3 text-blue-700 flex items-center gap-2"><ShoppingCart className="w-5 h-5" /> Outright Breakdown</h4>
+                  <div className="space-y-1 text-lg">
+                    <div>{modalTransaction.outright_breakdown ? `${modalTransaction.outright_breakdown.kg6 || 0} x 6kg @ Ksh ${modalTransaction.outright_breakdown.price6 || 0}, ${modalTransaction.outright_breakdown.kg13 || 0} x 13kg @ Ksh ${modalTransaction.outright_breakdown.price13 || 0}, ${modalTransaction.outright_breakdown.kg50 || 0} x 50kg @ Ksh ${modalTransaction.outright_breakdown.price50 || 0}` : '-'}</div>
+                  </div>
                 </div>
-                <div className="bg-gray-50 rounded-lg p-4 border">
-                  <h4 className="font-bold mb-2 text-orange-600">Load & Totals</h4>
-                  <p>Load: {modalTransaction.load_6kg || 0} x 6kg, {modalTransaction.load_13kg || 0} x 13kg, {modalTransaction.load_50kg || 0} x 50kg</p>
-                  <p>Total Load: {modalTransaction.total_load || 0}</p>
-                  <p>Total Returns: {modalTransaction.total_returns || 0}</p>
-                  <p>Bill: Ksh {formatNumber(modalTransaction.total_bill)}</p>
-                  <p>Paid: Ksh {formatNumber(modalTransaction.amount_paid)}</p>
-                  <p>Balance: Ksh {formatNumber(modalTransaction.financial_balance)}</p>
-                  <p>Cylinder Balance: {modalTransaction.cylinder_balance}</p>
+                <div className="bg-green-50 rounded-xl p-6 border shadow flex flex-col items-start">
+                  <h4 className="font-bold mb-3 text-green-700 flex items-center gap-2"><DollarSign className="w-5 h-5" /> Load & Totals</h4>
+                  <div className="space-y-1 text-lg">
+                    <div>Load: <span className="font-bold text-gray-900">{modalTransaction.load_6kg || 0} x 6kg, {modalTransaction.load_13kg || 0} x 13kg, {modalTransaction.load_50kg || 0} x 50kg</span></div>
+                    <div>Total Load: <span className="font-bold text-gray-900">{modalTransaction.total_load || 0}</span></div>
+                    <div>Total Returns: <span className="font-bold text-gray-900">{modalTransaction.total_returns || 0}</span></div>
+                    <div>Bill: <span className="font-bold text-orange-700 text-xl">Ksh {formatNumber(modalTransaction.total_bill)}</span></div>
+                    <div>Paid: <span className="font-bold text-green-700 text-xl">Ksh {formatNumber(modalTransaction.amount_paid)}</span></div>
+                    <div>Balance: <span className="font-bold text-red-700 text-xl">Ksh {formatNumber(modalTransaction.financial_balance)}</span></div>
+                    <div>Cylinder Balance: <span className="font-bold text-blue-700">{modalTransaction.cylinder_balance}</span></div>
+                  </div>
                 </div>
               </div>
             </div>

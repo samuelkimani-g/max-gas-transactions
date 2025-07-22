@@ -13,6 +13,7 @@ import { Badge } from "./ui/badge"
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "./ui/dialog"
 import ReceiptGenerator from "./receipt-generator"
 import CustomerReportGenerator from "./customer-report-generator"
+import EditTransactionForm from "./edit-transaction-form"
 
 const formatNumber = (num) => new Intl.NumberFormat('en-US').format(num);
 
@@ -28,6 +29,7 @@ export default function EnhancedCustomerDetail({ customerId, onBack }) {
   const [showReceipt, setShowReceipt] = useState(false)
   const [showReport, setShowReport] = useState(false)
   const [selectedTransaction, setSelectedTransaction] = useState(null)
+  const [editingTransaction, setEditingTransaction] = useState(null);
 
   const customer = customers.find((c) => c.id === customerId)
   const customerTransactions = getCustomerTransactions(customerId)
@@ -199,7 +201,7 @@ export default function EnhancedCustomerDetail({ customerId, onBack }) {
           <TransactionHistory
             transactions={customerTransactions}
             customerId={customerId}
-            onEdit={() => setIsAddingTransaction(true)}
+            onEdit={transaction => setEditingTransaction(transaction)}
             onViewReceipt={(transaction) => {
               setSelectedTransaction(transaction);
               setShowReceipt(true);
@@ -207,6 +209,17 @@ export default function EnhancedCustomerDetail({ customerId, onBack }) {
           />
         </CardContent>
       </Card>
+      {editingTransaction && (
+        <Dialog open={!!editingTransaction} onOpenChange={open => { if (!open) setEditingTransaction(null); }}>
+          <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto p-0">
+            <EditTransactionForm
+              transaction={editingTransaction}
+              onBack={() => setEditingTransaction(null)}
+              onSuccess={() => setEditingTransaction(null)}
+            />
+          </DialogContent>
+        </Dialog>
+      )}
 
       {/* Advanced Actions */}
       <Card className="border border-gray-200 bg-white">

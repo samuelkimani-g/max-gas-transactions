@@ -9,6 +9,9 @@ require('dotenv').config();
 const { sequelize } = require('./config/database');
 require('./models'); // This will load all models and associations
 
+// Import migration
+const migrate = require('./scripts/migrate-db');
+
 // Import routes
 const authRoutes = require('./routes/auth');
 const userRoutes = require('./routes/users');
@@ -226,6 +229,15 @@ async function startServer() {
     // Test database connection
     await sequelize.authenticate();
     console.log('✅ Database connection established successfully');
+
+    // Run database migration
+    console.log('🔧 Running database migration...');
+    const migrationSuccess = await migrate();
+    if (migrationSuccess) {
+      console.log('✅ Database migration completed successfully');
+    } else {
+      console.log('⚠️ Database migration had issues, but continuing...');
+    }
 
     // Start server
     app.listen(PORT, () => {

@@ -321,9 +321,9 @@ export default function AddTransactionForm({ customerId, customerName, onBack, o
               <div className="text-sm text-gray-600 mb-3">
                 Break down how the cylinders were returned (must match cylinders brought in by size)
               </div>
-              <div className="flex flex-col gap-4 md:flex-row md:gap-8">
+              <div className="flex flex-col gap-4">
                 {/* Max Empty */}
-                <div className="flex-1 bg-white p-6 md:p-10 rounded border border-gray-200 mb-4 md:mb-0">
+                <div className="flex-1 bg-white p-6 md:p-10 rounded border border-gray-200 mb-4">
                   <h5 className="font-medium text-orange-700 mb-3 md:mb-6">Max Empty</h5>
                   <div className="grid grid-cols-1 gap-4 md:gap-8 sm:grid-cols-3">
                     <div>
@@ -386,7 +386,7 @@ export default function AddTransactionForm({ customerId, customerName, onBack, o
                   </div>
                 </div>
                 {/* Swap Empty */}
-                <div className="flex-1 bg-white p-6 md:p-10 rounded border border-gray-200 mb-4 md:mb-0">
+                <div className="flex-1 bg-white p-6 md:p-10 rounded border border-gray-200 mb-4">
                   <h5 className="font-medium text-blue-700 mb-3 md:mb-6">Swap Empty</h5>
                   <div className="grid grid-cols-1 gap-4 md:gap-8 sm:grid-cols-3">
                     <div>

@@ -14,6 +14,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import ReceiptGenerator from "./receipt-generator"
 import CustomerReportGenerator from "./customer-report-generator"
 import EditTransactionForm from "./edit-transaction-form"
+import { calculateTransactionTotal } from "../lib/calculations";
 
 const formatNumber = (num) => new Intl.NumberFormat('en-US').format(num);
 
@@ -45,6 +46,15 @@ export default function EnhancedCustomerDetail({ customerId, onBack }) {
       </div>
     )
   }
+
+  // Live calculation for financial and cylinder balances
+  const totalBill = customerTransactions.reduce((sum, t) => sum + calculateTransactionTotal(t), 0);
+  const totalPaid = customerTransactions.reduce((sum, t) => sum + (parseFloat(t.amount_paid) || 0), 0);
+  const financialBalance = totalBill - totalPaid;
+  const cylinderBalance6kg = customerTransactions.reduce((sum, t) => sum + ((t.load_6kg || 0) - ((t.returns_breakdown?.max_empty?.kg6 || 0) + (t.returns_breakdown?.swap_empty?.kg6 || 0) + (t.returns_breakdown?.return_full?.kg6 || 0) + (t.outright_breakdown?.kg6 || 0))), 0);
+  const cylinderBalance13kg = customerTransactions.reduce((sum, t) => sum + ((t.load_13kg || 0) - ((t.returns_breakdown?.max_empty?.kg13 || 0) + (t.returns_breakdown?.swap_empty?.kg13 || 0) + (t.returns_breakdown?.return_full?.kg13 || 0) + (t.outright_breakdown?.kg13 || 0))), 0);
+  const cylinderBalance50kg = customerTransactions.reduce((sum, t) => sum + ((t.load_50kg || 0) - ((t.returns_breakdown?.max_empty?.kg50 || 0) + (t.returns_breakdown?.swap_empty?.kg50 || 0) + (t.returns_breakdown?.return_full?.kg50 || 0) + (t.outright_breakdown?.kg50 || 0))), 0);
+  const cylinderBalance = cylinderBalance6kg + cylinderBalance13kg + cylinderBalance50kg;
 
   const handleDeleteCustomer = async () => {
     if (confirm(`Are you sure you want to PERMANENTLY DELETE ${customer.name}? This action cannot be undone.`)) {
@@ -122,31 +132,21 @@ export default function EnhancedCustomerDetail({ customerId, onBack }) {
             <DollarSign className="h-5 w-5" />
           </CardHeader>
           <CardContent className="p-6">
-            <div className={`text-2xl font-bold ${customer.financial_balance > 0 ? 'text-red-600' : 'text-green-600'}`}>
-              Ksh {formatNumber(customer.financial_balance || 0)}
-            </div>
-            <p className="text-sm text-gray-600 mt-1">
-              {customer.financial_balance > 0 ? 'Owed to us' : 'Customer Credit'}
-            </p>
+            <div className={`text-2xl font-bold ${financialBalance > 0 ? 'text-red-600' : 'text-green-600'}`}>Ksh {formatNumber(financialBalance || 0)}</div>
+            <p className="text-sm text-gray-600 mt-1">{financialBalance > 0 ? 'Owed to us' : 'Customer Credit'}</p>
           </CardContent>
         </Card>
-        
         <Card className="border border-gray-200 bg-white">
           <CardHeader className="bg-orange-500 text-white flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-lg font-semibold">Cylinder Balance</CardTitle>
             <Package className="h-5 w-5" />
           </CardHeader>
           <CardContent className="p-6">
-            <div className={`text-2xl font-bold ${customer.cylinder_balance > 0 ? 'text-red-600' : 'text-green-600'}`}>
-              {customer.cylinder_balance > 0 ? `+${customer.cylinder_balance}`: (customer.cylinder_balance || 0)}
-            </div>
-            <p className="text-sm text-gray-600 mt-1">
-               {customer.cylinder_balance > 0 ? 'Cylinders Owed to us' : 'Cylinders Owed to Customer'}
-            </p>
+            <div className={`text-2xl font-bold ${cylinderBalance > 0 ? 'text-red-600' : 'text-green-600'}`}>{cylinderBalance > 0 ? `+${cylinderBalance}`: (cylinderBalance || 0)}</div>
+            <p className="text-sm text-gray-600 mt-1">{cylinderBalance > 0 ? 'Cylinders Owed to us' : 'Cylinders Owed to Customer'}</p>
           </CardContent>
         </Card>
       </div>
-
       {/* Detailed Cylinder Balance Breakdown */}
       <Card className="border border-gray-200 bg-white">
         <CardHeader className="bg-orange-500 text-white">
@@ -159,33 +159,19 @@ export default function EnhancedCustomerDetail({ customerId, onBack }) {
         <CardContent className="p-6">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="text-center p-4 bg-gray-50 rounded border border-gray-200">
-              <div className="text-xl font-bold text-gray-900">
-                {customer.cylinder_balance_6kg || 0}
-              </div>
+              <div className="text-xl font-bold text-gray-900">{cylinderBalance6kg || 0}</div>
               <div className="text-sm text-gray-600 font-medium">6kg Cylinders</div>
-              <div className="text-xs text-gray-500">
-                {(customer.cylinder_balance_6kg || 0) > 0 ? 'Owed to us' : 'Owed to customer'}
-              </div>
+              <div className="text-xs text-gray-500">{(cylinderBalance6kg || 0) > 0 ? 'Owed to us' : 'Owed to customer'}</div>
             </div>
-            
             <div className="text-center p-4 bg-gray-50 rounded border border-gray-200">
-              <div className="text-xl font-bold text-gray-900">
-                {customer.cylinder_balance_13kg || 0}
-              </div>
+              <div className="text-xl font-bold text-gray-900">{cylinderBalance13kg || 0}</div>
               <div className="text-sm text-gray-600 font-medium">13kg Cylinders</div>
-              <div className="text-xs text-gray-500">
-                {(customer.cylinder_balance_13kg || 0) > 0 ? 'Owed to us' : 'Owed to customer'}
-              </div>
+              <div className="text-xs text-gray-500">{(cylinderBalance13kg || 0) > 0 ? 'Owed to us' : 'Owed to customer'}</div>
             </div>
-            
             <div className="text-center p-4 bg-gray-50 rounded border border-gray-200">
-              <div className="text-xl font-bold text-gray-900">
-                {customer.cylinder_balance_50kg || 0}
-              </div>
+              <div className="text-xl font-bold text-gray-900">{cylinderBalance50kg || 0}</div>
               <div className="text-sm text-gray-600 font-medium">50kg Cylinders</div>
-              <div className="text-xs text-gray-500">
-                {(customer.cylinder_balance_50kg || 0) > 0 ? 'Owed to us' : 'Owed to customer'}
-              </div>
+              <div className="text-xs text-gray-500">{(cylinderBalance50kg || 0) > 0 ? 'Owed to us' : 'Owed to customer'}</div>
             </div>
           </div>
         </CardContent>

@@ -462,13 +462,6 @@ export default function AddTransactionForm({ customerId, customerName, onBack, o
                           className="w-24 md:w-40 text-lg md:text-2xl border-gray-300 focus:border-green-400 focus:ring-green-200 px-3 py-2 md:px-6 md:py-4"
                           placeholder="0"
                         />
-                        <label className="text-xs text-gray-500 mt-1">Price (Ksh)</label>
-                        <Input
-                          type="number"
-                          value={returnsBreakdown.return_full.price6}
-                          onChange={e => handleBreakdownChange(setReturnsBreakdown, 'return_full', 'price6', parseFloat(e.target.value) || 0)}
-                          className="w-20 md:w-28 text-base border-gray-300 focus:border-green-400 focus:ring-green-200"
-                        />
                       </div>
                     </div>
                     <div>
@@ -481,13 +474,6 @@ export default function AddTransactionForm({ customerId, customerName, onBack, o
                           className="w-24 md:w-40 text-lg md:text-2xl border-gray-300 focus:border-green-400 focus:ring-green-200 px-3 py-2 md:px-6 md:py-4"
                           placeholder="0"
                         />
-                        <label className="text-xs text-gray-500 mt-1">Price (Ksh)</label>
-                        <Input
-                          type="number"
-                          value={returnsBreakdown.return_full.price13}
-                          onChange={e => handleBreakdownChange(setReturnsBreakdown, 'return_full', 'price13', parseFloat(e.target.value) || 0)}
-                          className="w-20 md:w-28 text-base border-gray-300 focus:border-green-400 focus:ring-green-200"
-                        />
                       </div>
                     </div>
                     <div>
@@ -499,13 +485,6 @@ export default function AddTransactionForm({ customerId, customerName, onBack, o
                           onFocus={(e) => e.target.select()}
                           className="w-24 md:w-40 text-lg md:text-2xl border-gray-300 focus:border-green-400 focus:ring-green-200 px-3 py-2 md:px-6 md:py-4"
                           placeholder="0"
-                        />
-                        <label className="text-xs text-gray-500 mt-1">Price (Ksh)</label>
-                        <Input
-                          type="number"
-                          value={returnsBreakdown.return_full.price50}
-                          onChange={e => handleBreakdownChange(setReturnsBreakdown, 'return_full', 'price50', parseFloat(e.target.value) || 0)}
-                          className="w-20 md:w-28 text-base border-gray-300 focus:border-green-400 focus:ring-green-200"
                         />
                       </div>
                     </div>

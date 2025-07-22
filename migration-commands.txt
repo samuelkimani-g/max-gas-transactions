@@ -1,85 +1,69 @@
-# Run these commands in your Render shell:
-
-# 1. Navigate to your backend directory
-cd backend
-
-# 2. Run the migration script using Node.js
 node -e "
 const { sequelize } = require('./config/database');
 const { QueryTypes } = require('sequelize');
 
-(async () => {
+async function migrate() {
   try {
-    console.log('🚀 Starting database migration...');
+    console.log('🔧 Starting database migration...');
     
     // Add missing columns to customers table
-    console.log('📝 Adding missing columns to customers table...');
-    await sequelize.query(\`
-      ALTER TABLE customers 
-      ADD COLUMN IF NOT EXISTS financial_balance DECIMAL(10,2) DEFAULT 0,
-      ADD COLUMN IF NOT EXISTS cylinder_balance INTEGER DEFAULT 0,
-      ADD COLUMN IF NOT EXISTS cylinder_balance_6kg INTEGER DEFAULT 0,
-      ADD COLUMN IF NOT EXISTS cylinder_balance_13kg INTEGER DEFAULT 0,
-      ADD COLUMN IF NOT EXISTS cylinder_balance_50kg INTEGER DEFAULT 0;
-    \`, { type: QueryTypes.RAW });
-
+    await sequelize.query('ALTER TABLE customers ADD COLUMN IF NOT EXISTS financial_balance DECIMAL(10,2) DEFAULT 0;');
+    await sequelize.query('ALTER TABLE customers ADD COLUMN IF NOT EXISTS cylinder_balance INTEGER DEFAULT 0;');
+    await sequelize.query('ALTER TABLE customers ADD COLUMN IF NOT EXISTS cylinder_balance_6kg INTEGER DEFAULT 0;');
+    await sequelize.query('ALTER TABLE customers ADD COLUMN IF NOT EXISTS cylinder_balance_13kg INTEGER DEFAULT 0;');
+    await sequelize.query('ALTER TABLE customers ADD COLUMN IF NOT EXISTS cylinder_balance_50kg INTEGER DEFAULT 0;');
+    console.log('✅ Customer table columns added');
+    
     // Add missing columns to transactions table
-    console.log('📝 Adding missing columns to transactions table...');
-    await sequelize.query(\`
-      ALTER TABLE transactions 
-      ADD COLUMN IF NOT EXISTS transaction_number VARCHAR(20),
-      ADD COLUMN IF NOT EXISTS load_6kg INTEGER DEFAULT 0,
-      ADD COLUMN IF NOT EXISTS load_13kg INTEGER DEFAULT 0,
-      ADD COLUMN IF NOT EXISTS load_50kg INTEGER DEFAULT 0,
-      ADD COLUMN IF NOT EXISTS returns_breakdown JSONB DEFAULT '{}',
-      ADD COLUMN IF NOT EXISTS outright_breakdown JSONB DEFAULT '{}',
-      ADD COLUMN IF NOT EXISTS total_returns INTEGER DEFAULT 0,
-      ADD COLUMN IF NOT EXISTS total_load INTEGER DEFAULT 0,
-      ADD COLUMN IF NOT EXISTS cylinder_balance_6kg INTEGER DEFAULT 0,
-      ADD COLUMN IF NOT EXISTS cylinder_balance_13kg INTEGER DEFAULT 0,
-      ADD COLUMN IF NOT EXISTS cylinder_balance_50kg INTEGER DEFAULT 0,
-      ADD COLUMN IF NOT EXISTS cylinder_balance INTEGER DEFAULT 0,
-      ADD COLUMN IF NOT EXISTS financial_balance DECIMAL(10,2) DEFAULT 0,
-      ADD COLUMN IF NOT EXISTS total_bill DECIMAL(10,2) DEFAULT 0,
-      ADD COLUMN IF NOT EXISTS amount_paid DECIMAL(10,2) DEFAULT 0,
-      ADD COLUMN IF NOT EXISTS payment_method VARCHAR(20) DEFAULT 'cash',
-      ADD COLUMN IF NOT EXISTS notes TEXT;
-    \`, { type: QueryTypes.RAW });
-
-    // Create unique index for transaction_number
-    console.log('📝 Creating unique index for transaction_number...');
+    await sequelize.query('ALTER TABLE transactions ADD COLUMN IF NOT EXISTS transaction_number VARCHAR(20);');
+    await sequelize.query('ALTER TABLE transactions ADD COLUMN IF NOT EXISTS load_6kg INTEGER DEFAULT 0;');
+    await sequelize.query('ALTER TABLE transactions ADD COLUMN IF NOT EXISTS load_13kg INTEGER DEFAULT 0;');
+    await sequelize.query('ALTER TABLE transactions ADD COLUMN IF NOT EXISTS load_50kg INTEGER DEFAULT 0;');
+    await sequelize.query('ALTER TABLE transactions ADD COLUMN IF NOT EXISTS returns_breakdown JSONB;');
+    await sequelize.query('ALTER TABLE transactions ADD COLUMN IF NOT EXISTS outright_breakdown JSONB;');
+    await sequelize.query('ALTER TABLE transactions ADD COLUMN IF NOT EXISTS total_returns INTEGER DEFAULT 0;');
+    await sequelize.query('ALTER TABLE transactions ADD COLUMN IF NOT EXISTS total_load INTEGER DEFAULT 0;');
+    await sequelize.query('ALTER TABLE transactions ADD COLUMN IF NOT EXISTS cylinder_balance_6kg INTEGER DEFAULT 0;');
+    await sequelize.query('ALTER TABLE transactions ADD COLUMN IF NOT EXISTS cylinder_balance_13kg INTEGER DEFAULT 0;');
+    await sequelize.query('ALTER TABLE transactions ADD COLUMN IF NOT EXISTS cylinder_balance_50kg INTEGER DEFAULT 0;');
+    await sequelize.query('ALTER TABLE transactions ADD COLUMN IF NOT EXISTS cylinder_balance INTEGER DEFAULT 0;');
+    await sequelize.query('ALTER TABLE transactions ADD COLUMN IF NOT EXISTS financial_balance DECIMAL(10,2) DEFAULT 0;');
+    await sequelize.query('ALTER TABLE transactions ADD COLUMN IF NOT EXISTS total_bill DECIMAL(10,2) DEFAULT 0;');
+    await sequelize.query('ALTER TABLE transactions ADD COLUMN IF NOT EXISTS amount_paid DECIMAL(10,2) DEFAULT 0;');
+    await sequelize.query('ALTER TABLE transactions ADD COLUMN IF NOT EXISTS payment_method VARCHAR(20) DEFAULT \'cash\';');
+    await sequelize.query('ALTER TABLE transactions ADD COLUMN IF NOT EXISTS notes TEXT;');
+    console.log('✅ Transaction table columns added');
+    
+    // Create unique index on transaction_number
     try {
-      await sequelize.query(\`
-        CREATE UNIQUE INDEX IF NOT EXISTS transactions_transaction_number_unique 
-        ON transactions (transaction_number);
-      \`, { type: QueryTypes.RAW });
-    } catch (error) {
-      console.log('ℹ️ Index creation skipped (may already exist)');
+      await sequelize.query('CREATE UNIQUE INDEX IF NOT EXISTS transactions_transaction_number_unique ON transactions(transaction_number);');
+      console.log('✅ Unique index created on transaction_number');
+    } catch (e) {
+      console.log('ℹ️ Index already exists or not needed');
     }
-
+    
     // Generate transaction numbers for existing transactions
-    console.log('📝 Generating transaction numbers for existing transactions...');
-    const transactionsWithoutNumbers = await sequelize.query(\`
-      SELECT id FROM transactions WHERE transaction_number IS NULL ORDER BY id ASC;
-    \`, { type: QueryTypes.SELECT });
-
-    let counter = 1;
-    for (const transaction of transactionsWithoutNumbers) {
-      const transactionNumber = \`A\${String(counter).padStart(4, '0')}\`;
-      await sequelize.query(\`
-        UPDATE transactions SET transaction_number = :transactionNumber WHERE id = :id;
-      \`, {
-        type: QueryTypes.UPDATE,
-        replacements: { transactionNumber, id: transaction.id }
+    const transactions = await sequelize.query('SELECT id FROM transactions WHERE transaction_number IS NULL ORDER BY id;', { type: QueryTypes.SELECT });
+    
+    for (let i = 0; i < transactions.length; i++) {
+      const transactionNumber = 'A' + String(i + 1).padStart(4, '0');
+      await sequelize.query('UPDATE transactions SET transaction_number = ? WHERE id = ?;', {
+        replacements: [transactionNumber, transactions[i].id],
+        type: QueryTypes.UPDATE
       });
-      counter++;
     }
-
-    console.log(\`✅ Migration completed successfully! Generated \${transactionsWithoutNumbers.length} transaction numbers.\`);
+    
+    console.log(\`✅ Generated transaction numbers for \${transactions.length} existing transactions\`);
+    console.log('🎉 Migration completed successfully!');
+    
+    await sequelize.close();
     process.exit(0);
   } catch (error) {
     console.error('❌ Migration failed:', error);
+    await sequelize.close();
     process.exit(1);
   }
-})();
+}
+
+migrate();
 " 

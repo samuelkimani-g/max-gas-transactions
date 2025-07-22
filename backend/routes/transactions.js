@@ -83,10 +83,8 @@ router.post('/', authenticateToken, async (req, res) => {
     const total_bill = maxEmptyTotal + swapEmptyTotal + outrightTotal;
     const financial_balance = total_bill - (amountPaid || 0);
 
-    // Import and generate transaction number
-    const TransactionModel = require('../models/Transaction');
-    const generateTransactionNumber = TransactionModel.generateTransactionNumber || (await import('../models/Transaction')).generateTransactionNumber;
-    const transaction_number = await (typeof generateTransactionNumber === 'function' ? generateTransactionNumber() : 'A0001');
+    // Generate transaction number using static method
+    const transaction_number = await Transaction.generateTransactionNumber();
 
     // Debug log
     console.log('[DEBUG] Creating transaction with:', {

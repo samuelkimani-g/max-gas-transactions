@@ -185,4 +185,6 @@ Transaction.addHook('beforeCreate', async (transaction) => {
   transaction.transaction_number = await generateTransactionNumber();
 });
 
+Transaction.generateTransactionNumber = generateTransactionNumber;
+
 module.exports = Transaction; 

@@ -170,7 +170,9 @@ router.post('/', authenticateToken, async (req, res) => {
     });
 
   } catch (error) {
-    await transaction.rollback();
+    if (transaction && !transaction.finished) {
+      await transaction.rollback();
+    }
     console.error('Transaction creation error:', error);
     res.status(500).json({
       success: false,

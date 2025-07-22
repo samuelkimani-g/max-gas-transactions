@@ -189,6 +189,14 @@ export default function TransactionHistory({ transactions = [], customerId, onEd
             const cylinderBalance13kg = (modalTransaction.load_13kg || 0) - ((modalTransaction.returns_breakdown?.max_empty?.kg13 || 0) + (modalTransaction.returns_breakdown?.swap_empty?.kg13 || 0) + (modalTransaction.returns_breakdown?.return_full?.kg13 || 0));
             const cylinderBalance50kg = (modalTransaction.load_50kg || 0) - ((modalTransaction.returns_breakdown?.max_empty?.kg50 || 0) + (modalTransaction.returns_breakdown?.swap_empty?.kg50 || 0) + (modalTransaction.returns_breakdown?.return_full?.kg50 || 0));
             const cylinderBalance = cylinderBalance6kg + cylinderBalance13kg + cylinderBalance50kg;
+            const returns6kg = (modalTransaction.returns_breakdown?.max_empty?.kg6 || 0) + (modalTransaction.returns_breakdown?.swap_empty?.kg6 || 0) + (modalTransaction.returns_breakdown?.return_full?.kg6 || 0);
+            const returns13kg = (modalTransaction.returns_breakdown?.max_empty?.kg13 || 0) + (modalTransaction.returns_breakdown?.swap_empty?.kg13 || 0) + (modalTransaction.returns_breakdown?.return_full?.kg13 || 0);
+            const returns50kg = (modalTransaction.returns_breakdown?.max_empty?.kg50 || 0) + (modalTransaction.returns_breakdown?.swap_empty?.kg50 || 0) + (modalTransaction.returns_breakdown?.return_full?.kg50 || 0);
+            const totalReturns = returns6kg + returns13kg + returns50kg;
+            const outright6kg = modalTransaction.outright_breakdown?.kg6 || 0;
+            const outright13kg = modalTransaction.outright_breakdown?.kg13 || 0;
+            const outright50kg = modalTransaction.outright_breakdown?.kg50 || 0;
+            const totalOutright = outright6kg + outright13kg + outright50kg;
             return (
               <div className="p-8 space-y-8">
                 <div className="flex gap-4 flex-wrap mb-6">
@@ -222,11 +230,13 @@ export default function TransactionHistory({ transactions = [], customerId, onEd
                     <div className="space-y-1 text-lg">
                       <div>Load: <span className="font-bold text-gray-900">{modalTransaction.load_6kg || 0} x 6kg, {modalTransaction.load_13kg || 0} x 13kg, {modalTransaction.load_50kg || 0} x 50kg</span></div>
                       <div>Total Load: <span className="font-bold text-gray-900">{modalTransaction.total_load || 0}</span></div>
-                      <div>Total Returns: <span className="font-bold text-gray-900">{modalTransaction.total_returns || 0}</span></div>
+                      <div>Total Returns: <span className="font-bold text-gray-900">6kg: {returns6kg}, 13kg: {returns13kg}, 50kg: {returns50kg} (Total: {totalReturns})</span></div>
+                      <div className="text-xs text-gray-500">* Outright is not included in returns</div>
                       <div>Bill: <span className="font-bold text-orange-700 text-xl">Ksh {formatNumber(modalTransaction.total_bill)}</span></div>
                       <div>Paid: <span className="font-bold text-green-700 text-xl">Ksh {formatNumber(modalTransaction.amount_paid)}</span></div>
                       <div>Balance: <span className="font-bold text-red-700 text-xl">Ksh {formatNumber(modalTransaction.financial_balance)}</span></div>
-                      <div>Cylinder Balance: <span className="font-bold text-blue-700">{modalTransaction.cylinder_balance}</span></div>
+                      <div>Cylinder Balance: <span className="font-bold text-blue-700">{cylinderBalance} ({cylinderBalance > 0 ? 'Owed to us' : cylinderBalance < 0 ? 'Owed to customer' : 'Settled'})</span></div>
+                      <div className="text-xs text-gray-500 mt-1">6kg: {cylinderBalance6kg}, 13kg: {cylinderBalance13kg}, 50kg: {cylinderBalance50kg}</div>
                     </div>
                   </div>
                   <div className="mt-8">

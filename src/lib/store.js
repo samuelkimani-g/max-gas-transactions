@@ -792,7 +792,7 @@ export const useStore = create()(
         // Utility functions
         getCustomerTransactions: (customerId) => {
           const state = get()
-          return state.transactions.filter((t) => t.customerId === customerId)
+          return state.transactions.filter((t) => t.customerId === customerId || t.customer_id === customerId)
         },
 
         getCustomerOutstanding: (customerId) => {

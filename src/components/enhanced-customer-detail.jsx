@@ -10,6 +10,9 @@ import AddTransactionForm from "./add-transaction-form"
 import EditCustomerForm from "./edit-customer-form"
 import TransactionHistory from "./transaction-history" // The new, rebuilt component
 import { Badge } from "./ui/badge"
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "./ui/dialog"
+import ReceiptGenerator from "./receipt-generator"
+import CustomerReportGenerator from "./customer-report-generator"
 
 const formatNumber = (num) => new Intl.NumberFormat('en-US').format(num);
 
@@ -22,6 +25,9 @@ export default function EnhancedCustomerDetail({ customerId, onBack }) {
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
   const [showDeleteOptions, setShowDeleteOptions] = useState(false)
   const [isDeleting, setIsDeleting] = useState(false)
+  const [showReceipt, setShowReceipt] = useState(false)
+  const [showReport, setShowReport] = useState(false)
+  const [selectedTransaction, setSelectedTransaction] = useState(null)
 
   const customer = customers.find((c) => c.id === customerId)
   const customerTransactions = getCustomerTransactions(customerId)
@@ -81,7 +87,7 @@ export default function EnhancedCustomerDetail({ customerId, onBack }) {
           </div>
         </div>
 
-        <div className="flex gap-3">
+        <div className="flex gap-3 items-center">
           <Button
             variant="outline"
             onClick={() => setIsEditingCustomer(true)}
@@ -95,6 +101,13 @@ export default function EnhancedCustomerDetail({ customerId, onBack }) {
           >
             <PlusCircle className="w-4 h-4 mr-2" />
             New Transaction
+          </Button>
+          <Button
+            onClick={() => setShowReport(true)}
+            className="bg-blue-500 hover:bg-blue-600 text-white"
+          >
+            <FileText className="w-4 h-4 mr-2" />
+            Generate Report
           </Button>
         </div>
       </div>
@@ -187,6 +200,10 @@ export default function EnhancedCustomerDetail({ customerId, onBack }) {
             transactions={customerTransactions}
             customerId={customerId}
             onEdit={() => setIsAddingTransaction(true)}
+            onViewReceipt={(transaction) => {
+              setSelectedTransaction(transaction);
+              setShowReceipt(true);
+            }}
           />
         </CardContent>
       </Card>
@@ -238,6 +255,30 @@ export default function EnhancedCustomerDetail({ customerId, onBack }) {
           )}
         </CardContent>
       </Card>
+      {/* Receipt Dialog */}
+      <Dialog open={showReceipt} onOpenChange={setShowReceipt}>
+        <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Receipt</DialogTitle>
+            <DialogDescription>
+              Transaction receipt for {customer?.name}
+            </DialogDescription>
+          </DialogHeader>
+          {selectedTransaction && <ReceiptGenerator transaction={selectedTransaction} customer={customer} />}
+        </DialogContent>
+      </Dialog>
+      {/* Report Dialog */}
+      <Dialog open={showReport} onOpenChange={setShowReport}>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Customer Report</DialogTitle>
+            <DialogDescription>
+              Detailed report and analytics for {customer?.name}
+            </DialogDescription>
+          </DialogHeader>
+          <CustomerReportGenerator customerId={customerId} customerName={customer.name} />
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }

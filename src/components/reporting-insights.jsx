@@ -78,13 +78,13 @@ export default function ReportingInsights() {
         if (dateRange.end && date > new Date(dateRange.end)) return false
         
         // Customer filter
-        if (customerFilter !== 'all' && t.customerId !== parseInt(customerFilter)) return false
+        if (customerFilter !== 'all' && t.customer_id !== parseInt(customerFilter)) return false
         
         // Transaction type filter
         if (transactionTypeFilter !== 'all') {
-          const hasRefill = (t.return6kg || 0) + (t.return13kg || 0) + (t.return50kg || 0) > 0
-          const hasOutright = (t.outright6kg || 0) + (t.outright13kg || 0) + (t.outright50kg || 0) > 0
-          const hasSwipe = (t.swipeReturn6kg || 0) + (t.swipeReturn13kg || 0) + (t.swipeReturn50kg || 0) > 0
+          const hasRefill = (t.returns_breakdown?.max_empty?.kg6 || 0) + (t.returns_breakdown?.max_empty?.kg13 || 0) + (t.returns_breakdown?.max_empty?.kg50 || 0) > 0
+          const hasOutright = (t.outright_breakdown?.kg6 || 0) + (t.outright_breakdown?.kg13 || 0) + (t.outright_breakdown?.kg50 || 0) > 0
+          const hasSwipe = (t.returns_breakdown?.swap_empty?.kg6 || 0) + (t.returns_breakdown?.swap_empty?.kg13 || 0) + (t.returns_breakdown?.swap_empty?.kg50 || 0) > 0
           
           switch (transactionTypeFilter) {
             case 'refill':
@@ -106,7 +106,7 @@ export default function ReportingInsights() {
         
         // Status filter
         if (statusFilter !== 'all') {
-          const paid = t.paid || 0
+          const paid = t.amount_paid || 0
           const outstanding = total - paid
           
           switch (statusFilter) {
@@ -124,7 +124,7 @@ export default function ReportingInsights() {
         
         // Search query filter
         if (searchQuery) {
-          const customer = safeCustomers.find(c => c.id === t.customerId)
+          const customer = safeCustomers.find(c => c.id === t.customer_id)
           const customerName = customer ? customer.name.toLowerCase() : ''
           const transactionId = t.id.toString()
           const query = searchQuery.toLowerCase()
@@ -179,11 +179,11 @@ export default function ReportingInsights() {
         if (isNaN(date.getTime())) return false
         
         // Apply same filters as current period
-        if (customerFilter !== 'all' && t.customerId !== parseInt(customerFilter)) return false
+        if (customerFilter !== 'all' && t.customer_id !== parseInt(customerFilter)) return false
         if (transactionTypeFilter !== 'all') {
-          const hasRefill = (t.return6kg || 0) + (t.return13kg || 0) + (t.return50kg || 0) > 0
-          const hasOutright = (t.outright6kg || 0) + (t.outright13kg || 0) + (t.outright50kg || 0) > 0
-          const hasSwipe = (t.swipeReturn6kg || 0) + (t.swipeReturn13kg || 0) + (t.swipeReturn50kg || 0) > 0
+          const hasRefill = (t.returns_breakdown?.max_empty?.kg6 || 0) + (t.returns_breakdown?.max_empty?.kg13 || 0) + (t.returns_breakdown?.max_empty?.kg50 || 0) > 0
+          const hasOutright = (t.outright_breakdown?.kg6 || 0) + (t.outright_breakdown?.kg13 || 0) + (t.outright_breakdown?.kg50 || 0) > 0
+          const hasSwipe = (t.returns_breakdown?.swap_empty?.kg6 || 0) + (t.returns_breakdown?.swap_empty?.kg13 || 0) + (t.returns_breakdown?.swap_empty?.kg50 || 0) > 0
           
           switch (transactionTypeFilter) {
             case 'refill':
@@ -203,7 +203,7 @@ export default function ReportingInsights() {
         if (maxAmount && total > parseFloat(maxAmount)) return false
         
         if (statusFilter !== 'all') {
-          const paid = t.paid || 0
+          const paid = t.amount_paid || 0
           const outstanding = total - paid
           
           switch (statusFilter) {
@@ -220,7 +220,7 @@ export default function ReportingInsights() {
         }
         
         if (searchQuery) {
-          const customer = safeCustomers.find(c => c.id === t.customerId)
+          const customer = safeCustomers.find(c => c.id === t.customer_id)
           const customerName = customer ? customer.name.toLowerCase() : ''
           const transactionId = t.id.toString()
           const query = searchQuery.toLowerCase()
@@ -256,14 +256,15 @@ export default function ReportingInsights() {
     // Calculate metrics for both periods
     const calculateMetrics = (data) => {
       const totalSales = data.reduce((total, t) => total + calculateTransactionTotal(t), 0)
-      const totalPayments = data.reduce((total, t) => total + (t.paid || 0), 0)
+      const totalPayments = data.reduce((total, t) => total + (t.amount_paid || 0), 0)
       const totalCylinders = data.reduce((total, t) => {
-        const returns = (t.return6kg || 0) + (t.return13kg || 0) + (t.return50kg || 0)
-        const outright = (t.outright6kg || 0) + (t.outright13kg || 0) + (t.outright50kg || 0)
-        const swipes = (t.swipeReturn6kg || 0) + (t.swipeReturn13kg || 0) + (t.swipeReturn50kg || 0)
-        return total + returns + outright + swipes
+        // Use new structure
+        const returns = (t.returns_breakdown?.max_empty?.kg6 || 0) + (t.returns_breakdown?.max_empty?.kg13 || 0) + (t.returns_breakdown?.max_empty?.kg50 || 0)
+          + (t.returns_breakdown?.swap_empty?.kg6 || 0) + (t.returns_breakdown?.swap_empty?.kg13 || 0) + (t.returns_breakdown?.swap_empty?.kg50 || 0)
+          + (t.returns_breakdown?.return_full?.kg6 || 0) + (t.returns_breakdown?.return_full?.kg13 || 0) + (t.returns_breakdown?.return_full?.kg50 || 0);
+        const outright = (t.outright_breakdown?.kg6 || 0) + (t.outright_breakdown?.kg13 || 0) + (t.outright_breakdown?.kg50 || 0);
+        return total + returns + outright;
       }, 0)
-      
       return { totalSales, totalPayments, totalCylinders, transactionCount: data.length }
     }
 
@@ -300,26 +301,25 @@ export default function ReportingInsights() {
       const customerAnalysis = safeCustomers.map(customer => {
         if (!customer) return null
         
-        const customerTransactions = safeTransactions.filter(t => t && t.customerId === customer.id)
+        const customerTransactions = safeTransactions.filter(t => t && t.customer_id === customer.id)
         const totalSales = customerTransactions.reduce((total, t) => total + calculateTransactionTotal(t), 0)
         const avgTransactionValue = customerTransactions.length > 0 ? totalSales / customerTransactions.length : 0
         
         // Analyze buying patterns
-        // Cylinder size preference
+        // Cylinder size preference (new structure)
         const cylinderPreferences = {
-          '6kg': customerTransactions.reduce((total, t) => total + (t.maxGas6kgLoad || 0) + (t.return6kg || 0) + (t.outright6kg || 0) + (t.swipeReturn6kg || 0), 0),
-          '13kg': customerTransactions.reduce((total, t) => total + (t.maxGas13kgLoad || 0) + (t.return13kg || 0) + (t.outright13kg || 0) + (t.swipeReturn13kg || 0), 0),
-          '50kg': customerTransactions.reduce((total, t) => total + (t.maxGas50kgLoad || 0) + (t.return50kg || 0) + (t.outright50kg || 0) + (t.swipeReturn50kg || 0), 0)
+          '6kg': customerTransactions.reduce((total, t) => total + (t.load_6kg || 0) + (t.returns_breakdown?.max_empty?.kg6 || 0) + (t.outright_breakdown?.kg6 || 0), 0),
+          '13kg': customerTransactions.reduce((total, t) => total + (t.load_13kg || 0) + (t.returns_breakdown?.max_empty?.kg13 || 0) + (t.outright_breakdown?.kg13 || 0), 0),
+          '50kg': customerTransactions.reduce((total, t) => total + (t.load_50kg || 0) + (t.returns_breakdown?.max_empty?.kg50 || 0) + (t.outright_breakdown?.kg50 || 0), 0)
         }
         
         const preferredSize = Object.entries(cylinderPreferences).reduce((a, b) => a[1] > b[1] ? a : b)[0]
         
-        // Service type preference
+        // Service type preference (new structure)
         const servicePreferences = {
-          'Loads': customerTransactions.reduce((total, t) => total + (t.maxGas6kgLoad || 0) + (t.maxGas13kgLoad || 0) + (t.maxGas50kgLoad || 0), 0),
-          'Refills': customerTransactions.reduce((total, t) => total + (t.return6kg || 0) + (t.return13kg || 0) + (t.return50kg || 0), 0),
-          'Outright': customerTransactions.reduce((total, t) => total + (t.outright6kg || 0) + (t.outright13kg || 0) + (t.outright50kg || 0), 0),
-          'Swipes': customerTransactions.reduce((total, t) => total + (t.swipeReturn6kg || 0) + (t.swipeReturn13kg || 0) + (t.swipeReturn50kg || 0), 0)
+          'Loads': customerTransactions.reduce((total, t) => total + (t.load_6kg || 0) + (t.load_13kg || 0) + (t.load_50kg || 0), 0),
+          'Refills': customerTransactions.reduce((total, t) => total + (t.returns_breakdown?.max_empty?.kg6 || 0) + (t.returns_breakdown?.max_empty?.kg13 || 0) + (t.returns_breakdown?.max_empty?.kg50 || 0), 0),
+          'Outright': customerTransactions.reduce((total, t) => total + (t.outright_breakdown?.kg6 || 0) + (t.outright_breakdown?.kg13 || 0) + (t.outright_breakdown?.kg50 || 0), 0),
         }
         
         const preferredService = Object.entries(servicePreferences).reduce((a, b) => a[1] > b[1] ? a : b)[0]

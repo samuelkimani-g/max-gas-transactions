@@ -89,36 +89,46 @@ const LiveSummary = ({ summary }) => (
 
 // --- Main Transaction Form Component ---
 
-export default function AddTransactionForm({ customerId, customerName, onBack, onSuccess }) {
-  const { addTransaction } = useStore()
-  const [totalReturns, setTotalReturns] = useState(0)
-  const [totalLoad, setTotalLoad] = useState({ kg6: 0, kg13: 0, kg50: 0 })
-  const [amountPaid, setAmountPaid] = useState(0)
-  const [paymentMethod, setPaymentMethod] = useState('cash')
-  const [notes, setNotes] = useState('')
-  const [error, setError] = useState('')
+export default function AddTransactionForm({ customerId, customerName, onBack, onSuccess, transaction = null, mode = 'add' }) {
+  const { addTransaction, updateTransaction } = useStore();
+  const [totalReturns, setTotalReturns] = useState(0);
+  const [totalLoad, setTotalLoad] = useState({ kg6: 0, kg13: 0, kg50: 0 });
+  const [amountPaid, setAmountPaid] = useState(0);
+  const [paymentMethod, setPaymentMethod] = useState('cash');
+  const [notes, setNotes] = useState('');
+  const [error, setError] = useState('');
 
   // Detailed load tracking
-  const [loadBreakdown, setLoadBreakdown] = useState({
-    kg6: 0,
-    kg13: 0,
-    kg50: 0
-  })
-
+  const [loadBreakdown, setLoadBreakdown] = useState({ kg6: 0, kg13: 0, kg50: 0 });
   const [returnsBreakdown, setReturnsBreakdown] = useState({
     max_empty: { kg6: 0, kg13: 0, kg50: 0, price6: 135, price13: 135, price50: 135 },
     swap_empty: { kg6: 0, kg13: 0, kg50: 0, price6: 160, price13: 160, price50: 160 },
     return_full: { kg6: 0, kg13: 0, kg50: 0 },
-  })
-
+  });
   const [outrightBreakdown, setOutrightBreakdown] = useState({
-    kg6: 0,
-    kg13: 0,
-    kg50: 0,
-    price6: 2200,
-    price13: 4400,
-    price50: 8000,
-  })
+    kg6: 0, kg13: 0, kg50: 0, price6: 2200, price13: 4400, price50: 8000,
+  });
+
+  // Pre-fill for edit mode
+  useEffect(() => {
+    if (transaction) {
+      setLoadBreakdown({
+        kg6: transaction.load_6kg || 0,
+        kg13: transaction.load_13kg || 0,
+        kg50: transaction.load_50kg || 0,
+      });
+      setReturnsBreakdown(transaction.returns_breakdown || returnsBreakdown);
+      setOutrightBreakdown(transaction.outright_breakdown || outrightBreakdown);
+      setTotalLoad({
+        kg6: transaction.load_6kg || 0,
+        kg13: transaction.load_13kg || 0,
+        kg50: transaction.load_50kg || 0,
+      });
+      setAmountPaid(transaction.amount_paid || 0);
+      setPaymentMethod(transaction.payment_method || 'cash');
+      setNotes(transaction.notes || '');
+    }
+  }, [transaction]);
   
   const handleLoadChange = (size, value) => {
     setLoadBreakdown(prev => ({
@@ -197,18 +207,21 @@ export default function AddTransactionForm({ customerId, customerName, onBack, o
     try {
       const transactionData = {
         customerId: customerId,
-        date: new Date().toISOString().split('T')[0],
         loadBreakdown,
         returnsBreakdown,
         outrightBreakdown,
         totalLoad: totalLoad.kg6 + totalLoad.kg13 + totalLoad.kg50,
         amountPaid,
         paymentMethod,
-        notes
+        notes,
       };
-
-      await addTransaction(transactionData);
-      alert('Transaction saved successfully!');
+      if (mode === 'edit' && transaction) {
+        await updateTransaction(transaction.id, transactionData);
+        if (onSuccess) onSuccess('edit');
+      } else {
+        await addTransaction(transactionData);
+        if (onSuccess) onSuccess('add');
+      }
       
       // Reset form
       setLoadBreakdown({ kg6: 0, kg13: 0, kg50: 0 });
@@ -225,8 +238,7 @@ export default function AddTransactionForm({ customerId, customerName, onBack, o
       
       onBack();
     } catch (error) {
-      console.error('Transaction save failed:', error);
-      alert('Failed to save transaction. Please try again.');
+      setError(error.message || 'Failed to save transaction.');
     }
   };
 

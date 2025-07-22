@@ -362,66 +362,32 @@ export default function ReceiptGenerator({ transaction, customer }) {
   const paid = transaction.paid || 0
   const outstanding = total - paid
 
-  // Group items by type
-  const maxGasReturns = []
-  const maxGasOutright = []
-  const otherCompanySwipes = []
+  // New structure: breakdowns
+  const maxGasReturns = [];
+  const maxGasOutright = [];
 
-  if (transaction.return6kg > 0) {
-    maxGasReturns.push({
-      description: `6kg Refill × ${transaction.return6kg}`,
-              amount: transaction.return6kg * 6 * (transaction.refillPrice6kg || 0),
-    })
+  // Returns Breakdown
+  if (transaction.returns_breakdown?.max_empty) {
+    if (transaction.returns_breakdown.max_empty.kg6 > 0) maxGasReturns.push({ description: `6kg Max Empty × ${transaction.returns_breakdown.max_empty.kg6}`, amount: transaction.returns_breakdown.max_empty.kg6 * (transaction.returns_breakdown.max_empty.price6 || 0) });
+    if (transaction.returns_breakdown.max_empty.kg13 > 0) maxGasReturns.push({ description: `13kg Max Empty × ${transaction.returns_breakdown.max_empty.kg13}`, amount: transaction.returns_breakdown.max_empty.kg13 * (transaction.returns_breakdown.max_empty.price13 || 0) });
+    if (transaction.returns_breakdown.max_empty.kg50 > 0) maxGasReturns.push({ description: `50kg Max Empty × ${transaction.returns_breakdown.max_empty.kg50}`, amount: transaction.returns_breakdown.max_empty.kg50 * (transaction.returns_breakdown.max_empty.price50 || 0) });
   }
-  if (transaction.return13kg > 0) {
-    maxGasReturns.push({
-      description: `13kg Refill × ${transaction.return13kg}`,
-              amount: transaction.return13kg * 13 * (transaction.refillPrice13kg || 0),
-    })
+  if (transaction.returns_breakdown?.swap_empty) {
+    if (transaction.returns_breakdown.swap_empty.kg6 > 0) maxGasReturns.push({ description: `6kg Swap Empty × ${transaction.returns_breakdown.swap_empty.kg6}`, amount: transaction.returns_breakdown.swap_empty.kg6 * (transaction.returns_breakdown.swap_empty.price6 || 0) });
+    if (transaction.returns_breakdown.swap_empty.kg13 > 0) maxGasReturns.push({ description: `13kg Swap Empty × ${transaction.returns_breakdown.swap_empty.kg13}`, amount: transaction.returns_breakdown.swap_empty.kg13 * (transaction.returns_breakdown.swap_empty.price13 || 0) });
+    if (transaction.returns_breakdown.swap_empty.kg50 > 0) maxGasReturns.push({ description: `50kg Swap Empty × ${transaction.returns_breakdown.swap_empty.kg50}`, amount: transaction.returns_breakdown.swap_empty.kg50 * (transaction.returns_breakdown.swap_empty.price50 || 0) });
   }
-  if (transaction.return50kg > 0) {
-    maxGasReturns.push({
-      description: `50kg Refill × ${transaction.return50kg}`,
-              amount: transaction.return50kg * 50 * (transaction.refillPrice50kg || 0),
-    })
+  if (transaction.returns_breakdown?.return_full) {
+    if (transaction.returns_breakdown.return_full.kg6 > 0) maxGasReturns.push({ description: `6kg Return Full × ${transaction.returns_breakdown.return_full.kg6}`, amount: 0 });
+    if (transaction.returns_breakdown.return_full.kg13 > 0) maxGasReturns.push({ description: `13kg Return Full × ${transaction.returns_breakdown.return_full.kg13}`, amount: 0 });
+    if (transaction.returns_breakdown.return_full.kg50 > 0) maxGasReturns.push({ description: `50kg Return Full × ${transaction.returns_breakdown.return_full.kg50}`, amount: 0 });
   }
 
-  if (transaction.outright6kg > 0) {
-    maxGasOutright.push({
-      description: `6kg Outright × ${transaction.outright6kg}`,
-      amount: transaction.outright6kg * (transaction.outrightPrice6kg || 0),
-    })
-  }
-  if (transaction.outright13kg > 0) {
-    maxGasOutright.push({
-      description: `13kg Outright × ${transaction.outright13kg}`,
-      amount: transaction.outright13kg * (transaction.outrightPrice13kg || 0),
-    })
-  }
-  if (transaction.outright50kg > 0) {
-    maxGasOutright.push({
-      description: `50kg Outright × ${transaction.outright50kg}`,
-      amount: transaction.outright50kg * (transaction.outrightPrice50kg || 0),
-    })
-  }
-
-  if (transaction.swipeReturn6kg > 0) {
-    otherCompanySwipes.push({
-      description: `6kg Swipe × ${transaction.swipeReturn6kg}`,
-              amount: transaction.swipeReturn6kg * 6 * (transaction.swipeRefillPrice6kg || 0),
-    })
-  }
-  if (transaction.swipeReturn13kg > 0) {
-    otherCompanySwipes.push({
-      description: `13kg Swipe × ${transaction.swipeReturn13kg}`,
-              amount: transaction.swipeReturn13kg * 13 * (transaction.swipeRefillPrice13kg || 0),
-    })
-  }
-  if (transaction.swipeReturn50kg > 0) {
-    otherCompanySwipes.push({
-      description: `50kg Swipe × ${transaction.swipeReturn50kg}`,
-              amount: transaction.swipeReturn50kg * 50 * (transaction.swipeRefillPrice50kg || 0),
-    })
+  // Outright Breakdown
+  if (transaction.outright_breakdown) {
+    if (transaction.outright_breakdown.kg6 > 0) maxGasOutright.push({ description: `6kg Outright × ${transaction.outright_breakdown.kg6}`, amount: transaction.outright_breakdown.kg6 * (transaction.outright_breakdown.price6 || 0) });
+    if (transaction.outright_breakdown.kg13 > 0) maxGasOutright.push({ description: `13kg Outright × ${transaction.outright_breakdown.kg13}`, amount: transaction.outright_breakdown.kg13 * (transaction.outright_breakdown.price13 || 0) });
+    if (transaction.outright_breakdown.kg50 > 0) maxGasOutright.push({ description: `50kg Outright × ${transaction.outright_breakdown.kg50}`, amount: transaction.outright_breakdown.kg50 * (transaction.outright_breakdown.price50 || 0) });
   }
 
   return (
@@ -514,17 +480,52 @@ export default function ReceiptGenerator({ transaction, customer }) {
                 </div>
               )}
 
-              {otherCompanySwipes.length > 0 && (
-              <div className="bg-white border border-slate-200 rounded-lg p-4 mb-3 shadow-sm">
-                <div className="font-bold text-slate-700 text-sm uppercase tracking-wide mb-2 pb-1 border-b border-slate-100">
-                  Other Company Swipes
+              {/* New structure: load_6kg, swipe_6kg, swipe_13kg, swipe_50kg */}
+              {transaction.load_6kg > 0 && (
+                <div className="bg-white border border-slate-200 rounded-lg p-4 mb-3 shadow-sm">
+                  <div className="font-bold text-slate-700 text-sm uppercase tracking-wide mb-2 pb-1 border-b border-slate-100">
+                    Load 6kg
+                  </div>
+                  <div className="flex justify-between items-center py-2 border-b border-dotted border-slate-200 last:border-b-0">
+                    <span className="text-slate-700 text-sm font-medium">6kg Load</span>
+                    <span className="font-bold text-slate-800 text-sm">{formatCurrency(transaction.load_6kg * (transaction.load_price6kg || 0))}</span>
+                  </div>
                 </div>
-                  {otherCompanySwipes.map((item, index) => (
-                  <div key={index} className="flex justify-between items-center py-2 border-b border-dotted border-slate-200 last:border-b-0">
-                    <span className="text-slate-700 text-sm font-medium">{item.description}</span>
-                    <span className="font-bold text-slate-800 text-sm">{formatCurrency(item.amount)}</span>
-                    </div>
-                  ))}
+              )}
+
+              {transaction.swipe_6kg > 0 && (
+                <div className="bg-white border border-slate-200 rounded-lg p-4 mb-3 shadow-sm">
+                  <div className="font-bold text-slate-700 text-sm uppercase tracking-wide mb-2 pb-1 border-b border-slate-100">
+                    Swipe 6kg
+                  </div>
+                  <div className="flex justify-between items-center py-2 border-b border-dotted border-slate-200 last:border-b-0">
+                    <span className="text-slate-700 text-sm font-medium">6kg Swipe</span>
+                    <span className="font-bold text-slate-800 text-sm">{formatCurrency(transaction.swipe_6kg * (transaction.swipe_price6kg || 0))}</span>
+                  </div>
+                </div>
+              )}
+
+              {transaction.swipe_13kg > 0 && (
+                <div className="bg-white border border-slate-200 rounded-lg p-4 mb-3 shadow-sm">
+                  <div className="font-bold text-slate-700 text-sm uppercase tracking-wide mb-2 pb-1 border-b border-slate-100">
+                    Swipe 13kg
+                  </div>
+                  <div className="flex justify-between items-center py-2 border-b border-dotted border-slate-200 last:border-b-0">
+                    <span className="text-slate-700 text-sm font-medium">13kg Swipe</span>
+                    <span className="font-bold text-slate-800 text-sm">{formatCurrency(transaction.swipe_13kg * (transaction.swipe_price13kg || 0))}</span>
+                  </div>
+                </div>
+              )}
+
+              {transaction.swipe_50kg > 0 && (
+                <div className="bg-white border border-slate-200 rounded-lg p-4 mb-3 shadow-sm">
+                  <div className="font-bold text-slate-700 text-sm uppercase tracking-wide mb-2 pb-1 border-b border-slate-100">
+                    Swipe 50kg
+                  </div>
+                  <div className="flex justify-between items-center py-2 border-b border-dotted border-slate-200 last:border-b-0">
+                    <span className="text-slate-700 text-sm font-medium">50kg Swipe</span>
+                    <span className="font-bold text-slate-800 text-sm">{formatCurrency(transaction.swipe_50kg * (transaction.swipe_price50kg || 0))}</span>
+                  </div>
                 </div>
               )}
             </div>

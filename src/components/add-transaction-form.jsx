@@ -550,59 +550,59 @@ export default function AddTransactionForm({ customerId, customerName, onBack, o
               <h5 className="font-medium text-orange-700 mb-3">Outright Purchases</h5>
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
                 <div>
-                  <div className="flex items-center gap-2">
+                  <div className="flex flex-col items-start gap-1">
                     <Input
                       type="number"
                       value={outrightBreakdown.kg6 === 0 ? '' : outrightBreakdown.kg6}
                       onChange={e => setOutrightBreakdown(prev => ({...prev, kg6: e.target.value === '' ? 0 : parseInt(e.target.value, 10) || 0}))}
                       onFocus={(e) => e.target.select()}
-                      className="w-24 text-lg border-gray-300 focus:border-orange-400 focus:ring-orange-200 px-3 py-2"
+                      className="w-24 md:w-40 text-lg md:text-2xl border-gray-300 focus:border-orange-400 focus:ring-orange-200 px-3 py-2"
                       placeholder="0"
                     />
-                    <span className="text-sm text-gray-600">6kg @ Ksh</span>
+                    <label className="text-xs text-gray-500 mt-1">Price (Ksh)</label>
                     <Input
                       type="number"
                       value={outrightBreakdown.price6}
                       onChange={e => setOutrightBreakdown(prev => ({...prev, price6: parseFloat(e.target.value) || 0}))}
-                      className="w-16 border-gray-300 focus:border-orange-400 focus:ring-orange-200"
+                      className="w-20 md:w-28 text-base border-gray-300 focus:border-orange-400 focus:ring-orange-200"
                     />
                   </div>
                 </div>
                 <div>
-                  <div className="flex items-center gap-2">
+                  <div className="flex flex-col items-start gap-1">
                     <Input
                       type="number"
                       value={outrightBreakdown.kg13 === 0 ? '' : outrightBreakdown.kg13}
                       onChange={e => setOutrightBreakdown(prev => ({...prev, kg13: e.target.value === '' ? 0 : parseInt(e.target.value, 10) || 0}))}
                       onFocus={(e) => e.target.select()}
-                      className="w-24 text-lg border-gray-300 focus:border-orange-400 focus:ring-orange-200 px-3 py-2"
+                      className="w-24 md:w-40 text-lg md:text-2xl border-gray-300 focus:border-orange-400 focus:ring-orange-200 px-3 py-2"
                       placeholder="0"
                     />
-                    <span className="text-sm text-gray-600">13kg @ Ksh</span>
+                    <label className="text-xs text-gray-500 mt-1">Price (Ksh)</label>
                     <Input
                       type="number"
                       value={outrightBreakdown.price13}
                       onChange={e => setOutrightBreakdown(prev => ({...prev, price13: parseFloat(e.target.value) || 0}))}
-                      className="w-16 border-gray-300 focus:border-orange-400 focus:ring-orange-200"
+                      className="w-20 md:w-28 text-base border-gray-300 focus:border-orange-400 focus:ring-orange-200"
                     />
                   </div>
                 </div>
                 <div>
-                  <div className="flex items-center gap-2">
+                  <div className="flex flex-col items-start gap-1">
                     <Input
                       type="number"
                       value={outrightBreakdown.kg50 === 0 ? '' : outrightBreakdown.kg50}
                       onChange={e => setOutrightBreakdown(prev => ({...prev, kg50: e.target.value === '' ? 0 : parseInt(e.target.value, 10) || 0}))}
                       onFocus={(e) => e.target.select()}
-                      className="w-24 text-lg border-gray-300 focus:border-orange-400 focus:ring-orange-200 px-3 py-2"
+                      className="w-24 md:w-40 text-lg md:text-2xl border-gray-300 focus:border-orange-400 focus:ring-orange-200 px-3 py-2"
                       placeholder="0"
                     />
-                    <span className="text-sm text-gray-600">50kg @ Ksh</span>
+                    <label className="text-xs text-gray-500 mt-1">Price (Ksh)</label>
                     <Input
                       type="number"
                       value={outrightBreakdown.price50}
                       onChange={e => setOutrightBreakdown(prev => ({...prev, price50: parseFloat(e.target.value) || 0}))}
-                      className="w-16 border-gray-300 focus:border-orange-400 focus:ring-orange-200"
+                      className="w-20 md:w-28 text-base border-gray-300 focus:border-orange-400 focus:ring-orange-200"
                     />
                   </div>
                 </div>

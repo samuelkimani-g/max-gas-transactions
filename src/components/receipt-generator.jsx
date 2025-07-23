@@ -366,7 +366,7 @@ export default function ReceiptGenerator({ transaction, customer }) {
   const maxGasReturns = [];
   const maxGasOutright = [];
 
-  // Returns Breakdown - Fixed calculation with kg multiplication (this is correct)
+  // Returns Breakdown - Fixed calculation with kg multiplication (same as add transaction form)
   if (transaction.returns_breakdown?.max_empty) {
     if (transaction.returns_breakdown.max_empty.kg6 > 0) maxGasReturns.push({ description: `6kg Max Empty × ${transaction.returns_breakdown.max_empty.kg6}`, amount: transaction.returns_breakdown.max_empty.kg6 * (transaction.returns_breakdown.max_empty.price6 || 135) * 6 });
     if (transaction.returns_breakdown.max_empty.kg13 > 0) maxGasReturns.push({ description: `13kg Max Empty × ${transaction.returns_breakdown.max_empty.kg13}`, amount: transaction.returns_breakdown.max_empty.kg13 * (transaction.returns_breakdown.max_empty.price13 || 135) * 13 });
@@ -383,7 +383,7 @@ export default function ReceiptGenerator({ transaction, customer }) {
     if (transaction.returns_breakdown.return_full.kg50 > 0) maxGasReturns.push({ description: `50kg Return Full × ${transaction.returns_breakdown.return_full.kg50}`, amount: 0 });
   }
 
-  // Outright Breakdown
+  // Outright Breakdown - Fixed calculation (same as add transaction form)
   if (transaction.outright_breakdown) {
     if (transaction.outright_breakdown.kg6 > 0) maxGasOutright.push({ description: `6kg Outright × ${transaction.outright_breakdown.kg6}`, amount: transaction.outright_breakdown.kg6 * (transaction.outright_breakdown.price6 || 2200) });
     if (transaction.outright_breakdown.kg13 > 0) maxGasOutright.push({ description: `13kg Outright × ${transaction.outright_breakdown.kg13}`, amount: transaction.outright_breakdown.kg13 * (transaction.outright_breakdown.price13 || 4400) });

@@ -16,6 +16,7 @@ import CustomerReportGenerator from "./customer-report-generator"
 import EditTransactionForm from "./edit-transaction-form"
 import { calculateTransactionTotal } from "../lib/calculations";
 import BulkPaymentForm from "./bulk-payment-form"
+import ConfirmationDialog from "./confirmation-dialog"
 
 const formatNumber = (num) => new Intl.NumberFormat('en-US').format(num);
 
@@ -74,22 +75,18 @@ export default function EnhancedCustomerDetail({ customerId, onBack }) {
   const cylinderBalance = cylinderBalance6kg + cylinderBalance13kg + cylinderBalance50kg;
 
   const handleDeleteCustomer = async () => {
-    // Check if customer has transactions
-    if (customerTransactions && customerTransactions.length > 0) {
-      alert(`Cannot delete customer ${customer.name}. This customer has ${customerTransactions.length} transaction(s). Please delete all transactions first before deleting the customer.`);
-      return;
-    }
+    setShowDeleteConfirm(true);
+  }
 
-    if (confirm(`Are you sure you want to PERMANENTLY DELETE ${customer.name}? This action cannot be undone.`)) {
-      try {
-        setIsDeleting(true)
-        await deleteCustomer(customerId)
-        onBack() // Go back to the customer list after deletion
-      } catch (error) {
-        alert(`Failed to delete customer: ${error.message}`)
-      } finally {
-        setIsDeleting(false)
-      }
+  const confirmDeleteCustomer = async () => {
+    try {
+      setIsDeleting(true)
+      await deleteCustomer(customerId)
+      onBack() // Go back to the customer list after deletion
+    } catch (error) {
+      alert(`Failed to delete customer: ${error.message}`)
+    } finally {
+      setIsDeleting(false)
     }
   }
   
@@ -286,7 +283,7 @@ export default function EnhancedCustomerDetail({ customerId, onBack }) {
                   <Button
                     onClick={handleDeleteCustomer}
                     className="bg-red-600 hover:bg-red-700 text-white"
-                    disabled={isDeleting || (customerTransactions && customerTransactions.length > 0)}
+                    disabled={isDeleting}
                   >
                     {isDeleting ? 'Deleting...' : 'Delete Customer'}
                   </Button>
@@ -298,11 +295,6 @@ export default function EnhancedCustomerDetail({ customerId, onBack }) {
                     Cancel
                   </Button>
                 </div>
-                {customerTransactions && customerTransactions.length > 0 && (
-                  <div className="mt-2 p-2 bg-yellow-50 border border-yellow-200 rounded text-sm text-yellow-800">
-                    ⚠️ Cannot delete customer with {customerTransactions.length} transaction(s). Delete all transactions first.
-                  </div>
-                )}
               </div>
             </div>
           )}
@@ -332,6 +324,20 @@ export default function EnhancedCustomerDetail({ customerId, onBack }) {
           <CustomerReportGenerator customerId={customerId} customerName={customer.name} />
         </DialogContent>
       </Dialog>
+
+      {/* Delete Customer Confirmation Dialog */}
+      <ConfirmationDialog
+        open={showDeleteConfirm}
+        onOpenChange={setShowDeleteConfirm}
+        onConfirm={confirmDeleteCustomer}
+        title="Delete Customer"
+        description={`Are you sure you want to delete ${customer.name}? This action cannot be undone.`}
+        confirmText="Delete Customer"
+        type="customer"
+        customerName={customer.name}
+        transactionCount={customerTransactions?.length || 0}
+        isDestructive={true}
+      />
     </div>
   )
 }

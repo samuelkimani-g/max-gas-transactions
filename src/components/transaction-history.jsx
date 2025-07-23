@@ -14,6 +14,7 @@ import ReceiptGenerator from './receipt-generator';
 import ReportingInsights from './reporting-insights';
 import EditTransactionForm from './edit-transaction-form';
 import AddTransactionForm from './add-transaction-form';
+import ConfirmationDialog from './confirmation-dialog';
 
 const formatNumber = (num) => new Intl.NumberFormat('en-US').format(num);
 
@@ -26,39 +27,36 @@ export default function TransactionHistory({ transactions = [], customerId, onEd
   const [showReceipt, setShowReceipt] = useState(false);
   const [showReport, setShowReport] = useState(false);
   const [editingTransaction, setEditingTransaction] = useState(null);
+  const [deleteConfirm, setDeleteConfirm] = useState({ show: false, transaction: null });
 
   const toggleRow = (id) => {
     setExpandedRow(expandedRow === id ? null : id);
   };
 
   const handleDelete = async (transactionId) => {
+    const transaction = transactions.find(t => t.id === transactionId);
+    setDeleteConfirm({ show: true, transaction });
+  };
+
+  const confirmDelete = async () => {
+    const { transaction } = deleteConfirm;
+    
     if (rbac?.permissions?.canRequestApproval && !rbac?.permissions?.canDeleteTransaction) {
-      toast({
-        title: 'Confirm Deletion',
-        description: 'Are you sure you want to request deletion for this transaction?',
-        action: {
-          label: 'Delete',
-          onClick: async () => {
-            try {
-              await submitApprovalRequest({
-                entity_type: 'transaction',
-                entity_id: transactionId,
-                request_type: 'delete',
-                request_notes: `Operator requests deletion of transaction #${transactionId}.`,
-              });
-              toast({ title: 'Deletion Requested', description: 'Deletion request submitted for approval.', variant: 'success' });
-            } catch (error) {
-              toast({ title: 'Error', description: `Failed to submit deletion request: ${error.message}`, variant: 'destructive' });
-            }
-          },
-        },
-        variant: 'warning',
-        duration: 8000,
-      });
+      try {
+        await submitApprovalRequest({
+          entity_type: 'transaction',
+          entity_id: transaction.id,
+          request_type: 'delete',
+          request_notes: `Operator requests deletion of transaction #${transaction.id}.`,
+        });
+        toast({ title: 'Deletion Requested', description: 'Deletion request submitted for approval.', variant: 'success' });
+      } catch (error) {
+        toast({ title: 'Error', description: `Failed to submit deletion request: ${error.message}`, variant: 'destructive' });
+      }
     } else {
       // Direct delete for managers/admins
       try {
-        await deleteTransaction(transactionId);
+        await deleteTransaction(transaction.id);
         toast({ title: 'Transaction Deleted', description: 'Transaction deleted successfully.', variant: 'success' });
       } catch (error) {
         toast({ title: 'Error', description: `Failed to delete transaction: ${error.message}`, variant: 'destructive' });
@@ -441,6 +439,18 @@ export default function TransactionHistory({ transactions = [], customerId, onEd
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Delete Confirmation Dialog */}
+      <ConfirmationDialog
+        open={deleteConfirm.show}
+        onOpenChange={(open) => setDeleteConfirm({ show: open, transaction: null })}
+        onConfirm={confirmDelete}
+        title="Delete Transaction"
+        description={`Are you sure you want to delete transaction #${deleteConfirm.transaction?.transaction_number || deleteConfirm.transaction?.id}? This action cannot be undone.`}
+        confirmText="Delete Transaction"
+        type="transaction"
+        isDestructive={true}
+      />
     </div>
   );
 }

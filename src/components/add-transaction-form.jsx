@@ -61,13 +61,13 @@ const LiveSummary = ({ summary }) => (
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
         <div>
           <div className="text-xl font-bold text-gray-900">
-            Ksh {isNaN(summary.financialBalance) ? 0 : summary.financialBalance.toFixed(2)}
+            Ksh {typeof summary.financialBalance === 'number' && !isNaN(summary.financialBalance) ? summary.financialBalance.toFixed(2) : '0.00'}
           </div>
           <div className="text-sm text-gray-600">Financial Balance</div>
         </div>
         <div>
           <div className="text-xl font-bold text-gray-900">
-            Ksh {isNaN(summary.totalBill) ? 0 : summary.totalBill.toFixed(2)}
+            Ksh {typeof summary.totalBill === 'number' && !isNaN(summary.totalBill) ? summary.totalBill.toFixed(2) : '0.00'}
           </div>
           <div className="text-sm text-gray-600">Total Bill</div>
         </div>
@@ -80,7 +80,7 @@ const LiveSummary = ({ summary }) => (
         </div>
         <div>
           <div className="text-xl font-bold text-gray-900">
-            Ksh {(summary.amountPaid || 0).toFixed(2)}
+            Ksh {typeof summary.amountPaid === 'number' ? summary.amountPaid.toFixed(2) : '0.00'}
           </div>
           <div className="text-sm text-gray-600">Amount Paid</div>
         </div>

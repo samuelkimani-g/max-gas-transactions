@@ -44,30 +44,35 @@ export default function App() {
   const [deviceInfo, setDeviceInfo] = useState(null)
   const [isAutoLoggingIn, setIsAutoLoggingIn] = useState(false)
   const [isAddingCustomer, setIsAddingCustomer] = useState(false)
+  const [isInitializing, setIsInitializing] = useState(true)
 
   useEffect(() => {
     const initializeApp = async () => {
-      // Get device configuration
-      const deviceConfig = getDeviceInfo()
-      setDeviceInfo(deviceConfig)
-      
-      // Check for existing authentication
-      await checkAuthStatus()
-      
-      if (!isAuthenticated) {
-        // Try auto-login for desktop devices
-        const autoCredentials = getAutoLoginCredentials()
-        if (autoCredentials && window.electron) { // Only for desktop app
-          setIsAutoLoggingIn(true)
-          try {
-            await login(autoCredentials.username, autoCredentials.password)
-            console.log(`[DEVICE] Auto-logged in as ${deviceConfig.role}: ${deviceConfig.displayName}`)
-          } catch (error) {
-            console.error('[DEVICE] Auto-login failed:', error)
-          } finally {
-            setIsAutoLoggingIn(false)
+      try {
+        // Get device configuration
+        const deviceConfig = getDeviceInfo()
+        setDeviceInfo(deviceConfig)
+        
+        // Check for existing authentication
+        await checkAuthStatus()
+        
+        if (!isAuthenticated) {
+          // Try auto-login for desktop devices
+          const autoCredentials = getAutoLoginCredentials()
+          if (autoCredentials && window.electron) { // Only for desktop app
+            setIsAutoLoggingIn(true)
+            try {
+              await login(autoCredentials.username, autoCredentials.password)
+              console.log(`[DEVICE] Auto-logged in as ${deviceConfig.role}: ${deviceConfig.displayName}`)
+            } catch (error) {
+              console.error('[DEVICE] Auto-login failed:', error)
+            } finally {
+              setIsAutoLoggingIn(false)
+            }
           }
         }
+      } finally {
+        setIsInitializing(false)
       }
     }
     
@@ -104,6 +109,26 @@ export default function App() {
     setIsAddingCustomer(false)
     // Refresh customers from database to show the new customer
     await loadCustomers()
+  }
+
+  // Show loading state while initializing or auto-logging in
+  if (isInitializing || isAutoLoggingIn) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-purple-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-16 h-16 border-4 border-orange-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <h2 className="text-xl font-semibold text-gray-800 mb-2">
+            {isAutoLoggingIn ? 'Auto-logging in...' : 'Initializing...'}
+          </h2>
+          <p className="text-gray-600">
+            {isAutoLoggingIn 
+              ? 'Please wait while we authenticate your session' 
+              : 'Please wait while we load your application'
+            }
+          </p>
+        </div>
+      </div>
+    )
   }
 
   if (!isAuthenticated) {

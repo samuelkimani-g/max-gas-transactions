@@ -742,7 +742,7 @@ export default function AddTransactionForm({ customerId, customerName, onBack, o
           </div>
           <div>
             <Label htmlFor="payment-method" className="text-gray-700 font-medium">Payment Method</Label>
-            <Select value={paymentMethod} onValueChange={setPaymentMethod}>
+            <Select value={paymentMethod || 'cash'} onValueChange={setPaymentMethod}>
               <SelectTrigger className="mt-2 border-gray-300 focus:border-orange-400 focus:ring-orange-200">
                 <SelectValue placeholder="Select payment method" />
               </SelectTrigger>

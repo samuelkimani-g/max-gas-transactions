@@ -154,6 +154,10 @@ export default function TransactionHistory({ transactions = [], customerId, onEd
       {editingTransaction && (
         <Dialog open={!!editingTransaction} onOpenChange={open => { if (!open) setEditingTransaction(null); }}>
           <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto p-0">
+            <DialogHeader className="sr-only">
+              <DialogTitle>Edit Transaction</DialogTitle>
+              <DialogDescription>Edit transaction details</DialogDescription>
+            </DialogHeader>
             <AddTransactionForm
               transaction={editingTransaction}
               mode="edit"

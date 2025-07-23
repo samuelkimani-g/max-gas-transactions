@@ -336,4 +336,167 @@ router.put('/bulk-customer-payment', [
   }
 });
 
+// @route   PUT /api/transactions/:id
+// @desc    Update a transaction
+// @access  Private
+router.put('/:id', [
+  authenticateToken,
+  requirePermission('transactions:update')
+], async (req, res) => {
+  const transaction = await sequelize.transaction();
+  
+  try {
+    const { id } = req.params;
+    const { 
+      customerId, 
+      loadBreakdown,
+      returnsBreakdown, 
+      outrightBreakdown, 
+      amountPaid, 
+      paymentMethod, 
+      notes 
+    } = req.body;
+
+    // Find the transaction
+    const existingTransaction = await Transaction.findByPk(id);
+    if (!existingTransaction) {
+      await transaction.rollback();
+      return res.status(404).json({ 
+        success: false, 
+        message: 'Transaction not found' 
+      });
+    }
+
+    // Validate customer exists
+    const customer = await Customer.findByPk(customerId);
+    if (!customer) {
+      await transaction.rollback();
+      return res.status(404).json({ success: false, error: 'Customer not found' });
+    }
+
+    // Calculate detailed load
+    const load_6kg = loadBreakdown?.kg6 || 0;
+    const load_13kg = loadBreakdown?.kg13 || 0;
+    const load_50kg = loadBreakdown?.kg50 || 0;
+    const total_load = load_6kg + load_13kg + load_50kg;
+
+    // Calculate total returns by size
+    const returns_6kg = (returnsBreakdown?.max_empty?.kg6 || 0) + 
+                       (returnsBreakdown?.swap_empty?.kg6 || 0) + 
+                       (returnsBreakdown?.return_full?.kg6 || 0);
+    const returns_13kg = (returnsBreakdown?.max_empty?.kg13 || 0) + 
+                        (returnsBreakdown?.swap_empty?.kg13 || 0) + 
+                        (returnsBreakdown?.return_full?.kg13 || 0);
+    const returns_50kg = (returnsBreakdown?.max_empty?.kg50 || 0) + 
+                        (returnsBreakdown?.swap_empty?.kg50 || 0) + 
+                        (returnsBreakdown?.return_full?.kg50 || 0);
+    const total_returns = returns_6kg + returns_13kg + returns_50kg;
+
+    // Fix outright breakdown structure to match frontend
+    const outright_6kg = outrightBreakdown?.kg6 || 0;
+    const outright_13kg = outrightBreakdown?.kg13 || 0;
+    const outright_50kg = outrightBreakdown?.kg50 || 0;
+    const outright_price6 = outrightBreakdown?.price6 || 0;
+    const outright_price13 = outrightBreakdown?.price13 || 0;
+    const outright_price50 = outrightBreakdown?.price50 || 0;
+
+    // Calculate detailed cylinder balances
+    const cylinder_balance_6kg = load_6kg - (returns_6kg + outright_6kg);
+    const cylinder_balance_13kg = load_13kg - (returns_13kg + outright_13kg);
+    const cylinder_balance_50kg = load_50kg - (returns_50kg + outright_50kg);
+    const cylinder_balance = cylinder_balance_6kg + cylinder_balance_13kg + cylinder_balance_50kg;
+
+    // Calculate financial totals
+    const maxEmptyTotal = ((returnsBreakdown?.max_empty?.kg6 || 0) * (returnsBreakdown?.max_empty?.price6 || 0)) +
+                         ((returnsBreakdown?.max_empty?.kg13 || 0) * (returnsBreakdown?.max_empty?.price13 || 0)) +
+                         ((returnsBreakdown?.max_empty?.kg50 || 0) * (returnsBreakdown?.max_empty?.price50 || 0));
+    
+    const swapEmptyTotal = ((returnsBreakdown?.swap_empty?.kg6 || 0) * (returnsBreakdown?.swap_empty?.price6 || 0)) +
+                          ((returnsBreakdown?.swap_empty?.kg13 || 0) * (returnsBreakdown?.swap_empty?.price13 || 0)) +
+                          ((returnsBreakdown?.swap_empty?.kg50 || 0) * (returnsBreakdown?.swap_empty?.price50 || 0));
+    
+    const outrightTotal = (outright_6kg * outright_price6) +
+                         (outright_13kg * outright_price13) +
+                         (outright_50kg * outright_price50);
+    
+    const total_bill = maxEmptyTotal + swapEmptyTotal + outrightTotal;
+    const financial_balance = total_bill - (amountPaid || 0);
+
+    // Update the transaction
+    await existingTransaction.update({
+      customerId,
+      load_6kg,
+      load_13kg,
+      load_50kg,
+      total_load,
+      returns_breakdown: returnsBreakdown,
+      outright_breakdown: outrightBreakdown,
+      cylinder_balance_6kg,
+      cylinder_balance_13kg,
+      cylinder_balance_50kg,
+      cylinder_balance,
+      total_bill,
+      amount_paid: amountPaid || 0,
+      payment_method: paymentMethod || 'cash',
+      financial_balance,
+      notes: notes || '',
+      updatedAt: new Date()
+    }, { transaction });
+
+    await transaction.commit();
+
+    res.json({
+      success: true,
+      data: existingTransaction,
+      message: 'Transaction updated successfully'
+    });
+
+  } catch (error) {
+    if (transaction && !transaction.finished) {
+      await transaction.rollback();
+    }
+    console.error('Update transaction error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to update transaction: ' + error.message
+    });
+  }
+});
+
+// @route   DELETE /api/transactions/:id
+// @desc    Delete a transaction
+// @access  Private
+router.delete('/:id', [
+  authenticateToken,
+  requirePermission('transactions:delete')
+], async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    // Find the transaction
+    const transaction = await Transaction.findByPk(id);
+    if (!transaction) {
+      return res.status(404).json({ 
+        success: false, 
+        message: 'Transaction not found' 
+      });
+    }
+
+    // Delete the transaction
+    await transaction.destroy();
+
+    res.json({
+      success: true,
+      message: 'Transaction deleted successfully'
+    });
+
+  } catch (error) {
+    console.error('Delete transaction error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to delete transaction: ' + error.message
+    });
+  }
+});
+
 module.exports = router; 

@@ -80,7 +80,7 @@ const LiveSummary = ({ summary }) => (
         </div>
         <div>
           <div className="text-xl font-bold text-gray-900">
-            Ksh {summary.amountPaid.toFixed(2)}
+            Ksh {(summary.amountPaid || 0).toFixed(2)}
           </div>
           <div className="text-sm text-gray-600">Amount Paid</div>
         </div>

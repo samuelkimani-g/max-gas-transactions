@@ -202,14 +202,14 @@ export default function TransactionHistory({ transactions = [], customerId, onEd
               <div className="p-6 space-y-6">
                 {/* Action Buttons */}
                 <div className="flex gap-3 flex-wrap mb-6">
-                  <Button size="sm" variant="outline" onClick={() => window.open(`/transaction/${modalTransaction.id}`, '_blank')}>
-                    <RefreshCw className="w-4 h-4 mr-1" /> Open in New Tab
-                  </Button>
                   <Button size="sm" variant="outline" onClick={() => { setShowReceipt(true); }}>
                     <ReceiptGenerator className="w-4 h-4 mr-1" /> View Receipt
                   </Button>
                   <Button size="sm" variant="outline" onClick={() => { setShowReport(true); }}>
                     <CheckCircle className="w-4 h-4 mr-1" /> View Report
+                  </Button>
+                  <Button size="sm" variant="outline" onClick={() => { setModalTransaction(null); setEditingTransaction(modalTransaction); }}>
+                    <Edit className="w-4 h-4 mr-1" /> Edit Transaction
                   </Button>
                 </div>
 

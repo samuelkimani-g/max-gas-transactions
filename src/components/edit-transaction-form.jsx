@@ -6,6 +6,8 @@ export default function EditTransactionForm({ transaction, onBack, onSuccess }) 
   // Use the AddTransactionForm in edit mode
   return (
     <AddTransactionForm
+      customerId={transaction?.customerId}
+      customerName={transaction?.Customer?.name || "Customer"}
       transaction={transaction}
       mode="edit"
       onBack={onBack}

@@ -145,7 +145,7 @@ export default function EnhancedCustomerDetail({ customerId, onBack }) {
       </div>
 
       {/* Balance Cards */}
-      <div className="grid gap-6 md:grid-cols-2">
+      <div className="grid gap-6 md:grid-cols-3">
         <Card className="border-0 bg-gradient-to-br from-red-50 to-red-100 shadow-lg">
           <CardHeader className="bg-gradient-to-r from-red-600 to-red-700 text-white rounded-t-lg">
             <div className="flex items-center justify-between">
@@ -153,13 +153,22 @@ export default function EnhancedCustomerDetail({ customerId, onBack }) {
               <DollarSign className="h-6 w-6" />
             </div>
           </CardHeader>
-          <CardContent className="p-8 text-center">
-            <div className="text-4xl font-bold text-red-700 mb-2">Ksh {formatNumber(financialBalance || 0)}</div>
+          <CardContent className="p-6 text-center">
+            <div className="text-3xl font-bold text-red-700 mb-2">Ksh {formatNumber(financialBalance || 0)}</div>
             <p className="text-lg text-red-600 font-semibold">{financialBalance > 0 ? 'Amount Due' : 'Fully Paid'}</p>
-            <div className="mt-4 p-3 bg-white rounded-lg border border-red-200">
-              <div className="text-sm text-gray-600">Total Invoice Amount</div>
-              <div className="text-xl font-bold text-gray-800">Ksh {formatNumber(totalBill || 0)}</div>
+          </CardContent>
+        </Card>
+        
+        <Card className="border-0 bg-gradient-to-br from-green-50 to-green-100 shadow-lg">
+          <CardHeader className="bg-gradient-to-r from-green-600 to-green-700 text-white rounded-t-lg">
+            <div className="flex items-center justify-between">
+              <CardTitle className="text-xl font-bold">Total Paid</CardTitle>
+              <DollarSign className="h-6 w-6" />
             </div>
+          </CardHeader>
+          <CardContent className="p-6 text-center">
+            <div className="text-3xl font-bold text-green-700 mb-2">Ksh {formatNumber(totalPaid || 0)}</div>
+            <p className="text-lg text-green-600 font-semibold">Payments Received</p>
           </CardContent>
         </Card>
         
@@ -170,8 +179,8 @@ export default function EnhancedCustomerDetail({ customerId, onBack }) {
               <Package className="h-6 w-6" />
             </div>
           </CardHeader>
-          <CardContent className="p-8 text-center">
-            <div className={`text-4xl font-bold mb-2 ${cylinderBalance > 0 ? 'text-red-700' : 'text-green-700'}`}>
+          <CardContent className="p-6 text-center">
+            <div className={`text-3xl font-bold mb-2 ${cylinderBalance > 0 ? 'text-red-700' : 'text-green-700'}`}>
               {cylinderBalance > 0 ? `+${cylinderBalance}` : (cylinderBalance || 0)}
             </div>
             <p className="text-lg font-semibold mb-4">

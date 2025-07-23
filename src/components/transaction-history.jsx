@@ -80,25 +80,23 @@ export default function TransactionHistory({ transactions = [], customerId, onEd
     <div className="overflow-x-auto">
       <Table>
         <TableHeader>
-          <TableRow>
+          <TableRow className="bg-gradient-to-r from-slate-100 to-slate-200">
             <TableHead className="w-12"></TableHead>
-            <TableHead>Serial No.</TableHead>
-            <TableHead>Date</TableHead>
-            <TableHead className="text-right">Invoice Amount</TableHead>
-            <TableHead className="text-center">Status</TableHead>
-            <TableHead className="text-center">Actions</TableHead>
+            <TableHead className="font-semibold text-slate-700">Serial No.</TableHead>
+            <TableHead className="font-semibold text-slate-700">Date</TableHead>
+            <TableHead className="text-center font-semibold text-slate-700">Status</TableHead>
+            <TableHead className="text-center font-semibold text-slate-700">Actions</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
           {sortedTransactions.map((t) => (
             <>
-              <TableRow key={t.id} className="cursor-pointer" onClick={() => setModalTransaction(t)}>
+              <TableRow key={t.id} className="cursor-pointer hover:bg-slate-50 transition-colors" onClick={() => setModalTransaction(t)}>
                 <TableCell>
                   {expandedRow === t.id ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
                 </TableCell>
-                <TableCell className="font-mono text-sm">{t.transaction_number}</TableCell>
-                <TableCell>{format(new Date(t.date), 'PP')}</TableCell>
-                <TableCell className="text-right font-semibold">{formatNumber(t.total_bill)}</TableCell>
+                <TableCell className="font-mono text-sm font-semibold text-blue-600">{t.transaction_number}</TableCell>
+                <TableCell className="font-medium">{format(new Date(t.date), 'PP')}</TableCell>
                 <TableCell className="text-center">
                   {(() => {
                     const total = t.total_bill || 0;
@@ -106,11 +104,11 @@ export default function TransactionHistory({ transactions = [], customerId, onEd
                     const outstanding = total - paid;
                     
                     if (outstanding <= 0) {
-                      return <Badge className="bg-green-100 text-green-800 border-green-200">✓ Paid</Badge>;
+                      return <Badge className="bg-green-100 text-green-800 border-green-200 font-semibold">✓ Paid</Badge>;
                     } else if (paid > 0) {
-                      return <Badge className="bg-yellow-100 text-yellow-800 border-yellow-200">⚠ Partial</Badge>;
+                      return <Badge className="bg-yellow-100 text-yellow-800 border-yellow-200 font-semibold">⚠ Partial</Badge>;
                     } else {
-                      return <Badge className="bg-red-100 text-red-800 border-red-200">⏳ Pending</Badge>;
+                      return <Badge className="bg-red-100 text-red-800 border-red-200 font-semibold">⏳ Pending</Badge>;
                     }
                   })()}
                 </TableCell>
@@ -127,27 +125,58 @@ export default function TransactionHistory({ transactions = [], customerId, onEd
               </TableRow>
               {expandedRow === t.id && (
                 <TableRow>
-                  <TableCell colSpan={6} className="p-0">
-                    <div className="bg-gray-50 p-4 grid grid-cols-1 md:grid-cols-3 gap-4">
-                      <div>
-                        <h4 className="font-bold">Returns Breakdown</h4>
-                        <p>Max Empty: {t.returns_breakdown?.max_empty ? `${t.returns_breakdown.max_empty.kg6 || 0} x 6kg, ${t.returns_breakdown.max_empty.kg13 || 0} x 13kg, ${t.returns_breakdown.max_empty.kg50 || 0} x 50kg` : '-'}</p>
-                        <p>Swap Empty: {t.returns_breakdown?.swap_empty ? `${t.returns_breakdown.swap_empty.kg6 || 0} x 6kg, ${t.returns_breakdown.swap_empty.kg13 || 0} x 13kg, ${t.returns_breakdown.swap_empty.kg50 || 0} x 50kg` : '-'}</p>
-                        <p>Return Full: {t.returns_breakdown?.return_full ? `${t.returns_breakdown.return_full.kg6 || 0} x 6kg, ${t.returns_breakdown.return_full.kg13 || 0} x 13kg, ${t.returns_breakdown.return_full.kg50 || 0} x 50kg` : '-'}</p>
-                      </div>
-                      <div>
-                        <h4 className="font-bold">Outright Breakdown</h4>
-                        <p>{t.outright_breakdown ? `${t.outright_breakdown.kg6 || 0} x 6kg @ Ksh ${t.outright_breakdown.price6 || 0}, ${t.outright_breakdown.kg13 || 0} x 13kg @ Ksh ${t.outright_breakdown.price13 || 0}, ${t.outright_breakdown.kg50 || 0} x 50kg @ Ksh ${t.outright_breakdown.price50 || 0}` : '-'}</p>
-                      </div>
-                      <div>
-                        <h4 className="font-bold">Load & Totals</h4>
-                        <p>Load: {t.load_6kg || 0} x 6kg, {t.load_13kg || 0} x 13kg, {t.load_50kg || 0} x 50kg</p>
-                        <p>Total Load: {t.total_load || 0}</p>
-                        <p>Total Returns: {t.total_returns || 0}</p>
-                        <p>Bill: Ksh {formatNumber(t.total_bill)}</p>
-                        <p>Paid: Ksh {formatNumber(t.amount_paid)}</p>
-                        <p>Balance: Ksh {formatNumber(t.financial_balance)}</p>
-                        <p>Cylinder Balance: {t.cylinder_balance}</p>
+                  <TableCell colSpan={5} className="p-0">
+                    <div className="bg-gradient-to-r from-slate-50 to-blue-50 p-6 border-t border-slate-200">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div className="space-y-4">
+                          <div className="bg-white p-4 rounded-lg border border-slate-200">
+                            <h4 className="font-bold text-slate-800 mb-3 flex items-center gap-2">
+                              <Package className="w-4 h-4 text-blue-600" />
+                              Transaction Summary
+                            </h4>
+                            <div className="space-y-2 text-sm">
+                              <div className="flex justify-between">
+                                <span className="text-slate-600">Total Bill:</span>
+                                <span className="font-semibold">Ksh {formatNumber(t.total_bill)}</span>
+                              </div>
+                              <div className="flex justify-between">
+                                <span className="text-slate-600">Amount Paid:</span>
+                                <span className="font-semibold text-green-600">Ksh {formatNumber(t.amount_paid)}</span>
+                              </div>
+                              <div className="flex justify-between border-t pt-2">
+                                <span className="text-slate-600">Outstanding:</span>
+                                <span className={`font-semibold ${(t.total_bill - t.amount_paid) > 0 ? 'text-red-600' : 'text-green-600'}`}>
+                                  Ksh {formatNumber(t.total_bill - t.amount_paid)}
+                                </span>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                        
+                        <div className="space-y-4">
+                          <div className="bg-white p-4 rounded-lg border border-slate-200">
+                            <h4 className="font-bold text-slate-800 mb-3 flex items-center gap-2">
+                              <Package className="w-4 h-4 text-orange-600" />
+                              Cylinder Details
+                            </h4>
+                            <div className="space-y-2 text-sm">
+                              <div className="flex justify-between">
+                                <span className="text-slate-600">Load (6kg/13kg/50kg):</span>
+                                <span className="font-semibold">{t.load_6kg || 0} / {t.load_13kg || 0} / {t.load_50kg || 0}</span>
+                              </div>
+                              <div className="flex justify-between">
+                                <span className="text-slate-600">Returns:</span>
+                                <span className="font-semibold">{t.total_returns || 0}</span>
+                              </div>
+                              <div className="flex justify-between border-t pt-2">
+                                <span className="text-slate-600">Cylinder Balance:</span>
+                                <span className={`font-semibold ${t.cylinder_balance > 0 ? 'text-red-600' : 'text-green-600'}`}>
+                                  {t.cylinder_balance > 0 ? `+${t.cylinder_balance}` : t.cylinder_balance}
+                                </span>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
                       </div>
                     </div>
                   </TableCell>

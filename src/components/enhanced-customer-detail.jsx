@@ -145,35 +145,52 @@ export default function EnhancedCustomerDetail({ customerId, onBack }) {
       </div>
 
       {/* Balance Cards */}
-      <div className="grid gap-6 md:grid-cols-3">
-        <Card className="border border-gray-200 bg-white">
-          <CardHeader className="bg-orange-500 text-white flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-lg font-semibold">Financial Balance</CardTitle>
-            <DollarSign className="h-5 w-5" />
+      <div className="grid gap-6 md:grid-cols-2">
+        <Card className="border-0 bg-gradient-to-br from-red-50 to-red-100 shadow-lg">
+          <CardHeader className="bg-gradient-to-r from-red-600 to-red-700 text-white rounded-t-lg">
+            <div className="flex items-center justify-between">
+              <CardTitle className="text-xl font-bold">Outstanding Balance</CardTitle>
+              <DollarSign className="h-6 w-6" />
+            </div>
           </CardHeader>
-          <CardContent className="p-6">
-            <div className={`text-2xl font-bold ${financialBalance > 0 ? 'text-red-600' : 'text-green-600'}`}>Ksh {formatNumber(financialBalance || 0)}</div>
-            <p className="text-sm text-gray-600 mt-1">{financialBalance > 0 ? 'Owed to us' : 'Customer Credit'}</p>
+          <CardContent className="p-8 text-center">
+            <div className="text-4xl font-bold text-red-700 mb-2">Ksh {formatNumber(financialBalance || 0)}</div>
+            <p className="text-lg text-red-600 font-semibold">{financialBalance > 0 ? 'Amount Due' : 'Fully Paid'}</p>
+            <div className="mt-4 p-3 bg-white rounded-lg border border-red-200">
+              <div className="text-sm text-gray-600">Total Invoice Amount</div>
+              <div className="text-xl font-bold text-gray-800">Ksh {formatNumber(totalBill || 0)}</div>
+            </div>
           </CardContent>
         </Card>
-        <Card className="border border-gray-200 bg-white">
-          <CardHeader className="bg-green-500 text-white flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-lg font-semibold">Amount Paid</CardTitle>
-            <DollarSign className="h-5 w-5" />
+        
+        <Card className="border-0 bg-gradient-to-br from-blue-50 to-blue-100 shadow-lg">
+          <CardHeader className="bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-t-lg">
+            <div className="flex items-center justify-between">
+              <CardTitle className="text-xl font-bold">Cylinder Status</CardTitle>
+              <Package className="h-6 w-6" />
+            </div>
           </CardHeader>
-          <CardContent className="p-6">
-            <div className="text-2xl font-bold text-green-600">Ksh {formatNumber(totalPaid || 0)}</div>
-            <p className="text-sm text-gray-600 mt-1">Total payments received</p>
-          </CardContent>
-        </Card>
-        <Card className="border border-gray-200 bg-white">
-          <CardHeader className="bg-orange-500 text-white flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-lg font-semibold">Cylinder Balance</CardTitle>
-            <Package className="h-5 w-5" />
-          </CardHeader>
-          <CardContent className="p-6">
-            <div className={`text-2xl font-bold ${cylinderBalance > 0 ? 'text-red-600' : 'text-green-600'}`}>{cylinderBalance > 0 ? `+${cylinderBalance}`: (cylinderBalance || 0)}</div>
-            <p className="text-sm text-gray-600 mt-1">{cylinderBalance > 0 ? 'Cylinders Owed to us' : 'Cylinders Owed to Customer'}</p>
+          <CardContent className="p-8 text-center">
+            <div className={`text-4xl font-bold mb-2 ${cylinderBalance > 0 ? 'text-red-700' : 'text-green-700'}`}>
+              {cylinderBalance > 0 ? `+${cylinderBalance}` : (cylinderBalance || 0)}
+            </div>
+            <p className="text-lg font-semibold mb-4">
+              {cylinderBalance > 0 ? 'Cylinders Owed to Us' : 'Cylinders Owed to Customer'}
+            </p>
+            <div className="grid grid-cols-3 gap-2 text-xs">
+              <div className="bg-white p-2 rounded border">
+                <div className="font-bold">{cylinderBalance6kg || 0}</div>
+                <div>6kg</div>
+              </div>
+              <div className="bg-white p-2 rounded border">
+                <div className="font-bold">{cylinderBalance13kg || 0}</div>
+                <div>13kg</div>
+              </div>
+              <div className="bg-white p-2 rounded border">
+                <div className="font-bold">{cylinderBalance50kg || 0}</div>
+                <div>50kg</div>
+              </div>
+            </div>
           </CardContent>
         </Card>
       </div>
@@ -193,35 +210,7 @@ export default function EnhancedCustomerDetail({ customerId, onBack }) {
           </CardContent>
         </Card>
       )}
-      {/* Detailed Cylinder Balance Breakdown */}
-      <Card className="border border-gray-200 bg-white">
-        <CardHeader className="bg-orange-500 text-white">
-          <CardTitle className="text-lg font-semibold flex items-center gap-2">
-            <Package className="w-5 h-5" />
-            Detailed Cylinder Balance
-          </CardTitle>
-          <CardDescription className="text-orange-100">Breakdown by cylinder size</CardDescription>
-        </CardHeader>
-        <CardContent className="p-6">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="text-center p-4 bg-gray-50 rounded border border-gray-200">
-              <div className="text-xl font-bold text-gray-900">{cylinderBalance6kg || 0}</div>
-              <div className="text-sm text-gray-600 font-medium">6kg Cylinders</div>
-              <div className="text-xs text-gray-500">{(cylinderBalance6kg || 0) > 0 ? 'Owed to us' : 'Owed to customer'}</div>
-            </div>
-            <div className="text-center p-4 bg-gray-50 rounded border border-gray-200">
-              <div className="text-xl font-bold text-gray-900">{cylinderBalance13kg || 0}</div>
-              <div className="text-sm text-gray-600 font-medium">13kg Cylinders</div>
-              <div className="text-xs text-gray-500">{(cylinderBalance13kg || 0) > 0 ? 'Owed to us' : 'Owed to customer'}</div>
-            </div>
-            <div className="text-center p-4 bg-gray-50 rounded border border-gray-200">
-              <div className="text-xl font-bold text-gray-900">{cylinderBalance50kg || 0}</div>
-              <div className="text-sm text-gray-600 font-medium">50kg Cylinders</div>
-              <div className="text-xs text-gray-500">{(cylinderBalance50kg || 0) > 0 ? 'Owed to us' : 'Owed to customer'}</div>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
+
       
       {/* Transaction History */}
       <Card className="border border-gray-200 bg-white">

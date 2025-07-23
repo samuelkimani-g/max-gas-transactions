@@ -581,7 +581,7 @@ export const useStore = create()(
 
                 return {
                   ...transaction,
-                  amount_paid: currentPaid + paymentForThis,
+                  amount_paid: Math.round((currentPaid + paymentForThis) * 100) / 100,
                   notes: transaction.notes ? `${transaction.notes}\n${note}` : note,
                 }
               })

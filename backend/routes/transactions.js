@@ -295,7 +295,7 @@ router.put('/bulk-customer-payment', [
       remainingAmount -= paymentForThis;
 
       const updatedTransaction = await transactionRecord.update({
-        amount_paid: currentPaid + paymentForThis,
+        amount_paid: Math.round((currentPaid + paymentForThis) * 100) / 100,
         notes: transactionRecord.notes ? `${transactionRecord.notes}\n${note}` : note,
       }, { transaction });
 

@@ -84,10 +84,8 @@ export default function TransactionHistory({ transactions = [], customerId, onEd
             <TableHead className="w-12"></TableHead>
             <TableHead>Serial No.</TableHead>
             <TableHead>Date</TableHead>
-            <TableHead className="text-right">Total Bill</TableHead>
-            <TableHead className="text-right">Amount Paid</TableHead>
-            <TableHead className="text-right">Financial Balance</TableHead>
-            <TableHead className="text-right">Cylinder Balance</TableHead>
+            <TableHead className="text-right">Invoice Amount</TableHead>
+            <TableHead className="text-center">Status</TableHead>
             <TableHead className="text-center">Actions</TableHead>
           </TableRow>
         </TableHeader>
@@ -100,17 +98,21 @@ export default function TransactionHistory({ transactions = [], customerId, onEd
                 </TableCell>
                 <TableCell className="font-mono text-sm">{t.transaction_number}</TableCell>
                 <TableCell>{format(new Date(t.date), 'PP')}</TableCell>
-                <TableCell className="text-right">{formatNumber(t.total_bill)}</TableCell>
-                <TableCell className="text-right text-green-600">{formatNumber(t.amount_paid)}</TableCell>
-                <TableCell className="text-right">
-                  <Badge variant={t.financial_balance > 0 ? 'destructive' : 'default'}>
-                    {formatNumber(t.financial_balance)}
-                  </Badge>
-                </TableCell>
-                <TableCell className="text-right">
-                  <Badge variant={t.cylinder_balance > 0 ? 'destructive' : 'default'}>
-                    {t.cylinder_balance > 0 ? `+${t.cylinder_balance}`: t.cylinder_balance}
-                  </Badge>
+                <TableCell className="text-right font-semibold">{formatNumber(t.total_bill)}</TableCell>
+                <TableCell className="text-center">
+                  {(() => {
+                    const total = t.total_bill || 0;
+                    const paid = t.amount_paid || 0;
+                    const outstanding = total - paid;
+                    
+                    if (outstanding <= 0) {
+                      return <Badge className="bg-green-100 text-green-800 border-green-200">✓ Paid</Badge>;
+                    } else if (paid > 0) {
+                      return <Badge className="bg-yellow-100 text-yellow-800 border-yellow-200">⚠ Partial</Badge>;
+                    } else {
+                      return <Badge className="bg-red-100 text-red-800 border-red-200">⏳ Pending</Badge>;
+                    }
+                  })()}
                 </TableCell>
                 <TableCell className="text-center flex gap-2 justify-center">
                   <Button variant="ghost" size="icon" onClick={(e) => {e.stopPropagation(); handleEdit(t);}}>
@@ -125,7 +127,7 @@ export default function TransactionHistory({ transactions = [], customerId, onEd
               </TableRow>
               {expandedRow === t.id && (
                 <TableRow>
-                  <TableCell colSpan={7} className="p-0">
+                  <TableCell colSpan={6} className="p-0">
                     <div className="bg-gray-50 p-4 grid grid-cols-1 md:grid-cols-3 gap-4">
                       <div>
                         <h4 className="font-bold">Returns Breakdown</h4>
@@ -159,9 +161,9 @@ export default function TransactionHistory({ transactions = [], customerId, onEd
       {editingTransaction && (
         <Dialog open={!!editingTransaction} onOpenChange={open => { if (!open) setEditingTransaction(null); }}>
           <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto p-0">
-            <DialogHeader className="sr-only">
+            <DialogHeader>
               <DialogTitle>Edit Transaction</DialogTitle>
-              <DialogDescription>Edit transaction details</DialogDescription>
+              <DialogDescription>Edit transaction details and payment information</DialogDescription>
             </DialogHeader>
             <AddTransactionForm
               transaction={editingTransaction}
@@ -175,6 +177,10 @@ export default function TransactionHistory({ transactions = [], customerId, onEd
       {/* Transaction Details Modal */}
       <Dialog open={!!modalTransaction} onOpenChange={open => { if (!open) setModalTransaction(null); }}>
         <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto p-0 bg-white rounded-xl shadow-2xl">
+          <DialogHeader className="sr-only">
+            <DialogTitle>Transaction Details</DialogTitle>
+            <DialogDescription>View detailed transaction information and generate receipt</DialogDescription>
+          </DialogHeader>
           <div className="flex justify-between items-center px-8 pt-8 pb-4 border-b">
             <div>
               <DialogTitle className="text-2xl font-extrabold text-orange-600 flex items-center gap-2">

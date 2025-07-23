@@ -115,18 +115,46 @@ export default function AddTransactionForm({ customerId, customerName, onBack, o
   // Pre-fill for edit mode
   useEffect(() => {
     if (transaction) {
-      setLoadBreakdown({
+      console.log('Loading transaction data for edit:', transaction);
+      console.log('Transaction load data:', {
+        load_6kg: transaction.load_6kg,
+        load_13kg: transaction.load_13kg,
+        load_50kg: transaction.load_50kg,
+      });
+      console.log('Transaction returns breakdown:', transaction.returns_breakdown);
+      console.log('Transaction outright breakdown:', transaction.outright_breakdown);
+      
+      // Load the original transaction data
+      const originalLoad = {
         kg6: transaction.load_6kg || 0,
         kg13: transaction.load_13kg || 0,
         kg50: transaction.load_50kg || 0,
+      };
+      
+      const originalReturns = transaction.returns_breakdown || {
+        max_empty: { kg6: 0, kg13: 0, kg50: 0, price6: 135, price13: 135, price50: 135 },
+        swap_empty: { kg6: 0, kg13: 0, kg50: 0, price6: 160, price13: 160, price50: 160 },
+        return_full: { kg6: 0, kg13: 0, kg50: 0 },
+      };
+      
+      const originalOutright = transaction.outright_breakdown || {
+        kg6: 0, kg13: 0, kg50: 0, price6: 2200, price13: 4400, price50: 8000,
+      };
+      
+      console.log('Setting form data:', {
+        originalLoad,
+        originalReturns,
+        originalOutright,
+        amountPaid: transaction.amount_paid,
+        paymentMethod: transaction.payment_method,
+        notes: transaction.notes,
       });
-      setReturnsBreakdown(transaction.returns_breakdown || returnsBreakdown);
-      setOutrightBreakdown(transaction.outright_breakdown || outrightBreakdown);
-      setTotalLoad({
-        kg6: transaction.load_6kg || 0,
-        kg13: transaction.load_13kg || 0,
-        kg50: transaction.load_50kg || 0,
-      });
+      
+      // Set the data without triggering auto-updates
+      setLoadBreakdown(originalLoad);
+      setReturnsBreakdown(originalReturns);
+      setOutrightBreakdown(originalOutright);
+      setTotalLoad(originalLoad);
       setAmountPaid(transaction.amount_paid || 0);
       setPaymentMethod(transaction.payment_method || 'cash');
       setNotes(transaction.notes || '');
@@ -199,25 +227,27 @@ export default function AddTransactionForm({ customerId, customerName, onBack, o
     }));
   }, [loadBreakdown]);
 
-  // Auto-update load when outright changes (like returns)
+  // Auto-update load when outright changes (like returns) - only in add mode
   useEffect(() => {
-    const suggested6kg = (returnsBreakdown.max_empty.kg6 + returnsBreakdown.swap_empty.kg6 + returnsBreakdown.return_full.kg6) + outrightBreakdown.kg6;
-    const suggested13kg = (returnsBreakdown.max_empty.kg13 + returnsBreakdown.swap_empty.kg13 + returnsBreakdown.return_full.kg13) + outrightBreakdown.kg13;
-    const suggested50kg = (returnsBreakdown.max_empty.kg50 + returnsBreakdown.swap_empty.kg50 + returnsBreakdown.return_full.kg50) + outrightBreakdown.kg50;
-    
-    setTotalLoad(prev => ({ 
-      kg6: suggested6kg, 
-      kg13: suggested13kg, 
-      kg50: suggested50kg 
-    }));
-    
-    // Also update loadBreakdown to keep them in sync
-    setLoadBreakdown(prev => ({
-      kg6: suggested6kg,
-      kg13: suggested13kg,
-      kg50: suggested50kg
-    }));
-  }, [returnsBreakdown, outrightBreakdown]);
+    if (mode === 'add') {
+      const suggested6kg = (returnsBreakdown.max_empty.kg6 + returnsBreakdown.swap_empty.kg6 + returnsBreakdown.return_full.kg6) + outrightBreakdown.kg6;
+      const suggested13kg = (returnsBreakdown.max_empty.kg13 + returnsBreakdown.swap_empty.kg13 + returnsBreakdown.return_full.kg13) + outrightBreakdown.kg13;
+      const suggested50kg = (returnsBreakdown.max_empty.kg50 + returnsBreakdown.swap_empty.kg50 + returnsBreakdown.return_full.kg50) + outrightBreakdown.kg50;
+      
+      setTotalLoad(prev => ({ 
+        kg6: suggested6kg, 
+        kg13: suggested13kg, 
+        kg50: suggested50kg 
+      }));
+      
+      // Also update loadBreakdown to keep them in sync
+      setLoadBreakdown(prev => ({
+        kg6: suggested6kg,
+        kg13: suggested13kg,
+        kg50: suggested50kg
+      }));
+    }
+  }, [returnsBreakdown, outrightBreakdown, mode]);
 
   const validateAndSubmit = async () => {
     if (!customerId) {

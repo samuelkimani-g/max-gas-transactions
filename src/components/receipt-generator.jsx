@@ -366,16 +366,16 @@ export default function ReceiptGenerator({ transaction, customer }) {
   const maxGasReturns = [];
   const maxGasOutright = [];
 
-  // Returns Breakdown - Fixed calculation without kg multiplication
+  // Returns Breakdown - Fixed calculation with kg multiplication (this is correct)
   if (transaction.returns_breakdown?.max_empty) {
-    if (transaction.returns_breakdown.max_empty.kg6 > 0) maxGasReturns.push({ description: `6kg Max Empty × ${transaction.returns_breakdown.max_empty.kg6}`, amount: transaction.returns_breakdown.max_empty.kg6 * (transaction.returns_breakdown.max_empty.price6 || 135) });
-    if (transaction.returns_breakdown.max_empty.kg13 > 0) maxGasReturns.push({ description: `13kg Max Empty × ${transaction.returns_breakdown.max_empty.kg13}`, amount: transaction.returns_breakdown.max_empty.kg13 * (transaction.returns_breakdown.max_empty.price13 || 135) });
-    if (transaction.returns_breakdown.max_empty.kg50 > 0) maxGasReturns.push({ description: `50kg Max Empty × ${transaction.returns_breakdown.max_empty.kg50}`, amount: transaction.returns_breakdown.max_empty.kg50 * (transaction.returns_breakdown.max_empty.price50 || 135) });
+    if (transaction.returns_breakdown.max_empty.kg6 > 0) maxGasReturns.push({ description: `6kg Max Empty × ${transaction.returns_breakdown.max_empty.kg6}`, amount: transaction.returns_breakdown.max_empty.kg6 * (transaction.returns_breakdown.max_empty.price6 || 135) * 6 });
+    if (transaction.returns_breakdown.max_empty.kg13 > 0) maxGasReturns.push({ description: `13kg Max Empty × ${transaction.returns_breakdown.max_empty.kg13}`, amount: transaction.returns_breakdown.max_empty.kg13 * (transaction.returns_breakdown.max_empty.price13 || 135) * 13 });
+    if (transaction.returns_breakdown.max_empty.kg50 > 0) maxGasReturns.push({ description: `50kg Max Empty × ${transaction.returns_breakdown.max_empty.kg50}`, amount: transaction.returns_breakdown.max_empty.kg50 * (transaction.returns_breakdown.max_empty.price50 || 135) * 50 });
   }
   if (transaction.returns_breakdown?.swap_empty) {
-    if (transaction.returns_breakdown.swap_empty.kg6 > 0) maxGasReturns.push({ description: `6kg Swap Empty × ${transaction.returns_breakdown.swap_empty.kg6}`, amount: transaction.returns_breakdown.swap_empty.kg6 * (transaction.returns_breakdown.swap_empty.price6 || 160) });
-    if (transaction.returns_breakdown.swap_empty.kg13 > 0) maxGasReturns.push({ description: `13kg Swap Empty × ${transaction.returns_breakdown.swap_empty.kg13}`, amount: transaction.returns_breakdown.swap_empty.kg13 * (transaction.returns_breakdown.swap_empty.price13 || 160) });
-    if (transaction.returns_breakdown.swap_empty.kg50 > 0) maxGasReturns.push({ description: `50kg Swap Empty × ${transaction.returns_breakdown.swap_empty.kg50}`, amount: transaction.returns_breakdown.swap_empty.kg50 * (transaction.returns_breakdown.swap_empty.price50 || 160) });
+    if (transaction.returns_breakdown.swap_empty.kg6 > 0) maxGasReturns.push({ description: `6kg Swap Empty × ${transaction.returns_breakdown.swap_empty.kg6}`, amount: transaction.returns_breakdown.swap_empty.kg6 * (transaction.returns_breakdown.swap_empty.price6 || 160) * 6 });
+    if (transaction.returns_breakdown.swap_empty.kg13 > 0) maxGasReturns.push({ description: `13kg Swap Empty × ${transaction.returns_breakdown.swap_empty.kg13}`, amount: transaction.returns_breakdown.swap_empty.kg13 * (transaction.returns_breakdown.swap_empty.price13 || 160) * 13 });
+    if (transaction.returns_breakdown.swap_empty.kg50 > 0) maxGasReturns.push({ description: `50kg Swap Empty × ${transaction.returns_breakdown.swap_empty.kg50}`, amount: transaction.returns_breakdown.swap_empty.kg50 * (transaction.returns_breakdown.swap_empty.price50 || 160) * 50 });
   }
   if (transaction.returns_breakdown?.return_full) {
     if (transaction.returns_breakdown.return_full.kg6 > 0) maxGasReturns.push({ description: `6kg Return Full × ${transaction.returns_breakdown.return_full.kg6}`, amount: 0 });

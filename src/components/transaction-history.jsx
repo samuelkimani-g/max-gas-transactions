@@ -185,9 +185,9 @@ export default function TransactionHistory({ transactions = [], customerId, onEd
             </DialogClose>
           </div>
           {modalTransaction && (() => {
-            const cylinderBalance6kg = (modalTransaction.load_6kg || 0) - ((modalTransaction.returns_breakdown?.max_empty?.kg6 || 0) + (modalTransaction.returns_breakdown?.swap_empty?.kg6 || 0) + (modalTransaction.returns_breakdown?.return_full?.kg6 || 0));
-            const cylinderBalance13kg = (modalTransaction.load_13kg || 0) - ((modalTransaction.returns_breakdown?.max_empty?.kg13 || 0) + (modalTransaction.returns_breakdown?.swap_empty?.kg13 || 0) + (modalTransaction.returns_breakdown?.return_full?.kg13 || 0));
-            const cylinderBalance50kg = (modalTransaction.load_50kg || 0) - ((modalTransaction.returns_breakdown?.max_empty?.kg50 || 0) + (modalTransaction.returns_breakdown?.swap_empty?.kg50 || 0) + (modalTransaction.returns_breakdown?.return_full?.kg50 || 0));
+            const cylinderBalance6kg = (modalTransaction.load_6kg || 0) - ((modalTransaction.returns_breakdown?.max_empty?.kg6 || 0) + (modalTransaction.returns_breakdown?.swap_empty?.kg6 || 0) + (modalTransaction.returns_breakdown?.return_full?.kg6 || 0) + (modalTransaction.outright_breakdown?.kg6 || 0));
+            const cylinderBalance13kg = (modalTransaction.load_13kg || 0) - ((modalTransaction.returns_breakdown?.max_empty?.kg13 || 0) + (modalTransaction.returns_breakdown?.swap_empty?.kg13 || 0) + (modalTransaction.returns_breakdown?.return_full?.kg13 || 0) + (modalTransaction.outright_breakdown?.kg13 || 0));
+            const cylinderBalance50kg = (modalTransaction.load_50kg || 0) - ((modalTransaction.returns_breakdown?.max_empty?.kg50 || 0) + (modalTransaction.returns_breakdown?.swap_empty?.kg50 || 0) + (modalTransaction.returns_breakdown?.return_full?.kg50 || 0) + (modalTransaction.outright_breakdown?.kg50 || 0));
             const cylinderBalance = cylinderBalance6kg + cylinderBalance13kg + cylinderBalance50kg;
             const returns6kg = (modalTransaction.returns_breakdown?.max_empty?.kg6 || 0) + (modalTransaction.returns_breakdown?.swap_empty?.kg6 || 0) + (modalTransaction.returns_breakdown?.return_full?.kg6 || 0);
             const returns13kg = (modalTransaction.returns_breakdown?.max_empty?.kg13 || 0) + (modalTransaction.returns_breakdown?.swap_empty?.kg13 || 0) + (modalTransaction.returns_breakdown?.return_full?.kg13 || 0);

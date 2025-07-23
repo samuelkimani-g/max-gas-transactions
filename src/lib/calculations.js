@@ -57,10 +57,10 @@ export function calculateCredits(transaction) {
 // Updated function using Load-First approach
 export function calculateTransactionTotal(transaction) {
   if (!transaction) return 0;
-  // Refills (Max Empty and Swap Empty): count * price (removed kg multiplication)
-  const refill6kg = ((transaction.returns_breakdown?.max_empty?.kg6 || 0) + (transaction.returns_breakdown?.swap_empty?.kg6 || 0)) * (transaction.returns_breakdown?.max_empty?.price6 || 135);
-  const refill13kg = ((transaction.returns_breakdown?.max_empty?.kg13 || 0) + (transaction.returns_breakdown?.swap_empty?.kg13 || 0)) * (transaction.returns_breakdown?.max_empty?.price13 || 135);
-  const refill50kg = ((transaction.returns_breakdown?.max_empty?.kg50 || 0) + (transaction.returns_breakdown?.swap_empty?.kg50 || 0)) * (transaction.returns_breakdown?.max_empty?.price50 || 135);
+  // Refills (Max Empty and Swap Empty): count * price * kg (this is the correct calculation)
+  const refill6kg = ((transaction.returns_breakdown?.max_empty?.kg6 || 0) + (transaction.returns_breakdown?.swap_empty?.kg6 || 0)) * (transaction.returns_breakdown?.max_empty?.price6 || 135) * 6;
+  const refill13kg = ((transaction.returns_breakdown?.max_empty?.kg13 || 0) + (transaction.returns_breakdown?.swap_empty?.kg13 || 0)) * (transaction.returns_breakdown?.max_empty?.price13 || 135) * 13;
+  const refill50kg = ((transaction.returns_breakdown?.max_empty?.kg50 || 0) + (transaction.returns_breakdown?.swap_empty?.kg50 || 0)) * (transaction.returns_breakdown?.max_empty?.price50 || 135) * 50;
   // Outright: count * price
   const outright6kg = (transaction.outright_breakdown?.kg6 || 0) * (transaction.outright_breakdown?.price6 || 2200);
   const outright13kg = (transaction.outright_breakdown?.kg13 || 0) * (transaction.outright_breakdown?.price13 || 4400);

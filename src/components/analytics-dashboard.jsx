@@ -99,7 +99,7 @@ export default function AnalyticsDashboard() {
 
     // Calculate total sales
     const totalSales = filteredTransactions.reduce((total, t) => total + calculateTransactionTotal(t), 0)
-    const totalPayments = filteredTransactions.reduce((total, t) => total + (t.paid || 0), 0)
+    const totalPayments = filteredTransactions.reduce((total, t) => total + (t.amount_paid || 0), 0)
     const totalOutstanding = totalSales - totalPayments
 
     // Calculate total cylinders

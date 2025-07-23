@@ -76,7 +76,7 @@ export default function EnhancedAnalyticsDashboard() {
 
   const calculateAdvancedKPIs = (filteredTransactions, allTransactions, period) => {
     const totalSales = filteredTransactions.reduce((total, t) => total + calculateTransactionTotal(t), 0)
-    const totalPayments = filteredTransactions.reduce((total, t) => total + (t.paid || 0), 0)
+    const totalPayments = filteredTransactions.reduce((total, t) => total + (t.amount_paid || 0), 0)
     
     // Calculate growth rates
     const previousPeriodData = getPreviousPeriodData(allTransactions, period)
@@ -293,7 +293,7 @@ export default function EnhancedAnalyticsDashboard() {
 
     // Calculate total sales efficiently
     const totalSales = filteredTransactions.reduce((total, t) => total + calculateTransactionTotal(t), 0)
-    const totalPayments = filteredTransactions.reduce((total, t) => total + (t.paid || 0), 0)
+    const totalPayments = filteredTransactions.reduce((total, t) => total + (t.amount_paid || 0), 0)
     const totalOutstanding = totalSales - totalPayments
 
     // Calculate previous period data for growth metrics

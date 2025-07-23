@@ -23,7 +23,7 @@ export default function BulkPaymentForm({ customerId, customerName, outstandingA
   const customerTransactions = getCustomerTransactions(customerId)
   const unpaidTransactions = customerTransactions.filter((t) => {
     const total = calculateTransactionTotal(t)
-    return total - (t.paid || 0) > 0
+    return total - (t.amount_paid || 0) > 0
   })
 
   useEffect(() => {
@@ -202,7 +202,7 @@ export default function BulkPaymentForm({ customerId, customerName, outstandingA
                     <div className="max-h-32 overflow-y-auto space-y-1">
                       {unpaidTransactions.map((t) => {
                         const total = calculateTransactionTotal(t)
-                        const outstanding = total - (t.paid || 0)
+                        const outstanding = total - (t.amount_paid || 0)
                         return (
                           <div key={t.id} className="flex justify-between text-xs">
                             <span>

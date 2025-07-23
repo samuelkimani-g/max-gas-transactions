@@ -569,7 +569,7 @@ export const useStore = create()(
                 }
 
                 const total = calculateTransactionTotal(transaction)
-                const currentPaid = transaction.paid || 0
+                const currentPaid = transaction.amount_paid || 0
                 const outstanding = total - currentPaid
 
                 if (outstanding <= 0) {
@@ -581,7 +581,7 @@ export const useStore = create()(
 
                 return {
                   ...transaction,
-                  paid: currentPaid + paymentForThis,
+                  amount_paid: currentPaid + paymentForThis,
                   notes: transaction.notes ? `${transaction.notes}\n${note}` : note,
                 }
               })

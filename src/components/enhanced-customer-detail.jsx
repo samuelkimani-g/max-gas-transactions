@@ -15,6 +15,7 @@ import ReceiptGenerator from "./receipt-generator"
 import CustomerReportGenerator from "./customer-report-generator"
 import EditTransactionForm from "./edit-transaction-form"
 import { calculateTransactionTotal } from "../lib/calculations";
+import BulkPaymentForm from "./bulk-payment-form"
 
 const formatNumber = (num) => new Intl.NumberFormat('en-US').format(num);
 
@@ -126,7 +127,7 @@ export default function EnhancedCustomerDetail({ customerId, onBack }) {
       </div>
 
       {/* Balance Cards */}
-      <div className="grid gap-6 md:grid-cols-2">
+      <div className="grid gap-6 md:grid-cols-3">
         <Card className="border border-gray-200 bg-white">
           <CardHeader className="bg-orange-500 text-white flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-lg font-semibold">Financial Balance</CardTitle>
@@ -135,6 +136,16 @@ export default function EnhancedCustomerDetail({ customerId, onBack }) {
           <CardContent className="p-6">
             <div className={`text-2xl font-bold ${financialBalance > 0 ? 'text-red-600' : 'text-green-600'}`}>Ksh {formatNumber(financialBalance || 0)}</div>
             <p className="text-sm text-gray-600 mt-1">{financialBalance > 0 ? 'Owed to us' : 'Customer Credit'}</p>
+          </CardContent>
+        </Card>
+        <Card className="border border-gray-200 bg-white">
+          <CardHeader className="bg-green-500 text-white flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-lg font-semibold">Amount Paid</CardTitle>
+            <DollarSign className="h-5 w-5" />
+          </CardHeader>
+          <CardContent className="p-6">
+            <div className="text-2xl font-bold text-green-600">Ksh {formatNumber(totalPaid || 0)}</div>
+            <p className="text-sm text-gray-600 mt-1">Total payments received</p>
           </CardContent>
         </Card>
         <Card className="border border-gray-200 bg-white">
@@ -148,6 +159,22 @@ export default function EnhancedCustomerDetail({ customerId, onBack }) {
           </CardContent>
         </Card>
       </div>
+
+      {/* Bulk Payment Section */}
+      {financialBalance > 0 && (
+        <Card className="border border-gray-200 bg-white">
+          <CardHeader className="bg-green-500 text-white">
+            <CardTitle className="text-lg font-semibold">Record Payment</CardTitle>
+          </CardHeader>
+          <CardContent className="p-6">
+            <BulkPaymentForm 
+              customerId={customerId} 
+              customerName={customer.name} 
+              outstandingAmount={financialBalance} 
+            />
+          </CardContent>
+        </Card>
+      )}
       {/* Detailed Cylinder Balance Breakdown */}
       <Card className="border border-gray-200 bg-white">
         <CardHeader className="bg-orange-500 text-white">

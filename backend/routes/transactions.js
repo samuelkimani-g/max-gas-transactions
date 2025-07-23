@@ -246,4 +246,94 @@ router.get('/', [
 // to reflect the new data structure and logic.
 // For now, focusing on the CREATE operation.
 
+// @route   PUT /api/transactions/bulk-customer-payment
+// @desc    Record a bulk payment for a customer across multiple transactions
+// @access  Private
+router.put('/bulk-customer-payment', [
+  authenticateToken,
+  requirePermission('transactions:update')
+], async (req, res) => {
+  const transaction = await sequelize.transaction();
+  
+  try {
+    const { customerId, amount, note } = req.body;
+
+    // Validate customer exists
+    const customer = await Customer.findByPk(customerId);
+    if (!customer) {
+      await transaction.rollback();
+      return res.status(404).json({ success: false, error: 'Customer not found' });
+    }
+
+    // Get all transactions for this customer, sorted by date (oldest first)
+    const customerTransactions = await Transaction.findAll({
+      where: { customerId },
+      order: [['date', 'ASC']],
+      transaction
+    });
+
+    let remainingAmount = amount;
+    const updatedTransactions = [];
+
+    // Process each transaction and apply payment
+    for (const transactionRecord of customerTransactions) {
+      if (remainingAmount <= 0) {
+        updatedTransactions.push(transactionRecord);
+        continue;
+      }
+
+      const total = transactionRecord.total_bill || 0;
+      const currentPaid = transactionRecord.amount_paid || 0;
+      const outstanding = total - currentPaid;
+
+      if (outstanding <= 0) {
+        updatedTransactions.push(transactionRecord);
+        continue;
+      }
+
+      const paymentForThis = Math.min(outstanding, remainingAmount);
+      remainingAmount -= paymentForThis;
+
+      const updatedTransaction = await transactionRecord.update({
+        amount_paid: currentPaid + paymentForThis,
+        notes: transactionRecord.notes ? `${transactionRecord.notes}\n${note}` : note,
+      }, { transaction });
+
+      updatedTransactions.push(updatedTransaction);
+    }
+
+    // Update customer's financial balance
+    const totalPaid = amount - remainingAmount;
+    const newFinancialBalance = (customer.financial_balance || 0) - totalPaid;
+    
+    await Customer.update({
+      financial_balance: newFinancialBalance
+    }, { 
+      where: { id: customerId },
+      transaction 
+    });
+
+    await transaction.commit();
+
+    res.json({
+      success: true,
+      data: { 
+        message: `Bulk payment of ${totalPaid} recorded successfully`,
+        remainingAmount,
+        updatedTransactions: updatedTransactions.length
+      }
+    });
+
+  } catch (error) {
+    if (transaction && !transaction.finished) {
+      await transaction.rollback();
+    }
+    console.error('Bulk payment error:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to record bulk payment: ' + error.message
+    });
+  }
+});
+
 module.exports = router; 

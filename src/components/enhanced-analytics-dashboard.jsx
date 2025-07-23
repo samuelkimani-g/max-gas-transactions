@@ -585,12 +585,11 @@ export default function EnhancedAnalyticsDashboard() {
       
       setIsLoadingForecast(true)
       try {
-        const forecast = await forecastingEngine.forecast(
-          transactions, 
-          selectedPeriod, 
-          forecastPeriods, 
-          confidenceLevel
-        )
+        // Add historical data to the forecasting engine
+        forecastingEngine.addHistoricalData(transactions)
+        
+        // Generate forecast
+        const forecast = await forecastingEngine.generateForecast(forecastPeriods)
         setForecastData(forecast)
       } catch (error) {
         console.error('Forecast generation failed:', error)

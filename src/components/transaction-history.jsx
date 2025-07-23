@@ -208,9 +208,9 @@ export default function TransactionHistory({ transactions = [], customerId, onEd
                   <Button size="sm" variant="outline" onClick={() => { setShowReceipt(true); }}>
                     <ReceiptGenerator className="w-4 h-4 mr-1" /> View Receipt
                   </Button>
-                  {onEdit && <Button size="sm" variant="outline" onClick={() => { setModalTransaction(null); setEditingTransaction(modalTransaction); }}>
-                    <Edit className="w-4 h-4 mr-1" /> Edit
-                  </Button>}
+                  <Button size="sm" variant="outline" onClick={() => { setShowReport(true); }}>
+                    <CheckCircle className="w-4 h-4 mr-1" /> View Report
+                  </Button>
                 </div>
 
                 {/* Transaction Details Grid */}
@@ -428,15 +428,17 @@ export default function TransactionHistory({ transactions = [], customerId, onEd
       {/* Report Modal */}
       <Dialog open={showReport} onOpenChange={open => setShowReport(open)}>
         <DialogContent className="max-w-3xl">
-          <DialogHeader>
-            <DialogTitle>Transaction Report</DialogTitle>
-          </DialogHeader>
-          {modalTransaction && <ReportingInsights transactions={[modalTransaction]} customers={[modalTransaction.Customer]} />}
-          <DialogFooter>
+          <div className="flex justify-between items-center px-6 pt-6 pb-2 border-b">
+            <DialogTitle className="text-xl font-bold">Transaction Report</DialogTitle>
             <DialogClose asChild>
-              <Button variant="outline">Close</Button>
+              <Button variant="ghost" size="icon" className="text-gray-400 hover:text-gray-700">
+                ×
+              </Button>
             </DialogClose>
-          </DialogFooter>
+          </div>
+          <div className="p-6">
+            {modalTransaction && <ReportingInsights transactions={[modalTransaction]} customers={[modalTransaction.Customer]} />}
+          </div>
         </DialogContent>
       </Dialog>
     </div>

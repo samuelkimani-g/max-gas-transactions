@@ -74,6 +74,12 @@ export default function EnhancedCustomerDetail({ customerId, onBack }) {
   const cylinderBalance = cylinderBalance6kg + cylinderBalance13kg + cylinderBalance50kg;
 
   const handleDeleteCustomer = async () => {
+    // Check if customer has transactions
+    if (customerTransactions && customerTransactions.length > 0) {
+      alert(`Cannot delete customer ${customer.name}. This customer has ${customerTransactions.length} transaction(s). Please delete all transactions first before deleting the customer.`);
+      return;
+    }
+
     if (confirm(`Are you sure you want to PERMANENTLY DELETE ${customer.name}? This action cannot be undone.`)) {
       try {
         setIsDeleting(true)
@@ -280,7 +286,7 @@ export default function EnhancedCustomerDetail({ customerId, onBack }) {
                   <Button
                     onClick={handleDeleteCustomer}
                     className="bg-red-600 hover:bg-red-700 text-white"
-                    disabled={isDeleting}
+                    disabled={isDeleting || (customerTransactions && customerTransactions.length > 0)}
                   >
                     {isDeleting ? 'Deleting...' : 'Delete Customer'}
                   </Button>
@@ -292,6 +298,11 @@ export default function EnhancedCustomerDetail({ customerId, onBack }) {
                     Cancel
                   </Button>
                 </div>
+                {customerTransactions && customerTransactions.length > 0 && (
+                  <div className="mt-2 p-2 bg-yellow-50 border border-yellow-200 rounded text-sm text-yellow-800">
+                    ⚠️ Cannot delete customer with {customerTransactions.length} transaction(s). Delete all transactions first.
+                  </div>
+                )}
               </div>
             </div>
           )}

@@ -220,18 +220,20 @@ export default function AddTransactionForm({ customerId, customerName, onBack, o
   }, [returnsBreakdown, outrightBreakdown]);
 
   const validateAndSubmit = async () => {
-    // Validation: Returns must match cylinders brought in by size
-    const returns6kg = returnsBreakdown.max_empty.kg6 + returnsBreakdown.swap_empty.kg6 + returnsBreakdown.return_full.kg6;
-    const returns13kg = returnsBreakdown.max_empty.kg13 + returnsBreakdown.swap_empty.kg13 + returnsBreakdown.return_full.kg13;
-    const returns50kg = returnsBreakdown.max_empty.kg50 + returnsBreakdown.swap_empty.kg50 + returnsBreakdown.return_full.kg50;
-
-    if (loadBreakdown.kg6 !== returns6kg || loadBreakdown.kg13 !== returns13kg || loadBreakdown.kg50 !== returns50kg) {
-      toast({ title: 'Validation Error', description: 'Returns breakdown must match cylinders brought in by size', variant: 'destructive' });
+    if (!customerId) {
+      toast({ title: 'Validation Error', description: 'Please select a customer', variant: 'destructive' });
       return;
     }
 
-    if (!customerId) {
-      toast({ title: 'Validation Error', description: 'Please select a customer', variant: 'destructive' });
+    // Check if there's any transaction data
+    const hasReturns = (returnsBreakdown.max_empty.kg6 + returnsBreakdown.max_empty.kg13 + returnsBreakdown.max_empty.kg50 +
+                       returnsBreakdown.swap_empty.kg6 + returnsBreakdown.swap_empty.kg13 + returnsBreakdown.swap_empty.kg50 +
+                       returnsBreakdown.return_full.kg6 + returnsBreakdown.return_full.kg13 + returnsBreakdown.return_full.kg50) > 0;
+    
+    const hasOutright = (outrightBreakdown.kg6 + outrightBreakdown.kg13 + outrightBreakdown.kg50) > 0;
+    
+    if (!hasReturns && !hasOutright) {
+      toast({ title: 'Validation Error', description: 'Please add at least one return or outright transaction', variant: 'destructive' });
       return;
     }
 

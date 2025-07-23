@@ -202,7 +202,51 @@ export default function AddTransactionForm({ customerId, customerName, onBack, o
     const outrightTotal = (outrightBreakdown.kg6 * outrightBreakdown.price6) +
                          (outrightBreakdown.kg13 * outrightBreakdown.price13) +
                          (outrightBreakdown.kg50 * outrightBreakdown.price50);
-    return maxEmptyTotal + swapEmptyTotal + outrightTotal;
+    
+    const total = maxEmptyTotal + swapEmptyTotal + outrightTotal;
+    
+    // Debug calculation
+    console.log('Bill calculation debug:', {
+      maxEmpty: {
+        kg6: returnsBreakdown.max_empty.kg6,
+        price6: returnsBreakdown.max_empty.price6,
+        total6kg: returnsBreakdown.max_empty.kg6 * returnsBreakdown.max_empty.price6 * 6,
+        kg13: returnsBreakdown.max_empty.kg13,
+        price13: returnsBreakdown.max_empty.price13,
+        total13kg: returnsBreakdown.max_empty.kg13 * returnsBreakdown.max_empty.price13 * 13,
+        kg50: returnsBreakdown.max_empty.kg50,
+        price50: returnsBreakdown.max_empty.price50,
+        total50kg: returnsBreakdown.max_empty.kg50 * returnsBreakdown.max_empty.price50 * 50,
+        total: maxEmptyTotal
+      },
+      swapEmpty: {
+        kg6: returnsBreakdown.swap_empty.kg6,
+        price6: returnsBreakdown.swap_empty.price6,
+        total6kg: returnsBreakdown.swap_empty.kg6 * returnsBreakdown.swap_empty.price6 * 6,
+        kg13: returnsBreakdown.swap_empty.kg13,
+        price13: returnsBreakdown.swap_empty.price13,
+        total13kg: returnsBreakdown.swap_empty.kg13 * returnsBreakdown.swap_empty.price13 * 13,
+        kg50: returnsBreakdown.swap_empty.kg50,
+        price50: returnsBreakdown.swap_empty.price50,
+        total50kg: returnsBreakdown.swap_empty.kg50 * returnsBreakdown.swap_empty.price50 * 50,
+        total: swapEmptyTotal
+      },
+      outright: {
+        kg6: outrightBreakdown.kg6,
+        price6: outrightBreakdown.price6,
+        total6kg: outrightBreakdown.kg6 * outrightBreakdown.price6,
+        kg13: outrightBreakdown.kg13,
+        price13: outrightBreakdown.price13,
+        total13kg: outrightBreakdown.kg13 * outrightBreakdown.price13,
+        kg50: outrightBreakdown.kg50,
+        price50: outrightBreakdown.price50,
+        total50kg: outrightBreakdown.kg50 * outrightBreakdown.price50,
+        total: outrightTotal
+      },
+      total
+    });
+    
+    return total;
   }, [returnsBreakdown, outrightBreakdown]);
 
   const calculatedFinancialBalance = useMemo(() => {

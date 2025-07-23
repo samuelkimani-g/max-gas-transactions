@@ -119,65 +119,21 @@ const Transaction = sequelize.define('Transaction', {
   ]
 });
 
-// Advanced transaction number generator
+// Generate serial number with format: YYMMDD-XXXXXX (Year, Month, Day + 6 random alphanumeric)
 const generateTransactionNumber = async () => {
-  const lastTransaction = await Transaction.findOne({
-    order: [['id', 'DESC']],
-    attributes: ['transaction_number']
-  });
-
-  if (!lastTransaction || !lastTransaction.transaction_number) {
-    return 'A0001';
-  }
-
-  const lastNumber = lastTransaction.transaction_number;
+  const now = new Date();
+  const year = now.getFullYear().toString().slice(-2); // Last 2 digits
+  const month = String(now.getMonth() + 1).padStart(2, '0');
+  const day = String(now.getDate()).padStart(2, '0');
   
-  // Parse the current number
-  const match = lastNumber.match(/^([A-Z]+)(\d{4})([A-Z]*)$/);
-  if (!match) return 'A0001';
-  
-  const [, prefix, digits, suffix] = match;
-  const currentNum = parseInt(digits, 10);
-  
-  // If we can increment the number (not at 9999)
-  if (currentNum < 9999) {
-    return `${prefix}${String(currentNum + 1).padStart(4, '0')}${suffix}`;
+  // Generate 6 random alphanumeric characters
+  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+  let randomSuffix = '';
+  for (let i = 0; i < 6; i++) {
+    randomSuffix += chars.charAt(Math.floor(Math.random() * chars.length));
   }
   
-  // Need to increment prefix
-  if (!suffix) {
-    // Single letter prefix (A9999 -> B0001)
-    if (prefix === 'Z') {
-      return 'AA0001'; // Z9999 -> AA0001
-    } else {
-      const nextChar = String.fromCharCode(prefix.charCodeAt(0) + 1);
-      return `${nextChar}0001`;
-    }
-  } else {
-    // Has suffix (AA0001A format)
-    const suffixChar = suffix.charCodeAt(0);
-    if (suffixChar < 90) { // Not Z
-      return `${prefix}0001${String.fromCharCode(suffixChar + 1)}`;
-    } else {
-      // Suffix is Z, need to increment prefix
-      if (prefix === 'ZZ') {
-        return 'AA0001A'; // ZZ9999Z -> AA0001A (restart with suffix)
-      } else if (prefix.length === 1) {
-        return 'AA0001'; // Shouldn't happen, but safety
-      } else {
-        // Increment double letter prefix
-        let newPrefix = prefix;
-        if (prefix[1] === 'Z') {
-          const firstChar = String.fromCharCode(prefix.charCodeAt(0) + 1);
-          newPrefix = `${firstChar}A`;
-        } else {
-          const secondChar = String.fromCharCode(prefix.charCodeAt(1) + 1);
-          newPrefix = `${prefix[0]}${secondChar}`;
-        }
-        return `${newPrefix}0001`;
-      }
-    }
-  }
+  return `${year}${month}${day}-${randomSuffix}`;
 };
 
 // Add the hook after model definition

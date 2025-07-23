@@ -39,9 +39,9 @@ export default function CustomerReportGenerator({ customerId, customerName }) {
         
         // Transaction type filter
         if (transactionTypeFilter !== 'all') {
-          const hasRefill = (t.return6kg || 0) + (t.return13kg || 0) + (t.return50kg || 0) > 0
-          const hasOutright = (t.outright6kg || 0) + (t.outright13kg || 0) + (t.outright50kg || 0) > 0
-          const hasSwipe = (t.swipeReturn6kg || 0) + (t.swipeReturn13kg || 0) + (t.swipeReturn50kg || 0) > 0
+          const hasRefill = (t.returns_breakdown?.max_empty?.kg6 || 0) + (t.returns_breakdown?.max_empty?.kg13 || 0) + (t.returns_breakdown?.max_empty?.kg50 || 0) > 0
+          const hasOutright = (t.outright_breakdown?.kg6 || 0) + (t.outright_breakdown?.kg13 || 0) + (t.outright_breakdown?.kg50 || 0) > 0
+          const hasSwipe = (t.returns_breakdown?.swap_empty?.kg6 || 0) + (t.returns_breakdown?.swap_empty?.kg13 || 0) + (t.returns_breakdown?.swap_empty?.kg50 || 0) > 0
           
           switch (transactionTypeFilter) {
             case 'refill':
@@ -63,7 +63,7 @@ export default function CustomerReportGenerator({ customerId, customerName }) {
         
         // Status filter
         if (statusFilter !== 'all') {
-          const paid = t.paid || 0
+          const paid = t.amount_paid || 0
           const outstanding = total - paid
           
           switch (statusFilter) {
@@ -87,7 +87,7 @@ export default function CustomerReportGenerator({ customerId, customerName }) {
   }, [customerTransactions, dateRange, transactionTypeFilter, statusFilter, minAmount, maxAmount])
 
   const totalSales = filteredTransactions.reduce((sum, t) => sum + calculateTransactionTotal(t), 0)
-  const totalPaid = filteredTransactions.reduce((sum, t) => sum + (t.paid || 0), 0)
+  const totalPaid = filteredTransactions.reduce((sum, t) => sum + (t.amount_paid || 0), 0)
   const totalOutstanding = totalSales - totalPaid
 
   // Clear all filters
@@ -356,7 +356,7 @@ export default function CustomerReportGenerator({ customerId, customerName }) {
             {/* Filter Summary */}
             <div className="mt-4 p-3 bg-gray-50 rounded-lg">
               <div className="text-sm text-gray-600">
-                <strong>Showing {customerTransactions.length} transactions</strong>
+                <strong>Showing {filteredTransactions.length} transactions</strong>
                 {(dateRange.start || dateRange.end || transactionTypeFilter !== 'all' || statusFilter !== 'all' || minAmount || maxAmount) && (
                   <div className="mt-2 text-xs">
                     Active filters: 
@@ -399,7 +399,7 @@ export default function CustomerReportGenerator({ customerId, customerName }) {
               <div className="text-sm text-slate-600">Outstanding</div>
             </div>
             <div className="bg-slate-50 p-4 rounded-lg border-l-4 border-blue-500 text-center">
-              <div className="text-2xl font-bold text-slate-800">{customerTransactions.length}</div>
+              <div className="text-2xl font-bold text-slate-800">{filteredTransactions.length}</div>
               <div className="text-sm text-slate-600">Transactions</div>
             </div>
           </div>
@@ -439,6 +439,7 @@ export default function CustomerReportGenerator({ customerId, customerName }) {
                 <thead>
                   <tr className="bg-slate-100">
                     <th className="p-3 text-left font-semibold text-slate-700 border-b">Date</th>
+                    <th className="p-3 text-left font-semibold text-slate-700 border-b">Serial No.</th>
                     <th className="p-3 text-left font-semibold text-slate-700 border-b">Transaction #</th>
                     <th className="p-3 text-left font-semibold text-slate-700 border-b">Total</th>
                     <th className="p-3 text-left font-semibold text-slate-700 border-b">Paid</th>
@@ -447,13 +448,14 @@ export default function CustomerReportGenerator({ customerId, customerName }) {
                   </tr>
                 </thead>
                 <tbody>
-                  {customerTransactions.map((transaction) => {
+                  {filteredTransactions.map((transaction) => {
                     const total = calculateTransactionTotal(transaction)
-                    const paid = transaction.paid || 0
+                    const paid = transaction.amount_paid || 0
                     const outstanding = total - paid
                     return (
                       <tr key={transaction.id} className="border-b border-slate-200 hover:bg-slate-50">
                         <td className="p-3 text-slate-800">{formatDate(transaction.date)}</td>
+                        <td className="p-3 font-mono text-sm text-slate-800">{transaction.transaction_number}</td>
                         <td className="p-3 text-slate-800">#{transaction.id}</td>
                         <td className="p-3 text-slate-800">{formatCurrency(total)}</td>
                         <td className="p-3 text-slate-800">{formatCurrency(paid)}</td>

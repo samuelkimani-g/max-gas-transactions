@@ -29,6 +29,9 @@ export default function TransactionHistory({ transactions = [], customerId, onEd
   const [editingTransaction, setEditingTransaction] = useState(null);
   const [deleteConfirm, setDeleteConfirm] = useState({ show: false, transaction: null });
 
+  // Sort transactions by date (newest first)
+  const sortedTransactions = [...transactions].sort((a, b) => new Date(b.date) - new Date(a.date));
+
   const toggleRow = (id) => {
     setExpandedRow(expandedRow === id ? null : id);
   };
@@ -69,7 +72,7 @@ export default function TransactionHistory({ transactions = [], customerId, onEd
     else toast({ title: 'Edit', description: 'Edit functionality coming soon!', variant: 'info' });
   };
 
-  if (!transactions || transactions.length === 0) {
+  if (!sortedTransactions || sortedTransactions.length === 0) {
     return <p className="text-center text-gray-500 py-4">No transactions found for this customer.</p>;
   }
 
@@ -79,6 +82,7 @@ export default function TransactionHistory({ transactions = [], customerId, onEd
         <TableHeader>
           <TableRow>
             <TableHead className="w-12"></TableHead>
+            <TableHead>Serial No.</TableHead>
             <TableHead>Date</TableHead>
             <TableHead className="text-right">Total Bill</TableHead>
             <TableHead className="text-right">Amount Paid</TableHead>
@@ -88,12 +92,13 @@ export default function TransactionHistory({ transactions = [], customerId, onEd
           </TableRow>
         </TableHeader>
         <TableBody>
-          {transactions.map((t) => (
+          {sortedTransactions.map((t) => (
             <>
               <TableRow key={t.id} className="cursor-pointer" onClick={() => setModalTransaction(t)}>
                 <TableCell>
                   {expandedRow === t.id ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
                 </TableCell>
+                <TableCell className="font-mono text-sm">{t.transaction_number}</TableCell>
                 <TableCell>{format(new Date(t.date), 'PP')}</TableCell>
                 <TableCell className="text-right">{formatNumber(t.total_bill)}</TableCell>
                 <TableCell className="text-right text-green-600">{formatNumber(t.amount_paid)}</TableCell>

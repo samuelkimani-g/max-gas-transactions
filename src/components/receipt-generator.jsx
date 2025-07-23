@@ -98,6 +98,20 @@ export default function ReceiptGenerator({ transaction, customer }) {
               font-weight: 600;
               letter-spacing: 1px;
               display: inline-block;
+            }
+            
+            .serial-number {
+              background: #f8fafc;
+              border: 1px solid #e2e8f0;
+              padding: 8px 12px;
+              border-radius: 8px;
+              font-family: 'Courier New', monospace;
+              font-size: 12px;
+              font-weight: 600;
+              color: #475569;
+              margin: 16px 0;
+              text-align: center;
+            }
               border: 1px solid rgba(249, 115, 22, 0.3);
             }
             
@@ -418,6 +432,12 @@ export default function ReceiptGenerator({ transaction, customer }) {
 
           {/* Receipt Body */}
         <div className="p-6 space-y-6">
+            {/* Serial Number */}
+            <div className="bg-gradient-to-r from-blue-50 to-indigo-50 p-4 rounded-lg border border-blue-200 text-center">
+              <div className="text-xs font-semibold text-blue-600 uppercase tracking-wide mb-2">Transaction Serial</div>
+              <div className="font-mono text-lg font-bold text-blue-800">{transaction.transaction_number}</div>
+            </div>
+            
             {/* Info Grid */}
           <div className="grid grid-cols-2 gap-3">
             <div className="bg-slate-50 p-3 rounded-lg border">

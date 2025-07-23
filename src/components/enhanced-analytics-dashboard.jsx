@@ -470,66 +470,90 @@ export default function EnhancedAnalyticsDashboard() {
       }
     }).filter(Boolean)
 
-    // Cylinder analytics by size
+    // Cylinder analytics by size - Updated for new transaction structure
     const cylinderAnalytics = [
       {
         size: '6kg',
-        loads: filteredTransactions.reduce((sum, t) => sum + (t.maxGas6kgLoad || 0), 0),
-        returns: filteredTransactions.reduce((sum, t) => sum + (t.return6kg || 0), 0),
-        swipes: filteredTransactions.reduce((sum, t) => sum + (t.swipeReturn6kg || 0), 0),
-        outright: filteredTransactions.reduce((sum, t) => sum + (t.outright6kg || 0), 0),
-        sales: filteredTransactions.reduce((sum, t) => {
-          const refill = (t.return6kg || 0) * 6 * (t.refillPrice6kg || 135)
-          const outright = (t.outright6kg || 0) * (t.outrightPrice6kg || 3200)
-          const swipe = (t.swipeReturn6kg || 0) * 6 * (t.swipeRefillPrice6kg || 160)
-          return sum + refill + outright + swipe
+        loads: filteredTransactions.reduce((sum, t) => sum + (t.load_6kg || 0), 0),
+        returns: filteredTransactions.reduce((sum, t) => {
+          const maxEmpty = t.returns_breakdown?.max_empty?.kg6 || 0
+          const swapEmpty = t.returns_breakdown?.swap_empty?.kg6 || 0
+          const returnFull = t.returns_breakdown?.return_full?.kg6 || 0
+          return sum + maxEmpty + swapEmpty + returnFull
         }, 0),
-        payments: filteredTransactions.reduce((sum, t) => sum + (t.paid || 0), 0),
+        swipes: filteredTransactions.reduce((sum, t) => sum + (t.returns_breakdown?.swap_empty?.kg6 || 0), 0),
+        outright: filteredTransactions.reduce((sum, t) => sum + (t.outright_breakdown?.kg6 || 0), 0),
+        sales: filteredTransactions.reduce((sum, t) => {
+          // Max Empty: count * price * kg
+          const maxEmpty = (t.returns_breakdown?.max_empty?.kg6 || 0) * (t.returns_breakdown?.max_empty?.price6 || 135) * 6
+          // Swap Empty: count * price * kg
+          const swapEmpty = (t.returns_breakdown?.swap_empty?.kg6 || 0) * (t.returns_breakdown?.swap_empty?.price6 || 160) * 6
+          // Outright: count * price
+          const outright = (t.outright_breakdown?.kg6 || 0) * (t.outright_breakdown?.price6 || 2200)
+          return sum + maxEmpty + swapEmpty + outright
+        }, 0),
+        payments: filteredTransactions.reduce((sum, t) => sum + (t.amount_paid || 0), 0),
         outstanding: 0, // Will be calculated
         totalKg: filteredTransactions.reduce((sum, t) => {
-          const refill = (t.return6kg || 0) * 6
-          const swipe = (t.swipeReturn6kg || 0) * 6
-          return sum + refill + swipe
+          const maxEmpty = (t.returns_breakdown?.max_empty?.kg6 || 0) * 6
+          const swapEmpty = (t.returns_breakdown?.swap_empty?.kg6 || 0) * 6
+          return sum + maxEmpty + swapEmpty
         }, 0)
       },
       {
         size: '13kg',
-        loads: filteredTransactions.reduce((sum, t) => sum + (t.maxGas13kgLoad || 0), 0),
-        returns: filteredTransactions.reduce((sum, t) => sum + (t.return13kg || 0), 0),
-        swipes: filteredTransactions.reduce((sum, t) => sum + (t.swipeReturn13kg || 0), 0),
-        outright: filteredTransactions.reduce((sum, t) => sum + (t.outright13kg || 0), 0),
-        sales: filteredTransactions.reduce((sum, t) => {
-          const refill = (t.return13kg || 0) * 13 * (t.refillPrice13kg || 135)
-          const outright = (t.outright13kg || 0) * (t.outrightPrice13kg || 3500)
-          const swipe = (t.swipeReturn13kg || 0) * 13 * (t.swipeRefillPrice13kg || 160)
-          return sum + refill + outright + swipe
+        loads: filteredTransactions.reduce((sum, t) => sum + (t.load_13kg || 0), 0),
+        returns: filteredTransactions.reduce((sum, t) => {
+          const maxEmpty = t.returns_breakdown?.max_empty?.kg13 || 0
+          const swapEmpty = t.returns_breakdown?.swap_empty?.kg13 || 0
+          const returnFull = t.returns_breakdown?.return_full?.kg13 || 0
+          return sum + maxEmpty + swapEmpty + returnFull
         }, 0),
-        payments: filteredTransactions.reduce((sum, t) => sum + (t.paid || 0), 0),
+        swipes: filteredTransactions.reduce((sum, t) => sum + (t.returns_breakdown?.swap_empty?.kg13 || 0), 0),
+        outright: filteredTransactions.reduce((sum, t) => sum + (t.outright_breakdown?.kg13 || 0), 0),
+        sales: filteredTransactions.reduce((sum, t) => {
+          // Max Empty: count * price * kg
+          const maxEmpty = (t.returns_breakdown?.max_empty?.kg13 || 0) * (t.returns_breakdown?.max_empty?.price13 || 135) * 13
+          // Swap Empty: count * price * kg
+          const swapEmpty = (t.returns_breakdown?.swap_empty?.kg13 || 0) * (t.returns_breakdown?.swap_empty?.price13 || 160) * 13
+          // Outright: count * price
+          const outright = (t.outright_breakdown?.kg13 || 0) * (t.outright_breakdown?.price13 || 4400)
+          return sum + maxEmpty + swapEmpty + outright
+        }, 0),
+        payments: filteredTransactions.reduce((sum, t) => sum + (t.amount_paid || 0), 0),
         outstanding: 0, // Will be calculated
         totalKg: filteredTransactions.reduce((sum, t) => {
-          const refill = (t.return13kg || 0) * 13
-          const swipe = (t.swipeReturn13kg || 0) * 13
-          return sum + refill + swipe
+          const maxEmpty = (t.returns_breakdown?.max_empty?.kg13 || 0) * 13
+          const swapEmpty = (t.returns_breakdown?.swap_empty?.kg13 || 0) * 13
+          return sum + maxEmpty + swapEmpty
         }, 0)
       },
       {
         size: '50kg',
-        loads: filteredTransactions.reduce((sum, t) => sum + (t.maxGas50kgLoad || 0), 0),
-        returns: filteredTransactions.reduce((sum, t) => sum + (t.return50kg || 0), 0),
-        swipes: filteredTransactions.reduce((sum, t) => sum + (t.swipeReturn50kg || 0), 0),
-        outright: filteredTransactions.reduce((sum, t) => sum + (t.outright50kg || 0), 0),
-        sales: filteredTransactions.reduce((sum, t) => {
-          const refill = (t.return50kg || 0) * 50 * (t.refillPrice50kg || 135)
-          const outright = (t.outright50kg || 0) * (t.outrightPrice50kg || 8500)
-          const swipe = (t.swipeReturn50kg || 0) * 50 * (t.swipeRefillPrice50kg || 160)
-          return sum + refill + outright + swipe
+        loads: filteredTransactions.reduce((sum, t) => sum + (t.load_50kg || 0), 0),
+        returns: filteredTransactions.reduce((sum, t) => {
+          const maxEmpty = t.returns_breakdown?.max_empty?.kg50 || 0
+          const swapEmpty = t.returns_breakdown?.swap_empty?.kg50 || 0
+          const returnFull = t.returns_breakdown?.return_full?.kg50 || 0
+          return sum + maxEmpty + swapEmpty + returnFull
         }, 0),
-        payments: filteredTransactions.reduce((sum, t) => sum + (t.paid || 0), 0),
+        swipes: filteredTransactions.reduce((sum, t) => sum + (t.returns_breakdown?.swap_empty?.kg50 || 0), 0),
+        outright: filteredTransactions.reduce((sum, t) => sum + (t.outright_breakdown?.kg50 || 0), 0),
+        sales: filteredTransactions.reduce((sum, t) => {
+          // Max Empty: count * price * kg
+          const maxEmpty = (t.returns_breakdown?.max_empty?.kg50 || 0) * (t.returns_breakdown?.max_empty?.price50 || 135) * 50
+          // Swap Empty: count * price * kg
+          const swapEmpty = (t.returns_breakdown?.swap_empty?.kg50 || 0) * (t.returns_breakdown?.swap_empty?.price50 || 160) * 50
+          // Outright: count * price
+          const outright = (t.outright_breakdown?.kg50 || 0) * (t.outright_breakdown?.price50 || 8000)
+          return sum + maxEmpty + swapEmpty + outright
+        }, 0),
+        payments: filteredTransactions.reduce((sum, t) => sum + (t.amount_paid || 0), 0),
         outstanding: 0, // Will be calculated
         totalKg: filteredTransactions.reduce((sum, t) => {
-          const refill = (t.return50kg || 0) * 50
-          const swipe = (t.swipeReturn50kg || 0) * 50
-          return sum + refill + swipe
+          const maxEmpty = (t.returns_breakdown?.max_empty?.kg50 || 0) * 50
+          const swapEmpty = (t.returns_breakdown?.swap_empty?.kg50 || 0) * 50
+          return sum + maxEmpty + swapEmpty
         }, 0)
       }
     ]
@@ -548,20 +572,32 @@ export default function EnhancedAnalyticsDashboard() {
       return acc
     }, {})
 
-    // Inventory tracking
+    // Inventory tracking - Updated for new transaction structure
     const inventoryData = {
-      '6kg Loads': filteredTransactions.reduce((total, t) => total + (t.maxGas6kgLoad || 0), 0),
-      '13kg Loads': filteredTransactions.reduce((total, t) => total + (t.maxGas13kgLoad || 0), 0),
-      '50kg Loads': filteredTransactions.reduce((total, t) => total + (t.maxGas50kgLoad || 0), 0),
-      '6kg Refills': filteredTransactions.reduce((total, t) => total + (t.return6kg || 0), 0),
-      '13kg Refills': filteredTransactions.reduce((total, t) => total + (t.return13kg || 0), 0),
-      '50kg Refills': filteredTransactions.reduce((total, t) => total + (t.return50kg || 0), 0),
-      '6kg Outright': filteredTransactions.reduce((total, t) => total + (t.outright6kg || 0), 0),
-      '13kg Outright': filteredTransactions.reduce((total, t) => total + (t.outright13kg || 0), 0),
-      '50kg Outright': filteredTransactions.reduce((total, t) => total + (t.outright50kg || 0), 0),
-      '6kg Swipes': filteredTransactions.reduce((total, t) => total + (t.swipeReturn6kg || 0), 0),
-      '13kg Swipes': filteredTransactions.reduce((total, t) => total + (t.swipeReturn13kg || 0), 0),
-      '50kg Swipes': filteredTransactions.reduce((total, t) => total + (t.swipeReturn50kg || 0), 0),
+      '6kg Loads': filteredTransactions.reduce((total, t) => total + (t.load_6kg || 0), 0),
+      '13kg Loads': filteredTransactions.reduce((total, t) => total + (t.load_13kg || 0), 0),
+      '50kg Loads': filteredTransactions.reduce((total, t) => total + (t.load_50kg || 0), 0),
+      '6kg Refills': filteredTransactions.reduce((total, t) => {
+        const maxEmpty = t.returns_breakdown?.max_empty?.kg6 || 0
+        const swapEmpty = t.returns_breakdown?.swap_empty?.kg6 || 0
+        return total + maxEmpty + swapEmpty
+      }, 0),
+      '13kg Refills': filteredTransactions.reduce((total, t) => {
+        const maxEmpty = t.returns_breakdown?.max_empty?.kg13 || 0
+        const swapEmpty = t.returns_breakdown?.swap_empty?.kg13 || 0
+        return total + maxEmpty + swapEmpty
+      }, 0),
+      '50kg Refills': filteredTransactions.reduce((total, t) => {
+        const maxEmpty = t.returns_breakdown?.max_empty?.kg50 || 0
+        const swapEmpty = t.returns_breakdown?.swap_empty?.kg50 || 0
+        return total + maxEmpty + swapEmpty
+      }, 0),
+      '6kg Outright': filteredTransactions.reduce((total, t) => total + (t.outright_breakdown?.kg6 || 0), 0),
+      '13kg Outright': filteredTransactions.reduce((total, t) => total + (t.outright_breakdown?.kg13 || 0), 0),
+      '50kg Outright': filteredTransactions.reduce((total, t) => total + (t.outright_breakdown?.kg50 || 0), 0),
+      '6kg Swipes': filteredTransactions.reduce((total, t) => total + (t.returns_breakdown?.swap_empty?.kg6 || 0), 0),
+      '13kg Swipes': filteredTransactions.reduce((total, t) => total + (t.returns_breakdown?.swap_empty?.kg13 || 0), 0),
+      '50kg Swipes': filteredTransactions.reduce((total, t) => total + (t.returns_breakdown?.swap_empty?.kg50 || 0), 0),
     }
 
     return {

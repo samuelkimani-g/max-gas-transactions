@@ -199,6 +199,26 @@ export default function AddTransactionForm({ customerId, customerName, onBack, o
     }));
   }, [loadBreakdown]);
 
+  // Auto-update load when outright changes (like returns)
+  useEffect(() => {
+    const suggested6kg = (returnsBreakdown.max_empty.kg6 + returnsBreakdown.swap_empty.kg6 + returnsBreakdown.return_full.kg6) + outrightBreakdown.kg6;
+    const suggested13kg = (returnsBreakdown.max_empty.kg13 + returnsBreakdown.swap_empty.kg13 + returnsBreakdown.return_full.kg13) + outrightBreakdown.kg13;
+    const suggested50kg = (returnsBreakdown.max_empty.kg50 + returnsBreakdown.swap_empty.kg50 + returnsBreakdown.return_full.kg50) + outrightBreakdown.kg50;
+    
+    setTotalLoad(prev => ({ 
+      kg6: suggested6kg, 
+      kg13: suggested13kg, 
+      kg50: suggested50kg 
+    }));
+    
+    // Also update loadBreakdown to keep them in sync
+    setLoadBreakdown(prev => ({
+      kg6: suggested6kg,
+      kg13: suggested13kg,
+      kg50: suggested50kg
+    }));
+  }, [returnsBreakdown, outrightBreakdown]);
+
   const validateAndSubmit = async () => {
     // Validation: Returns must match cylinders brought in by size
     const returns6kg = returnsBreakdown.max_empty.kg6 + returnsBreakdown.swap_empty.kg6 + returnsBreakdown.return_full.kg6;
@@ -628,7 +648,7 @@ export default function AddTransactionForm({ customerId, customerName, onBack, o
         <div className="space-y-4">
           <div className="bg-blue-50 p-4 rounded border border-blue-200">
             <h4 className="font-semibold text-blue-800 mb-3">Cylinder Load Breakdown</h4>
-            <div className="text-sm text-blue-600 mb-3">Cylinders given to the customer (editable, auto-suggested)</div>
+            <div className="text-sm text-blue-600 mb-3">Cylinders given to the customer (auto-updated from returns + outright, editable)</div>
             
             <div className="grid grid-cols-3 gap-6">
               <div className="text-center">
@@ -643,7 +663,7 @@ export default function AddTransactionForm({ customerId, customerName, onBack, o
                 />
                 <div className="text-sm text-gray-600 mt-1">cylinders</div>
                 <div className="text-xs text-gray-500 mt-1">
-                  Suggested: {(returnsBreakdown.max_empty.kg6 + returnsBreakdown.swap_empty.kg6 + returnsBreakdown.return_full.kg6)} returns + {outrightBreakdown.kg6} outright
+                  Auto: {(returnsBreakdown.max_empty.kg6 + returnsBreakdown.swap_empty.kg6 + returnsBreakdown.return_full.kg6)} returns + {outrightBreakdown.kg6} outright
                 </div>
               </div>
               
@@ -659,7 +679,7 @@ export default function AddTransactionForm({ customerId, customerName, onBack, o
                 />
                 <div className="text-sm text-gray-600 mt-1">cylinders</div>
                 <div className="text-xs text-gray-500 mt-1">
-                  Suggested: {(returnsBreakdown.max_empty.kg13 + returnsBreakdown.swap_empty.kg13 + returnsBreakdown.return_full.kg13)} returns + {outrightBreakdown.kg13} outright
+                  Auto: {(returnsBreakdown.max_empty.kg13 + returnsBreakdown.swap_empty.kg13 + returnsBreakdown.return_full.kg13)} returns + {outrightBreakdown.kg13} outright
                 </div>
               </div>
               
@@ -675,7 +695,7 @@ export default function AddTransactionForm({ customerId, customerName, onBack, o
                 />
                 <div className="text-sm text-gray-600 mt-1">cylinders</div>
                 <div className="text-xs text-gray-500 mt-1">
-                  Suggested: {(returnsBreakdown.max_empty.kg50 + returnsBreakdown.swap_empty.kg50 + returnsBreakdown.return_full.kg50)} returns + {outrightBreakdown.kg50} outright
+                  Auto: {(returnsBreakdown.max_empty.kg50 + returnsBreakdown.swap_empty.kg50 + returnsBreakdown.return_full.kg50)} returns + {outrightBreakdown.kg50} outright
                 </div>
               </div>
             </div>
@@ -688,30 +708,11 @@ export default function AddTransactionForm({ customerId, customerName, onBack, o
                 </span>
               </div>
               <div className="text-sm text-gray-600 mt-1">
-                Manual Total: {totalLoad.kg6 + totalLoad.kg13 + totalLoad.kg50} | Suggested: {calculatedTotalReturns + outrightBreakdown.kg6 + outrightBreakdown.kg13 + outrightBreakdown.kg50}
-                {(totalLoad.kg6 + totalLoad.kg13 + totalLoad.kg50) !== (calculatedTotalReturns + outrightBreakdown.kg6 + outrightBreakdown.kg13 + outrightBreakdown.kg50) && (
-                  <span className="ml-2 text-orange-600 font-medium">⚠️ Manual override</span>
-                )}
+                Total: {totalLoad.kg6 + totalLoad.kg13 + totalLoad.kg50} cylinders
               </div>
             </div>
             
-            {/* Auto-fill button for convenience */}
-            <div className="mt-3 text-center">
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                onClick={() => {
-                  const suggested6kg = (returnsBreakdown.max_empty.kg6 + returnsBreakdown.swap_empty.kg6 + returnsBreakdown.return_full.kg6) + outrightBreakdown.kg6;
-                  const suggested13kg = (returnsBreakdown.max_empty.kg13 + returnsBreakdown.swap_empty.kg13 + returnsBreakdown.return_full.kg13) + outrightBreakdown.kg13;
-                  const suggested50kg = (returnsBreakdown.max_empty.kg50 + returnsBreakdown.swap_empty.kg50 + returnsBreakdown.return_full.kg50) + outrightBreakdown.kg50;
-                  setTotalLoad({ kg6: suggested6kg, kg13: suggested13kg, kg50: suggested50kg });
-                }}
-                className="border-blue-300 text-blue-600 hover:bg-blue-50"
-              >
-                Auto-Fill Suggested Values
-              </Button>
-            </div>
+
           </div>
         </div>
       </SectionCard>

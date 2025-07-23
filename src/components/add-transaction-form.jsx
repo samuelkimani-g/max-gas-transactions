@@ -327,6 +327,7 @@ export default function AddTransactionForm({ customerId, customerName, onBack, o
                   <h5 className="font-medium text-orange-700 mb-3 md:mb-6">Max Empty</h5>
                   <div className="grid grid-cols-1 gap-4 md:gap-8 sm:grid-cols-3">
                     <div>
+                      <label className="text-sm font-medium text-gray-700 mb-2 block">6kg</label>
                       <div className="flex flex-col items-start gap-1">
                         <Input
                           type="number"
@@ -346,6 +347,7 @@ export default function AddTransactionForm({ customerId, customerName, onBack, o
                       </div>
                     </div>
                     <div>
+                      <label className="text-sm font-medium text-gray-700 mb-2 block">13kg</label>
                       <div className="flex flex-col items-start gap-1">
                         <Input
                           type="number"
@@ -365,6 +367,7 @@ export default function AddTransactionForm({ customerId, customerName, onBack, o
                       </div>
                     </div>
                     <div>
+                      <label className="text-sm font-medium text-gray-700 mb-2 block">50kg</label>
                       <div className="flex flex-col items-start gap-1">
                         <Input
                           type="number"
@@ -390,6 +393,7 @@ export default function AddTransactionForm({ customerId, customerName, onBack, o
                   <h5 className="font-medium text-blue-700 mb-3 md:mb-6">Swap Empty</h5>
                   <div className="grid grid-cols-1 gap-4 md:gap-8 sm:grid-cols-3">
                     <div>
+                      <label className="text-sm font-medium text-gray-700 mb-2 block">6kg</label>
                       <div className="flex flex-col items-start gap-1">
                         <Input
                           type="number"
@@ -409,6 +413,7 @@ export default function AddTransactionForm({ customerId, customerName, onBack, o
                       </div>
                     </div>
                     <div>
+                      <label className="text-sm font-medium text-gray-700 mb-2 block">13kg</label>
                       <div className="flex flex-col items-start gap-1">
                         <Input
                           type="number"
@@ -428,6 +433,7 @@ export default function AddTransactionForm({ customerId, customerName, onBack, o
                       </div>
                     </div>
                     <div>
+                      <label className="text-sm font-medium text-gray-700 mb-2 block">50kg</label>
                       <div className="flex flex-col items-start gap-1">
                         <Input
                           type="number"
@@ -453,6 +459,7 @@ export default function AddTransactionForm({ customerId, customerName, onBack, o
                   <h5 className="font-medium text-green-700 mb-3 md:mb-6">Return Full</h5>
                   <div className="grid grid-cols-1 gap-4 md:gap-8 sm:grid-cols-3">
                     <div>
+                      <label className="text-sm font-medium text-gray-700 mb-2 block">6kg</label>
                       <div className="flex flex-col items-start gap-1">
                         <Input
                           type="number"
@@ -465,6 +472,7 @@ export default function AddTransactionForm({ customerId, customerName, onBack, o
                       </div>
                     </div>
                     <div>
+                      <label className="text-sm font-medium text-gray-700 mb-2 block">13kg</label>
                       <div className="flex flex-col items-start gap-1">
                         <Input
                           type="number"
@@ -477,6 +485,7 @@ export default function AddTransactionForm({ customerId, customerName, onBack, o
                       </div>
                     </div>
                     <div>
+                      <label className="text-sm font-medium text-gray-700 mb-2 block">50kg</label>
                       <div className="flex flex-col items-start gap-1">
                         <Input
                           type="number"
@@ -550,6 +559,7 @@ export default function AddTransactionForm({ customerId, customerName, onBack, o
               <h5 className="font-medium text-orange-700 mb-3">Outright Purchases</h5>
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
                 <div>
+                  <label className="text-sm font-medium text-gray-700 mb-2 block">6kg</label>
                   <div className="flex flex-col items-start gap-1">
                     <Input
                       type="number"
@@ -569,6 +579,7 @@ export default function AddTransactionForm({ customerId, customerName, onBack, o
                   </div>
                 </div>
                 <div>
+                  <label className="text-sm font-medium text-gray-700 mb-2 block">13kg</label>
                   <div className="flex flex-col items-start gap-1">
                     <Input
                       type="number"
@@ -588,6 +599,7 @@ export default function AddTransactionForm({ customerId, customerName, onBack, o
                   </div>
                 </div>
                 <div>
+                  <label className="text-sm font-medium text-gray-700 mb-2 block">50kg</label>
                   <div className="flex flex-col items-start gap-1">
                     <Input
                       type="number"

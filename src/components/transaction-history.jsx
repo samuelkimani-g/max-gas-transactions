@@ -199,8 +199,9 @@ export default function TransactionHistory({ transactions = [], customerId, onEd
             const outrightTotal = (outright6kg * (modalTransaction.outright_breakdown?.price6 || 0)) + (outright13kg * (modalTransaction.outright_breakdown?.price13 || 0)) + (outright50kg * (modalTransaction.outright_breakdown?.price50 || 0));
             const totalOutright = outright6kg + outright13kg + outright50kg;
             return (
-              <div className="p-8 space-y-8">
-                <div className="flex gap-4 flex-wrap mb-6">
+              <div className="p-6 space-y-6">
+                {/* Action Buttons */}
+                <div className="flex gap-3 flex-wrap mb-6">
                   <Button size="sm" variant="outline" onClick={() => window.open(`/transaction/${modalTransaction.id}`, '_blank')}>
                     <RefreshCw className="w-4 h-4 mr-1" /> Open in New Tab
                   </Button>
@@ -211,56 +212,196 @@ export default function TransactionHistory({ transactions = [], customerId, onEd
                     <Edit className="w-4 h-4 mr-1" /> Edit
                   </Button>}
                 </div>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                  <div className="bg-orange-50 rounded-xl p-6 border shadow flex flex-col items-start">
-                    <h4 className="font-bold mb-3 text-orange-700 flex items-center gap-2"><RefreshCw className="w-5 h-5" /> Returns Breakdown</h4>
-                    <div className="space-y-1 text-lg">
-                      <div>Max Empty: <span className="font-bold text-gray-900">{modalTransaction.returns_breakdown?.max_empty ? `${modalTransaction.returns_breakdown.max_empty.kg6 || 0} x 6kg, ${modalTransaction.returns_breakdown.max_empty.kg13 || 0} x 13kg, ${modalTransaction.returns_breakdown.max_empty.kg50 || 0} x 50kg` : '-'}</span></div>
-                      <div>Swap Empty: <span className="font-bold text-gray-900">{modalTransaction.returns_breakdown?.swap_empty ? `${modalTransaction.returns_breakdown.swap_empty.kg6 || 0} x 6kg, ${modalTransaction.returns_breakdown.swap_empty.kg13 || 0} x 13kg, ${modalTransaction.returns_breakdown.swap_empty.kg50 || 0} x 50kg` : '-'}</span></div>
-                      <div>Return Full: <span className="font-bold text-gray-900">{modalTransaction.returns_breakdown?.return_full ? `${modalTransaction.returns_breakdown.return_full.kg6 || 0} x 6kg, ${modalTransaction.returns_breakdown.return_full.kg13 || 0} x 13kg, ${modalTransaction.returns_breakdown.return_full.kg50 || 0} x 50kg` : '-'}</span></div>
+
+                {/* Transaction Details Grid */}
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                  {/* Step 1: Cylinders IN */}
+                  <div className="bg-orange-50 rounded-xl p-6 border border-orange-200 shadow-sm">
+                    <h4 className="font-bold mb-4 text-orange-700 flex items-center gap-2 text-lg">
+                      <RefreshCw className="w-5 h-5" /> 
+                      Step 1: Cylinders IN
+                    </h4>
+                    <p className="text-sm text-orange-600 mb-4">What the customer brought into the compound</p>
+                    
+                    <div className="space-y-4">
+                      <div className="bg-white rounded-lg p-4 border border-orange-100">
+                        <h5 className="font-semibold text-orange-700 mb-3">Returns Breakdown</h5>
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                          <div>
+                            <label className="text-xs font-medium text-gray-600">6kg</label>
+                            <div className="text-lg font-bold text-gray-900">{modalTransaction.returns_breakdown?.max_empty?.kg6 || 0}</div>
+                            <div className="text-xs text-gray-500">Max Empty</div>
+                          </div>
+                          <div>
+                            <label className="text-xs font-medium text-gray-600">13kg</label>
+                            <div className="text-lg font-bold text-gray-900">{modalTransaction.returns_breakdown?.max_empty?.kg13 || 0}</div>
+                            <div className="text-xs text-gray-500">Max Empty</div>
+                          </div>
+                          <div>
+                            <label className="text-xs font-medium text-gray-600">50kg</label>
+                            <div className="text-lg font-bold text-gray-900">{modalTransaction.returns_breakdown?.max_empty?.kg50 || 0}</div>
+                            <div className="text-xs text-gray-500">Max Empty</div>
+                          </div>
+                        </div>
+                      </div>
+                      
+                      <div className="bg-white rounded-lg p-4 border border-orange-100">
+                        <h5 className="font-semibold text-orange-700 mb-3">Swap Empty</h5>
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                          <div>
+                            <label className="text-xs font-medium text-gray-600">6kg</label>
+                            <div className="text-lg font-bold text-gray-900">{modalTransaction.returns_breakdown?.swap_empty?.kg6 || 0}</div>
+                            <div className="text-xs text-gray-500">@ Ksh {modalTransaction.returns_breakdown?.swap_empty?.price6 || 160}</div>
+                          </div>
+                          <div>
+                            <label className="text-xs font-medium text-gray-600">13kg</label>
+                            <div className="text-lg font-bold text-gray-900">{modalTransaction.returns_breakdown?.swap_empty?.kg13 || 0}</div>
+                            <div className="text-xs text-gray-500">@ Ksh {modalTransaction.returns_breakdown?.swap_empty?.price13 || 160}</div>
+                          </div>
+                          <div>
+                            <label className="text-xs font-medium text-gray-600">50kg</label>
+                            <div className="text-lg font-bold text-gray-900">{modalTransaction.returns_breakdown?.swap_empty?.kg50 || 0}</div>
+                            <div className="text-xs text-gray-500">@ Ksh {modalTransaction.returns_breakdown?.swap_empty?.price50 || 160}</div>
+                          </div>
+                        </div>
+                      </div>
+                      
+                      <div className="bg-white rounded-lg p-4 border border-orange-100">
+                        <h5 className="font-semibold text-orange-700 mb-3">Return Full</h5>
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                          <div>
+                            <label className="text-xs font-medium text-gray-600">6kg</label>
+                            <div className="text-lg font-bold text-gray-900">{modalTransaction.returns_breakdown?.return_full?.kg6 || 0}</div>
+                          </div>
+                          <div>
+                            <label className="text-xs font-medium text-gray-600">13kg</label>
+                            <div className="text-lg font-bold text-gray-900">{modalTransaction.returns_breakdown?.return_full?.kg13 || 0}</div>
+                          </div>
+                          <div>
+                            <label className="text-xs font-medium text-gray-600">50kg</label>
+                            <div className="text-lg font-bold text-gray-900">{modalTransaction.returns_breakdown?.return_full?.kg50 || 0}</div>
+                          </div>
+                        </div>
+                      </div>
                     </div>
                   </div>
-                  <div className="bg-blue-50 rounded-xl p-6 border shadow flex flex-col items-start">
-                    <h4 className="font-bold mb-3 text-blue-700 flex items-center gap-2"><ShoppingCart className="w-5 h-5" /> Outright Breakdown</h4>
-                    <div className="space-y-1 text-lg">
-                      <div>{modalTransaction.outright_breakdown ? `${modalTransaction.outright_breakdown.kg6 || 0} x 6kg @ Ksh ${modalTransaction.outright_breakdown.price6 || 0}, ${modalTransaction.outright_breakdown.kg13 || 0} x 13kg @ Ksh ${modalTransaction.outright_breakdown.price13 || 0}, ${modalTransaction.outright_breakdown.kg50 || 0} x 50kg @ Ksh ${modalTransaction.outright_breakdown.price50 || 0}` : '-'}</div>
+
+                  {/* Step 2: Outright */}
+                  <div className="bg-blue-50 rounded-xl p-6 border border-blue-200 shadow-sm">
+                    <h4 className="font-bold mb-4 text-blue-700 flex items-center gap-2 text-lg">
+                      <ShoppingCart className="w-5 h-5" /> 
+                      Step 2: Outright
+                    </h4>
+                    <p className="text-sm text-blue-600 mb-4">Brand-new cylinders purchased separately</p>
+                    
+                    <div className="bg-white rounded-lg p-4 border border-blue-100">
+                      <h5 className="font-semibold text-blue-700 mb-3">Outright Purchases</h5>
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div>
+                          <label className="text-xs font-medium text-gray-600">6kg</label>
+                          <div className="text-lg font-bold text-gray-900">{modalTransaction.outright_breakdown?.kg6 || 0}</div>
+                          <div className="text-xs text-gray-500">@ Ksh {modalTransaction.outright_breakdown?.price6 || 2200}</div>
+                        </div>
+                        <div>
+                          <label className="text-xs font-medium text-gray-600">13kg</label>
+                          <div className="text-lg font-bold text-gray-900">{modalTransaction.outright_breakdown?.kg13 || 0}</div>
+                          <div className="text-xs text-gray-500">@ Ksh {modalTransaction.outright_breakdown?.price13 || 4400}</div>
+                        </div>
+                        <div>
+                          <label className="text-xs font-medium text-gray-600">50kg</label>
+                          <div className="text-lg font-bold text-gray-900">{modalTransaction.outright_breakdown?.kg50 || 0}</div>
+                          <div className="text-xs text-gray-500">@ Ksh {modalTransaction.outright_breakdown?.price50 || 8000}</div>
+                        </div>
+                      </div>
+                      <div className="mt-3 pt-3 border-t border-blue-100">
+                        <div className="font-bold text-blue-700">Outright Total: Ksh {formatNumber(outrightTotal)}</div>
+                      </div>
                     </div>
-                    <div className="mt-2 font-bold text-blue-700">Outright Total: Ksh {formatNumber(outrightTotal)}</div>
                   </div>
-                  <div className="bg-green-50 rounded-xl p-6 border shadow flex flex-col items-start">
-                    <h4 className="font-bold mb-3 text-green-700 flex items-center gap-2"><DollarSign className="w-5 h-5" /> Load & Totals</h4>
-                    <div className="space-y-1 text-lg">
-                      <div>Load: <span className="font-bold text-gray-900">{modalTransaction.load_6kg || 0} x 6kg, {modalTransaction.load_13kg || 0} x 13kg, {modalTransaction.load_50kg || 0} x 50kg</span></div>
-                      <div>Total Load: <span className="font-bold text-gray-900">{modalTransaction.total_load || 0}</span></div>
-                      <div>Total Returns: <span className="font-bold text-gray-900">6kg: {returns6kg}, 13kg: {returns13kg}, 50kg: {returns50kg} (Total: {totalReturns})</span></div>
-                      <div className="text-xs text-gray-500">* Outright is not included in returns</div>
-                      <div>Bill: <span className="font-bold text-orange-700 text-xl">Ksh {formatNumber(modalTransaction.total_bill)}</span></div>
-                      <div>Paid: <span className="font-bold text-green-700 text-xl">Ksh {formatNumber(modalTransaction.amount_paid)}</span></div>
-                      <div>Balance: <span className="font-bold text-red-700 text-xl">Ksh {formatNumber(modalTransaction.financial_balance)}</span></div>
-                      <div>Cylinder Balance: <span className="font-bold text-blue-700">{cylinderBalance} ({cylinderBalance > 0 ? 'Owed to us' : cylinderBalance < 0 ? 'Owed to customer' : 'Settled'})</span></div>
-                      <div className="text-xs text-gray-500 mt-1">6kg: {cylinderBalance6kg}, 13kg: {cylinderBalance13kg}, 50kg: {cylinderBalance50kg}</div>
+
+                  {/* Step 3: Cylinders OUT */}
+                  <div className="bg-green-50 rounded-xl p-6 border border-green-200 shadow-sm">
+                    <h4 className="font-bold mb-4 text-green-700 flex items-center gap-2 text-lg">
+                      <Package className="w-5 h-5" /> 
+                      Step 3: Cylinders OUT
+                    </h4>
+                    <p className="text-sm text-green-600 mb-4">What the customer left the compound with</p>
+                    
+                    <div className="bg-white rounded-lg p-4 border border-green-100">
+                      <h5 className="font-semibold text-green-700 mb-3">Cylinder Load Breakdown</h5>
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div>
+                          <label className="text-xs font-medium text-gray-600">6kg</label>
+                          <div className="text-lg font-bold text-gray-900">{modalTransaction.load_6kg || 0}</div>
+                          <div className="text-xs text-gray-500">cylinders</div>
+                        </div>
+                        <div>
+                          <label className="text-xs font-medium text-gray-600">13kg</label>
+                          <div className="text-lg font-bold text-gray-900">{modalTransaction.load_13kg || 0}</div>
+                          <div className="text-xs text-gray-500">cylinders</div>
+                        </div>
+                        <div>
+                          <label className="text-xs font-medium text-gray-600">50kg</label>
+                          <div className="text-lg font-bold text-gray-900">{modalTransaction.load_50kg || 0}</div>
+                          <div className="text-xs text-gray-500">cylinders</div>
+                        </div>
+                      </div>
+                      <div className="mt-3 pt-3 border-t border-green-100">
+                        <div className="font-bold text-green-700">Total Load: {modalTransaction.total_load || 0} cylinders</div>
+                      </div>
                     </div>
                   </div>
-                  <div className="mt-8">
-                    <h4 className="font-bold mb-2 text-blue-700 flex items-center gap-2"><Package className="w-5 h-5" /> Cylinder Balance</h4>
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                      <div className="text-center p-4 bg-gray-50 rounded border border-gray-200">
-                        <div className="text-xl font-bold text-gray-900">{cylinderBalance6kg}</div>
-                        <div className="text-sm text-gray-600 font-medium">6kg Cylinders</div>
-                        <div className="text-xs text-gray-500">{cylinderBalance6kg > 0 ? 'Owed to us' : cylinderBalance6kg < 0 ? 'Owed to customer' : 'Settled'}</div>
+
+                  {/* Step 4: Payment & Summary */}
+                  <div className="bg-purple-50 rounded-xl p-6 border border-purple-200 shadow-sm">
+                    <h4 className="font-bold mb-4 text-purple-700 flex items-center gap-2 text-lg">
+                      <DollarSign className="w-5 h-5" /> 
+                      Step 4: Payment & Summary
+                    </h4>
+                    
+                    <div className="space-y-4">
+                      <div className="bg-white rounded-lg p-4 border border-purple-100">
+                        <h5 className="font-semibold text-purple-700 mb-3">Financial Summary</h5>
+                        <div className="space-y-2">
+                          <div className="flex justify-between">
+                            <span className="text-sm text-gray-600">Total Bill:</span>
+                            <span className="font-bold text-orange-700">Ksh {formatNumber(modalTransaction.total_bill)}</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="text-sm text-gray-600">Amount Paid:</span>
+                            <span className="font-bold text-green-700">Ksh {formatNumber(modalTransaction.amount_paid)}</span>
+                          </div>
+                          <div className="flex justify-between pt-2 border-t border-gray-200">
+                            <span className="text-sm font-semibold text-gray-700">Balance:</span>
+                            <span className="font-bold text-red-700">Ksh {formatNumber(modalTransaction.financial_balance)}</span>
+                          </div>
+                        </div>
                       </div>
-                      <div className="text-center p-4 bg-gray-50 rounded border border-gray-200">
-                        <div className="text-xl font-bold text-gray-900">{cylinderBalance13kg}</div>
-                        <div className="text-sm text-gray-600 font-medium">13kg Cylinders</div>
-                        <div className="text-xs text-gray-500">{cylinderBalance13kg > 0 ? 'Owed to us' : cylinderBalance13kg < 0 ? 'Owed to customer' : 'Settled'}</div>
-                      </div>
-                      <div className="text-center p-4 bg-gray-50 rounded border border-gray-200">
-                        <div className="text-xl font-bold text-gray-900">{cylinderBalance50kg}</div>
-                        <div className="text-sm text-gray-600 font-medium">50kg Cylinders</div>
-                        <div className="text-xs text-gray-500">{cylinderBalance50kg > 0 ? 'Owed to us' : cylinderBalance50kg < 0 ? 'Owed to customer' : 'Settled'}</div>
+                      
+                      <div className="bg-white rounded-lg p-4 border border-purple-100">
+                        <h5 className="font-semibold text-purple-700 mb-3">Cylinder Balance</h5>
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                          <div className="text-center">
+                            <div className="text-xl font-bold text-gray-900">{cylinderBalance6kg}</div>
+                            <div className="text-sm text-gray-600">6kg Cylinders</div>
+                            <div className="text-xs text-gray-500">{cylinderBalance6kg > 0 ? 'Owed to us' : cylinderBalance6kg < 0 ? 'Owed to customer' : 'Settled'}</div>
+                          </div>
+                          <div className="text-center">
+                            <div className="text-xl font-bold text-gray-900">{cylinderBalance13kg}</div>
+                            <div className="text-sm text-gray-600">13kg Cylinders</div>
+                            <div className="text-xs text-gray-500">{cylinderBalance13kg > 0 ? 'Owed to us' : cylinderBalance13kg < 0 ? 'Owed to customer' : 'Settled'}</div>
+                          </div>
+                          <div className="text-center">
+                            <div className="text-xl font-bold text-gray-900">{cylinderBalance50kg}</div>
+                            <div className="text-sm text-gray-600">50kg Cylinders</div>
+                            <div className="text-xs text-gray-500">{cylinderBalance50kg > 0 ? 'Owed to us' : cylinderBalance50kg < 0 ? 'Owed to customer' : 'Settled'}</div>
+                          </div>
+                        </div>
+                        <div className="text-center mt-3 pt-3 border-t border-gray-200">
+                          <div className="font-bold text-purple-700">Total Cylinder Balance: {cylinderBalance} ({cylinderBalance > 0 ? 'Owed to us' : cylinderBalance < 0 ? 'Owed to customer' : 'Settled'})</div>
+                        </div>
                       </div>
                     </div>
-                    <div className="text-center mt-2 text-lg font-bold text-blue-700">Total Cylinder Balance: {cylinderBalance} ({cylinderBalance > 0 ? 'Owed to us' : cylinderBalance < 0 ? 'Owed to customer' : 'Settled'})</div>
                   </div>
                 </div>
               </div>

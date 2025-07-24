@@ -605,6 +605,7 @@ export const useStore = create()(
                 ...transactions
               ]
             }))
+            console.log('[Store] Updated transactions for customer', customerId, transactions);
           } catch (error) {
             console.error('Failed to record selectable bulk payment:', error)
             throw error

@@ -15,6 +15,8 @@ import ReportingInsights from './reporting-insights';
 import EditTransactionForm from './edit-transaction-form';
 import AddTransactionForm from './add-transaction-form';
 import ConfirmationDialog from './confirmation-dialog';
+import { calculateCylinderBalanceForSize } from '../lib/calculations';
+import React from 'react';
 
 const formatNumber = (num) => new Intl.NumberFormat('en-US').format(num);
 
@@ -95,9 +97,9 @@ export default function TransactionHistory({ transactions = [], customerId, onEd
         </TableHeader>
         <TableBody>
           {sortedTransactions.map((t, idx) => (
-            <>
+            <React.Fragment key={t.id}>
               {idx === 0 && console.log('[Badge Debug] total_bill:', t.total_bill, 'amount_paid:', t.amount_paid, 'Number(total_bill):', Number(t.total_bill), 'Number(amount_paid):', Number(t.amount_paid))}
-              <TableRow key={t.id} className="cursor-pointer hover:bg-slate-50 transition-colors" onClick={() => setModalTransaction(t)}>
+              <TableRow className="cursor-pointer hover:bg-slate-50 transition-colors" onClick={() => setModalTransaction(t)}>
                 <TableCell>
                   {expandedRow === t.id ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
                 </TableCell>
@@ -188,7 +190,7 @@ export default function TransactionHistory({ transactions = [], customerId, onEd
                   </TableCell>
                 </TableRow>
               )}
-            </>
+            </React.Fragment>
           ))}
         </TableBody>
       </Table>
@@ -233,9 +235,24 @@ export default function TransactionHistory({ transactions = [], customerId, onEd
             </DialogClose>
           </div>
           {latestModalTransaction && (() => {
-            const cylinderBalance6kg = (latestModalTransaction.load_6kg || 0) - ((latestModalTransaction.returns_breakdown?.max_empty?.kg6 || 0) + (latestModalTransaction.returns_breakdown?.swap_empty?.kg6 || 0) + (latestModalTransaction.returns_breakdown?.return_full?.kg6 || 0) + (latestModalTransaction.outright_breakdown?.kg6 || 0));
-            const cylinderBalance13kg = (latestModalTransaction.load_13kg || 0) - ((latestModalTransaction.returns_breakdown?.max_empty?.kg13 || 0) + (latestModalTransaction.returns_breakdown?.swap_empty?.kg13 || 0) + (latestModalTransaction.returns_breakdown?.return_full?.kg13 || 0) + (latestModalTransaction.outright_breakdown?.kg13 || 0));
-            const cylinderBalance50kg = (latestModalTransaction.load_50kg || 0) - ((latestModalTransaction.returns_breakdown?.max_empty?.kg50 || 0) + (latestModalTransaction.returns_breakdown?.swap_empty?.kg50 || 0) + (latestModalTransaction.returns_breakdown?.return_full?.kg50 || 0) + (latestModalTransaction.outright_breakdown?.kg50 || 0));
+            const cylinderBalance6kg = calculateCylinderBalanceForSize(
+              latestModalTransaction.load_6kg || 0, 
+              latestModalTransaction.returns_breakdown, 
+              latestModalTransaction.outright_breakdown, 
+              'kg6'
+            );
+            const cylinderBalance13kg = calculateCylinderBalanceForSize(
+              latestModalTransaction.load_13kg || 0, 
+              latestModalTransaction.returns_breakdown, 
+              latestModalTransaction.outright_breakdown, 
+              'kg13'
+            );
+            const cylinderBalance50kg = calculateCylinderBalanceForSize(
+              latestModalTransaction.load_50kg || 0, 
+              latestModalTransaction.returns_breakdown, 
+              latestModalTransaction.outright_breakdown, 
+              'kg50'
+            );
             const cylinderBalance = cylinderBalance6kg + cylinderBalance13kg + cylinderBalance50kg;
             const returns6kg = (latestModalTransaction.returns_breakdown?.max_empty?.kg6 || 0) + (latestModalTransaction.returns_breakdown?.swap_empty?.kg6 || 0) + (latestModalTransaction.returns_breakdown?.return_full?.kg6 || 0);
             const returns13kg = (latestModalTransaction.returns_breakdown?.max_empty?.kg13 || 0) + (latestModalTransaction.returns_breakdown?.swap_empty?.kg13 || 0) + (latestModalTransaction.returns_breakdown?.return_full?.kg13 || 0);
@@ -395,7 +412,7 @@ export default function TransactionHistory({ transactions = [], customerId, onEd
                         </div>
                       </div>
                       <div className="mt-3 pt-3 border-t border-green-100">
-                        <div className="font-bold text-green-700">Total Load: {latestModalTransaction.total_load || 0} cylinders</div>
+                        <div className="font-bold text-green-700">Total Load: {(latestModalTransaction.load_6kg || 0) + (latestModalTransaction.load_13kg || 0) + (latestModalTransaction.load_50kg || 0)} cylinders</div>
                       </div>
                     </div>
                   </div>

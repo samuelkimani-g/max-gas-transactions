@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useMemo } from "react"
 import { Button } from "./ui/button"
 import { Input } from "./ui/input"
 import { Label } from "./ui/label"
@@ -23,10 +23,10 @@ export default function BulkPaymentForm({ customerId, customerName, outstandingA
 
   // Get all customer transactions to show in the payment form
   const customerTransactions = getCustomerTransactions(customerId)
-  const unpaidTransactions = customerTransactions.filter((t) => {
+  const unpaidTransactions = useMemo(() => customerTransactions.filter((t) => {
     const total = calculateTransactionTotal(t)
     return total - (t.amount_paid || 0) > 0
-  })
+  }), [customerTransactions])
 
   // Calculate outstanding for selected transactions
   const selectedTransactions = unpaidTransactions.filter(t => selectedIds.includes(t.id))

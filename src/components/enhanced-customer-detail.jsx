@@ -14,7 +14,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import ReceiptGenerator from "./receipt-generator"
 import CustomerReportGenerator from "./customer-report-generator"
 import EditTransactionForm from "./edit-transaction-form"
-import { calculateTransactionTotal } from "../lib/calculations";
+import { calculateTransactionTotal, calculateCylinderBalanceForSize } from "../lib/calculations";
 import BulkPaymentForm from "./bulk-payment-form"
 import ConfirmationDialog from "./confirmation-dialog"
 
@@ -53,25 +53,23 @@ export default function EnhancedCustomerDetail({ customerId, onBack }) {
   const totalBill = customerTransactions.reduce((sum, t) => sum + calculateTransactionTotal(t), 0);
   const totalPaid = customerTransactions.reduce((sum, t) => sum + (parseFloat(t.amount_paid) || 0), 0);
   const financialBalance = totalBill - totalPaid;
-  // Fix cylinder balance calculation to use correct logic: Load - (Returns + Outright)
+  
+  // Fix cylinder balance calculation to use centralized functions
   const cylinderBalance6kg = customerTransactions.reduce((sum, t) => {
     const load = t.load_6kg || 0;
-    const returns = (t.returns_breakdown?.max_empty?.kg6 || 0) + (t.returns_breakdown?.swap_empty?.kg6 || 0) + (t.returns_breakdown?.return_full?.kg6 || 0);
-    const outright = t.outright_breakdown?.kg6 || 0;
-    return sum + (load - returns - outright);
+    return sum + calculateCylinderBalanceForSize(load, t.returns_breakdown, t.outright_breakdown, 'kg6');
   }, 0);
+  
   const cylinderBalance13kg = customerTransactions.reduce((sum, t) => {
     const load = t.load_13kg || 0;
-    const returns = (t.returns_breakdown?.max_empty?.kg13 || 0) + (t.returns_breakdown?.swap_empty?.kg13 || 0) + (t.returns_breakdown?.return_full?.kg13 || 0);
-    const outright = t.outright_breakdown?.kg13 || 0;
-    return sum + (load - returns - outright);
+    return sum + calculateCylinderBalanceForSize(load, t.returns_breakdown, t.outright_breakdown, 'kg13');
   }, 0);
+  
   const cylinderBalance50kg = customerTransactions.reduce((sum, t) => {
     const load = t.load_50kg || 0;
-    const returns = (t.returns_breakdown?.max_empty?.kg50 || 0) + (t.returns_breakdown?.swap_empty?.kg50 || 0) + (t.returns_breakdown?.return_full?.kg50 || 0);
-    const outright = t.outright_breakdown?.kg50 || 0;
-    return sum + (load - returns - outright);
+    return sum + calculateCylinderBalanceForSize(load, t.returns_breakdown, t.outright_breakdown, 'kg50');
   }, 0);
+  
   const cylinderBalance = cylinderBalance6kg + cylinderBalance13kg + cylinderBalance50kg;
 
   const handleDeleteCustomer = async () => {

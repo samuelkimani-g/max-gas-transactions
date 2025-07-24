@@ -9,7 +9,18 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter }
 import { ArrowLeft, Save, AlertTriangle, ChevronsRight, Minus, Plus } from "lucide-react"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select"
 import { Textarea } from "./ui/textarea"
-import { useToast } from "../hooks/use-toast";
+import { useToast } from "../hooks/use-toast"
+import { 
+  calculateTotalReturnsForSize, 
+  calculateTotalOutrightForSize, 
+  calculateTotalLoadForSize,
+  calculateTotalReturns,
+  calculateTotalOutright,
+  calculateTotalLoad,
+  calculateTotalBill,
+  calculateFinancialBalance,
+  calculateCylinderBalanceForSize
+} from "../lib/calculations"
 
 // --- Helper Components for a cleaner structure ---
 
@@ -166,9 +177,7 @@ export default function AddTransactionForm({ customerId, customerName, onBack, o
 
   // Helper to get returns + outright for a size
   const getAutoTotalLoad = (size) => {
-    const returns = (returnsBreakdown.max_empty[size] || 0) + (returnsBreakdown.swap_empty[size] || 0) + (returnsBreakdown.return_full[size] || 0);
-    const outright = outrightBreakdown[size] || 0;
-    return returns + outright;
+    return calculateTotalLoadForSize(returnsBreakdown, outrightBreakdown, size);
   };
 
   // When returns or outright change, auto-update totalLoad if not manually edited
@@ -182,7 +191,7 @@ export default function AddTransactionForm({ customerId, customerName, onBack, o
       });
       return updated;
     });
-  }, [returnsBreakdown, outrightBreakdown]);
+  }, [returnsBreakdown, outrightBreakdown, totalLoadManuallyEdited]);
 
   // When user edits totalLoad, mark it as manually edited
   const handleTotalLoadChange = (size, value) => {
@@ -205,98 +214,43 @@ export default function AddTransactionForm({ customerId, customerName, onBack, o
     }
   };
 
-  // Calculated values
+  // Calculated values using centralized functions
   const calculatedTotalLoad = useMemo(() => {
-    return loadBreakdown.kg6 + loadBreakdown.kg13 + loadBreakdown.kg50;
-  }, [loadBreakdown]);
+    return calculateTotalLoad(returnsBreakdown, outrightBreakdown);
+  }, [returnsBreakdown, outrightBreakdown]);
 
   const calculatedTotalReturns = useMemo(() => {
-    const maxEmpty = returnsBreakdown.max_empty.kg6 + returnsBreakdown.max_empty.kg13 + returnsBreakdown.max_empty.kg50;
-    const swapEmpty = returnsBreakdown.swap_empty.kg6 + returnsBreakdown.swap_empty.kg13 + returnsBreakdown.swap_empty.kg50;
-    const returnFull = returnsBreakdown.return_full.kg6 + returnsBreakdown.return_full.kg13 + returnsBreakdown.return_full.kg50;
-    return maxEmpty + swapEmpty + returnFull;
+    return calculateTotalReturns(returnsBreakdown);
   }, [returnsBreakdown]);
 
+  const calculatedTotalOutright = useMemo(() => {
+    return calculateTotalOutright(outrightBreakdown);
+  }, [outrightBreakdown]);
+
   const calculatedTotalBill = useMemo(() => {
-    // Refills (Max Empty and Swap Empty): count * price * kg
-    const maxEmptyTotal = (returnsBreakdown.max_empty.kg6 * returnsBreakdown.max_empty.price6 * 6) +
-                         (returnsBreakdown.max_empty.kg13 * returnsBreakdown.max_empty.price13 * 13) +
-                         (returnsBreakdown.max_empty.kg50 * returnsBreakdown.max_empty.price50 * 50);
-    const swapEmptyTotal = (returnsBreakdown.swap_empty.kg6 * returnsBreakdown.swap_empty.price6 * 6) +
-                          (returnsBreakdown.swap_empty.kg13 * returnsBreakdown.swap_empty.price13 * 13) +
-                          (returnsBreakdown.swap_empty.kg50 * returnsBreakdown.swap_empty.price50 * 50);
-    // Outright: count * price
-    const outrightTotal = (outrightBreakdown.kg6 * outrightBreakdown.price6) +
-                         (outrightBreakdown.kg13 * outrightBreakdown.price13) +
-                         (outrightBreakdown.kg50 * outrightBreakdown.price50);
-    
-    const total = maxEmptyTotal + swapEmptyTotal + outrightTotal;
-    
-    // Debug calculation
-    console.log('Bill calculation debug:', {
-      maxEmpty: {
-        kg6: returnsBreakdown.max_empty.kg6,
-        price6: returnsBreakdown.max_empty.price6,
-        total6kg: returnsBreakdown.max_empty.kg6 * returnsBreakdown.max_empty.price6 * 6,
-        kg13: returnsBreakdown.max_empty.kg13,
-        price13: returnsBreakdown.max_empty.price13,
-        total13kg: returnsBreakdown.max_empty.kg13 * returnsBreakdown.max_empty.price13 * 13,
-        kg50: returnsBreakdown.max_empty.kg50,
-        price50: returnsBreakdown.max_empty.price50,
-        total50kg: returnsBreakdown.max_empty.kg50 * returnsBreakdown.max_empty.price50 * 50,
-        total: maxEmptyTotal
-      },
-      swapEmpty: {
-        kg6: returnsBreakdown.swap_empty.kg6,
-        price6: returnsBreakdown.swap_empty.price6,
-        total6kg: returnsBreakdown.swap_empty.kg6 * returnsBreakdown.swap_empty.price6 * 6,
-        kg13: returnsBreakdown.swap_empty.kg13,
-        price13: returnsBreakdown.swap_empty.price13,
-        total13kg: returnsBreakdown.swap_empty.kg13 * returnsBreakdown.swap_empty.price13 * 13,
-        kg50: returnsBreakdown.swap_empty.kg50,
-        price50: returnsBreakdown.swap_empty.price50,
-        total50kg: returnsBreakdown.swap_empty.kg50 * returnsBreakdown.swap_empty.price50 * 50,
-        total: swapEmptyTotal
-      },
-      outright: {
-        kg6: outrightBreakdown.kg6,
-        price6: outrightBreakdown.price6,
-        total6kg: outrightBreakdown.kg6 * outrightBreakdown.price6,
-        kg13: outrightBreakdown.kg13,
-        price13: outrightBreakdown.price13,
-        total13kg: outrightBreakdown.kg13 * outrightBreakdown.price13,
-        kg50: outrightBreakdown.kg50,
-        price50: outrightBreakdown.price50,
-        total50kg: outrightBreakdown.kg50 * outrightBreakdown.price50,
-        total: outrightTotal
-      },
-      total
-    });
-    
-    return total;
+    return calculateTotalBill(returnsBreakdown, outrightBreakdown);
   }, [returnsBreakdown, outrightBreakdown]);
 
   const calculatedFinancialBalance = useMemo(() => {
-    return calculatedTotalBill - amountPaid;
+    return calculateFinancialBalance(calculatedTotalBill, amountPaid);
   }, [calculatedTotalBill, amountPaid]);
 
   // Live cylinder balance calculation (per size) - use editable load (Step 3)
-  const returns6kg = (returnsBreakdown.max_empty.kg6 || 0) + (returnsBreakdown.swap_empty.kg6 || 0) + (returnsBreakdown.return_full.kg6 || 0);
-  const returns13kg = (returnsBreakdown.max_empty.kg13 || 0) + (returnsBreakdown.swap_empty.kg13 || 0) + (returnsBreakdown.return_full.kg13 || 0);
-  const returns50kg = (returnsBreakdown.max_empty.kg50 || 0) + (returnsBreakdown.swap_empty.kg50 || 0) + (returnsBreakdown.return_full.kg50 || 0);
-  const cylinderBalance6kg = totalLoad.kg6 - returns6kg - (outrightBreakdown.kg6 || 0);
-  const cylinderBalance13kg = totalLoad.kg13 - returns13kg - (outrightBreakdown.kg13 || 0);
-  const cylinderBalance50kg = totalLoad.kg50 - returns50kg - (outrightBreakdown.kg50 || 0);
-  const totalCylinderBalance = cylinderBalance6kg + cylinderBalance13kg + cylinderBalance50kg;
+  const cylinderBalance6kg = useMemo(() => {
+    return calculateCylinderBalanceForSize(totalLoad.kg6, returnsBreakdown, outrightBreakdown, 'kg6');
+  }, [totalLoad.kg6, returnsBreakdown, outrightBreakdown]);
 
-  // Update totalLoad when loadBreakdown changes
-  useEffect(() => {
-    setTotalLoad(prev => ({ 
-      kg6: loadBreakdown.kg6, 
-      kg13: loadBreakdown.kg13, 
-      kg50: loadBreakdown.kg50 
-    }));
-  }, [loadBreakdown]);
+  const cylinderBalance13kg = useMemo(() => {
+    return calculateCylinderBalanceForSize(totalLoad.kg13, returnsBreakdown, outrightBreakdown, 'kg13');
+  }, [totalLoad.kg13, returnsBreakdown, outrightBreakdown]);
+
+  const cylinderBalance50kg = useMemo(() => {
+    return calculateCylinderBalanceForSize(totalLoad.kg50, returnsBreakdown, outrightBreakdown, 'kg50');
+  }, [totalLoad.kg50, returnsBreakdown, outrightBreakdown]);
+
+  const cylinderBalance = useMemo(() => {
+    return cylinderBalance6kg + cylinderBalance13kg + cylinderBalance50kg;
+  }, [cylinderBalance6kg, cylinderBalance13kg, cylinderBalance50kg]);
 
   const validateAndSubmit = async () => {
     if (!customerId) {
@@ -744,11 +698,11 @@ export default function AddTransactionForm({ customerId, customerName, onBack, o
                   onChange={e => handleTotalLoadChange('kg6', e.target.value === '' ? 0 : parseInt(e.target.value, 10) || 0)}
                   onFocus={(e) => e.target.select()}
                   className="text-center border-gray-300 focus:border-blue-400 focus:ring-blue-200 text-lg font-semibold"
-                  placeholder={(returnsBreakdown.max_empty.kg6 + returnsBreakdown.swap_empty.kg6 + returnsBreakdown.return_full.kg6) + outrightBreakdown.kg6}
+                  placeholder={getAutoTotalLoad('kg6')}
                 />
                 <div className="text-sm text-gray-600 mt-1">cylinders</div>
                 <div className="text-xs text-gray-500 mt-1">
-                  Auto: {(returnsBreakdown.max_empty.kg6 + returnsBreakdown.swap_empty.kg6 + returnsBreakdown.return_full.kg6)} returns + {outrightBreakdown.kg6} outright
+                  Auto: {calculateTotalReturnsForSize(returnsBreakdown, 'kg6')} returns + {calculateTotalOutrightForSize(outrightBreakdown, 'kg6')} outright
                 </div>
               </div>
               
@@ -760,11 +714,11 @@ export default function AddTransactionForm({ customerId, customerName, onBack, o
                   onChange={e => handleTotalLoadChange('kg13', e.target.value === '' ? 0 : parseInt(e.target.value, 10) || 0)}
                   onFocus={(e) => e.target.select()}
                   className="text-center border-gray-300 focus:border-blue-400 focus:ring-blue-200 text-lg font-semibold"
-                  placeholder={(returnsBreakdown.max_empty.kg13 + returnsBreakdown.swap_empty.kg13 + returnsBreakdown.return_full.kg13) + outrightBreakdown.kg13}
+                  placeholder={getAutoTotalLoad('kg13')}
                 />
                 <div className="text-sm text-gray-600 mt-1">cylinders</div>
                 <div className="text-xs text-gray-500 mt-1">
-                  Auto: {(returnsBreakdown.max_empty.kg13 + returnsBreakdown.swap_empty.kg13 + returnsBreakdown.return_full.kg13)} returns + {outrightBreakdown.kg13} outright
+                  Auto: {calculateTotalReturnsForSize(returnsBreakdown, 'kg13')} returns + {calculateTotalOutrightForSize(outrightBreakdown, 'kg13')} outright
                 </div>
               </div>
               
@@ -776,11 +730,11 @@ export default function AddTransactionForm({ customerId, customerName, onBack, o
                   onChange={e => handleTotalLoadChange('kg50', e.target.value === '' ? 0 : parseInt(e.target.value, 10) || 0)}
                   onFocus={(e) => e.target.select()}
                   className="text-center border-gray-300 focus:border-blue-400 focus:ring-blue-200 text-lg font-semibold"
-                  placeholder={(returnsBreakdown.max_empty.kg50 + returnsBreakdown.swap_empty.kg50 + returnsBreakdown.return_full.kg50) + outrightBreakdown.kg50}
+                  placeholder={getAutoTotalLoad('kg50')}
                 />
                 <div className="text-sm text-gray-600 mt-1">cylinders</div>
                 <div className="text-xs text-gray-500 mt-1">
-                  Auto: {(returnsBreakdown.max_empty.kg50 + returnsBreakdown.swap_empty.kg50 + returnsBreakdown.return_full.kg50)} returns + {outrightBreakdown.kg50} outright
+                  Auto: {calculateTotalReturnsForSize(returnsBreakdown, 'kg50')} returns + {calculateTotalOutrightForSize(outrightBreakdown, 'kg50')} outright
                 </div>
               </div>
             </div>
@@ -814,14 +768,6 @@ export default function AddTransactionForm({ customerId, customerName, onBack, o
               placeholder="0" 
               className="mt-2 border-gray-300 focus:border-orange-400 focus:ring-orange-200 text-lg font-semibold"
             />
-            <div className="flex gap-2 mt-2">
-              <Button type="button" size="sm" variant="outline" className="w-1/2" onClick={() => setAmountPaid(calculatedTotalBill)}>
-                Full
-              </Button>
-              <Button type="button" size="sm" variant="outline" className="w-1/2" onClick={() => setAmountPaid(calculatedTotalBill / 2)}>
-                Half
-              </Button>
-            </div>
           </div>
           <div>
             <Label htmlFor="payment-method" className="text-gray-700 font-medium">Payment Method</Label>
@@ -856,7 +802,7 @@ export default function AddTransactionForm({ customerId, customerName, onBack, o
         summary={{
           financialBalance: calculatedFinancialBalance,
           totalBill: calculatedTotalBill,
-          cylinderBalance: totalCylinderBalance,
+          cylinderBalance: cylinderBalance,
           amountPaid: amountPaid,
           cylinderBalance6kg,
           cylinderBalance13kg,

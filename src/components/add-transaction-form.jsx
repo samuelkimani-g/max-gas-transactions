@@ -161,33 +161,33 @@ export default function AddTransactionForm({ customerId, customerName, onBack, o
     }
   }, [transaction]);
   
-  // Track if the user has manually edited the load for each size
-  const [loadManuallyEdited, setLoadManuallyEdited] = useState({ kg6: false, kg13: false, kg50: false });
+  // Track if the user has manually edited the totalLoad for each size (Cylinders OUT)
+  const [totalLoadManuallyEdited, setTotalLoadManuallyEdited] = useState({ kg6: false, kg13: false, kg50: false });
 
   // Helper to get returns + outright for a size
-  const getAutoLoad = (size) => {
+  const getAutoTotalLoad = (size) => {
     const returns = (returnsBreakdown.max_empty[size] || 0) + (returnsBreakdown.swap_empty[size] || 0) + (returnsBreakdown.return_full[size] || 0);
     const outright = outrightBreakdown[size] || 0;
     return returns + outright;
   };
 
-  // When returns or outright change, auto-update load if not manually edited
+  // When returns or outright change, auto-update totalLoad if not manually edited
   useEffect(() => {
-    setLoadBreakdown(prev => {
+    setTotalLoad(prev => {
       const updated = { ...prev };
       ['kg6', 'kg13', 'kg50'].forEach(size => {
-        if (!loadManuallyEdited[size]) {
-          updated[size] = getAutoLoad(size);
+        if (!totalLoadManuallyEdited[size]) {
+          updated[size] = getAutoTotalLoad(size);
         }
       });
       return updated;
     });
   }, [returnsBreakdown, outrightBreakdown]);
 
-  // When user edits load, mark it as manually edited
-  const handleLoadChange = (size, value) => {
-    setLoadBreakdown(prev => ({ ...prev, [size]: value }));
-    setLoadManuallyEdited(prev => ({ ...prev, [size]: true }));
+  // When user edits totalLoad, mark it as manually edited
+  const handleTotalLoadChange = (size, value) => {
+    setTotalLoad(prev => ({ ...prev, [size]: value }));
+    setTotalLoadManuallyEdited(prev => ({ ...prev, [size]: true }));
   };
 
   // If user edits returns or outright, reset manual edit for that size
@@ -199,9 +199,9 @@ export default function AddTransactionForm({ customerId, customerName, onBack, o
         [field]: value
       }
     }));
-    // If editing a size, reset manual edit for that size
+    // If editing a size, reset manual edit for that size (for totalLoad)
     if (['kg6', 'kg13', 'kg50'].includes(field)) {
-      setLoadManuallyEdited(prev => ({ ...prev, [field]: false }));
+      setTotalLoadManuallyEdited(prev => ({ ...prev, [field]: false }));
     }
   };
 
@@ -379,7 +379,7 @@ export default function AddTransactionForm({ customerId, customerName, onBack, o
                   <Input
                     type="number"
                     value={loadBreakdown.kg6 === 0 ? '' : loadBreakdown.kg6}
-                    onChange={e => handleLoadChange('kg6', e.target.value === '' ? 0 : parseInt(e.target.value, 10) || 0)}
+                    onChange={e => setLoadBreakdown(prev => ({...prev, kg6: e.target.value === '' ? 0 : parseInt(e.target.value, 10) || 0}))}
                     onFocus={(e) => e.target.select()}
                     className="mt-1 border-gray-300 focus:border-orange-400 focus:ring-orange-200"
                     placeholder="0"
@@ -390,7 +390,7 @@ export default function AddTransactionForm({ customerId, customerName, onBack, o
                   <Input
                     type="number"
                     value={loadBreakdown.kg13 === 0 ? '' : loadBreakdown.kg13}
-                    onChange={e => handleLoadChange('kg13', e.target.value === '' ? 0 : parseInt(e.target.value, 10) || 0)}
+                    onChange={e => setLoadBreakdown(prev => ({...prev, kg13: e.target.value === '' ? 0 : parseInt(e.target.value, 10) || 0}))}
                     onFocus={(e) => e.target.select()}
                     className="mt-1 border-gray-300 focus:border-orange-400 focus:ring-orange-200"
                     placeholder="0"
@@ -401,7 +401,7 @@ export default function AddTransactionForm({ customerId, customerName, onBack, o
                   <Input
                     type="number"
                     value={loadBreakdown.kg50 === 0 ? '' : loadBreakdown.kg50}
-                    onChange={e => handleLoadChange('kg50', e.target.value === '' ? 0 : parseInt(e.target.value, 10) || 0)}
+                    onChange={e => setLoadBreakdown(prev => ({...prev, kg50: e.target.value === '' ? 0 : parseInt(e.target.value, 10) || 0}))}
                     onFocus={(e) => e.target.select()}
                     className="mt-1 border-gray-300 focus:border-orange-400 focus:ring-orange-200"
                     placeholder="0"
@@ -737,7 +737,7 @@ export default function AddTransactionForm({ customerId, customerName, onBack, o
                 <Input
                   type="number"
                   value={totalLoad.kg6 === 0 ? '' : totalLoad.kg6}
-                  onChange={e => setTotalLoad(prev => ({...prev, kg6: e.target.value === '' ? 0 : parseInt(e.target.value, 10) || 0}))}
+                  onChange={e => handleTotalLoadChange('kg6', e.target.value === '' ? 0 : parseInt(e.target.value, 10) || 0)}
                   onFocus={(e) => e.target.select()}
                   className="text-center border-gray-300 focus:border-blue-400 focus:ring-blue-200 text-lg font-semibold"
                   placeholder={(returnsBreakdown.max_empty.kg6 + returnsBreakdown.swap_empty.kg6 + returnsBreakdown.return_full.kg6) + outrightBreakdown.kg6}
@@ -753,7 +753,7 @@ export default function AddTransactionForm({ customerId, customerName, onBack, o
                 <Input
                   type="number"
                   value={totalLoad.kg13 === 0 ? '' : totalLoad.kg13}
-                  onChange={e => setTotalLoad(prev => ({...prev, kg13: e.target.value === '' ? 0 : parseInt(e.target.value, 10) || 0}))}
+                  onChange={e => handleTotalLoadChange('kg13', e.target.value === '' ? 0 : parseInt(e.target.value, 10) || 0)}
                   onFocus={(e) => e.target.select()}
                   className="text-center border-gray-300 focus:border-blue-400 focus:ring-blue-200 text-lg font-semibold"
                   placeholder={(returnsBreakdown.max_empty.kg13 + returnsBreakdown.swap_empty.kg13 + returnsBreakdown.return_full.kg13) + outrightBreakdown.kg13}
@@ -769,7 +769,7 @@ export default function AddTransactionForm({ customerId, customerName, onBack, o
                 <Input
                   type="number"
                   value={totalLoad.kg50 === 0 ? '' : totalLoad.kg50}
-                  onChange={e => setTotalLoad(prev => ({...prev, kg50: e.target.value === '' ? 0 : parseInt(e.target.value, 10) || 0}))}
+                  onChange={e => handleTotalLoadChange('kg50', e.target.value === '' ? 0 : parseInt(e.target.value, 10) || 0)}
                   onFocus={(e) => e.target.select()}
                   className="text-center border-gray-300 focus:border-blue-400 focus:ring-blue-200 text-lg font-semibold"
                   placeholder={(returnsBreakdown.max_empty.kg50 + returnsBreakdown.swap_empty.kg50 + returnsBreakdown.return_full.kg50) + outrightBreakdown.kg50}

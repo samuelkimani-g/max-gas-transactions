@@ -583,14 +583,19 @@ export const useStore = create()(
         // Bulk payment for selected transactions
         recordBulkPaymentSelect: async (customerId, transactionIds, amount, method, note = "") => {
           try {
+            console.log('[STORE DEBUG] Starting bulk payment:', { customerId, transactionIds, amount, method, note })
+            
             await apiCall('/transactions/bulk-customer-payment-select', {
               method: 'PUT',
               body: JSON.stringify({ customerId, transactionIds, amount, method, note })
             })
+            console.log('[STORE DEBUG] Bulk payment API call successful')
+            
             // Wait 200ms to ensure DB commit
             await new Promise(resolve => setTimeout(resolve, 200));
             
             // After payment, reload both transactions and customer data from backend
+            console.log('[STORE DEBUG] Reloading transactions...')
             let transactions = [];
             const result = await apiCall(`/transactions?customerId=${customerId}`)
             if (result.data && Array.isArray(result.data.transactions)) {
@@ -600,10 +605,13 @@ export const useStore = create()(
             } else if (Array.isArray(result.data)) {
               transactions = result.data;
             }
+            console.log('[STORE DEBUG] Transactions loaded:', transactions.length, 'transactions')
             
             // Also reload customer data to get updated financial_balance
+            console.log('[STORE DEBUG] Reloading customer data...')
             const customerResult = await apiCall(`/customers/${customerId}`)
             const updatedCustomer = customerResult.data?.customer || customerResult.customer
+            console.log('[STORE DEBUG] Customer data loaded:', updatedCustomer)
             
             set((state) => ({
               transactions: [
@@ -616,7 +624,7 @@ export const useStore = create()(
             }))
             console.log('[Store] Updated transactions and customer for customer', customerId, transactions, updatedCustomer);
           } catch (error) {
-            console.error('Failed to record selectable bulk payment:', error)
+            console.error('[STORE DEBUG] Failed to record selectable bulk payment:', error)
             throw error
           }
         },

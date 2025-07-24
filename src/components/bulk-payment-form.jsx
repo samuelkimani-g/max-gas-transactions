@@ -78,6 +78,14 @@ export default function BulkPaymentForm({ customerId, customerName, outstandingA
     
     try {
       const amount = Number.parseFloat(paymentAmount)
+      console.log('[BULK PAYMENT DEBUG] Starting payment process:', {
+        customerId,
+        selectedIds,
+        amount,
+        paymentMethod,
+        totalOutstandingSelected
+      })
+      
       if (selectedIds.length === 0) {
         toast({
           title: "No Transactions Selected",
@@ -103,6 +111,7 @@ export default function BulkPaymentForm({ customerId, customerName, outstandingA
         return
       }
 
+      console.log('[BULK PAYMENT DEBUG] Calling recordBulkPaymentSelect...')
       await recordBulkPaymentSelect(
         customerId,
         selectedIds,
@@ -110,6 +119,8 @@ export default function BulkPaymentForm({ customerId, customerName, outstandingA
         paymentMethod,
         `${paymentMethod.toUpperCase()}: ${paymentNote || `Bulk payment of ${formatCurrency(amount)}`} (${paymentDate})`
       )
+      
+      console.log('[BULK PAYMENT DEBUG] Payment recorded successfully, refreshing data...')
       
       toast({
         title: "Payment Recorded Successfully",
@@ -119,9 +130,13 @@ export default function BulkPaymentForm({ customerId, customerName, outstandingA
       setPaymentAmount("")
       setPaymentNote("")
       setIsOpen(false)
-      refreshAllData() // Trigger a refresh to update the outstanding balance
+      
+      console.log('[BULK PAYMENT DEBUG] Triggering refreshAllData...')
+      await refreshAllData() // Trigger a refresh to update the outstanding balance
+      console.log('[BULK PAYMENT DEBUG] Refresh completed')
+      
     } catch (error) {
-      console.error('Failed to record selectable bulk payment:', error)
+      console.error('[BULK PAYMENT DEBUG] Failed to record selectable bulk payment:', error)
       toast({
         title: "Payment Failed",
         description: "Failed to record payment. Please try again.",

@@ -495,6 +495,34 @@ export default function BulkPaymentForm({ customerId, customerName, outstandingA
                 )}
               </Button>
             </div>
+            
+            {/* Debug Test Button */}
+            <div className="mt-4 pt-4 border-t border-gray-200">
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={async () => {
+                  console.log('[TEST] Current customer transactions:', customerTransactions)
+                  console.log('[TEST] Unpaid transactions:', unpaidTransactions)
+                  console.log('[TEST] Selected IDs:', selectedIds)
+                  console.log('[TEST] Outstanding amount:', outstandingAmount)
+                  console.log('[TEST] Customer ID:', customerId)
+                  
+                  // Test API call
+                  try {
+                    const { apiCall } = useStore.getState()
+                    const result = await apiCall(`/transactions?customerId=${customerId}`)
+                    console.log('[TEST] API call result:', result)
+                  } catch (error) {
+                    console.error('[TEST] API call failed:', error)
+                  }
+                }}
+                className="w-full text-xs"
+              >
+                🔍 Debug: Test API & Data
+              </Button>
+            </div>
           </form>
         </div>
       </DialogContent>

@@ -271,9 +271,9 @@ export default function AddTransactionForm({ customerId, customerName, onBack, o
       const transactionData = {
         customerId: customerId,
         loadBreakdown: {
-          kg6: loadBreakdown.kg6,
-          kg13: loadBreakdown.kg13,
-          kg50: loadBreakdown.kg50,
+          kg6: totalLoad.kg6,  // Use totalLoad (Cylinders OUT) instead of loadBreakdown (Cylinders IN)
+          kg13: totalLoad.kg13,
+          kg50: totalLoad.kg50,
         },
         returnsBreakdown,
         outrightBreakdown,

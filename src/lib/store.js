@@ -580,6 +580,37 @@ export const useStore = create()(
           }
         },
 
+        // Bulk payment for selected transactions
+        recordBulkPaymentSelect: async (customerId, transactionIds, amount, method, note = "") => {
+          try {
+            await apiCall('/transactions/bulk-customer-payment-select', {
+              method: 'PUT',
+              body: JSON.stringify({ customerId, transactionIds, amount, method, note })
+            })
+            // Wait 200ms to ensure DB commit
+            await new Promise(resolve => setTimeout(resolve, 200));
+            // After payment, reload transactions from backend
+            let transactions = [];
+            const result = await apiCall(`/transactions?customerId=${customerId}`)
+            if (result.data && Array.isArray(result.data.transactions)) {
+              transactions = result.data.transactions;
+            } else if (Array.isArray(result.transactions)) {
+              transactions = result.transactions;
+            } else if (Array.isArray(result.data)) {
+              transactions = result.data;
+            }
+            set((state) => ({
+              transactions: [
+                ...state.transactions.filter(t => t.customerId !== customerId),
+                ...transactions
+              ]
+            }))
+          } catch (error) {
+            console.error('Failed to record selectable bulk payment:', error)
+            throw error
+          }
+        },
+
         // Data Loading Actions
         loadCustomers: async () => {
           try {

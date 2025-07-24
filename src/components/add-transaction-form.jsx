@@ -161,13 +161,36 @@ export default function AddTransactionForm({ customerId, customerName, onBack, o
     }
   }, [transaction]);
   
+  // Track if the user has manually edited the load for each size
+  const [loadManuallyEdited, setLoadManuallyEdited] = useState({ kg6: false, kg13: false, kg50: false });
+
+  // Helper to get returns + outright for a size
+  const getAutoLoad = (size) => {
+    const returns = (returnsBreakdown.max_empty[size] || 0) + (returnsBreakdown.swap_empty[size] || 0) + (returnsBreakdown.return_full[size] || 0);
+    const outright = outrightBreakdown[size] || 0;
+    return returns + outright;
+  };
+
+  // When returns or outright change, auto-update load if not manually edited
+  useEffect(() => {
+    setLoadBreakdown(prev => {
+      const updated = { ...prev };
+      ['kg6', 'kg13', 'kg50'].forEach(size => {
+        if (!loadManuallyEdited[size]) {
+          updated[size] = getAutoLoad(size);
+        }
+      });
+      return updated;
+    });
+  }, [returnsBreakdown, outrightBreakdown]);
+
+  // When user edits load, mark it as manually edited
   const handleLoadChange = (size, value) => {
-    setLoadBreakdown(prev => ({
-      ...prev,
-      [size]: value
-    }))
-  }
-  
+    setLoadBreakdown(prev => ({ ...prev, [size]: value }));
+    setLoadManuallyEdited(prev => ({ ...prev, [size]: true }));
+  };
+
+  // If user edits returns or outright, reset manual edit for that size
   const handleBreakdownChange = (setBreakdown, category, field, value) => {
     setBreakdown(prev => ({
       ...prev,
@@ -175,8 +198,12 @@ export default function AddTransactionForm({ customerId, customerName, onBack, o
         ...prev[category],
         [field]: value
       }
-    }))
-  }
+    }));
+    // If editing a size, reset manual edit for that size
+    if (['kg6', 'kg13', 'kg50'].includes(field)) {
+      setLoadManuallyEdited(prev => ({ ...prev, [field]: false }));
+    }
+  };
 
   // Calculated values
   const calculatedTotalLoad = useMemo(() => {
@@ -352,7 +379,7 @@ export default function AddTransactionForm({ customerId, customerName, onBack, o
                   <Input
                     type="number"
                     value={loadBreakdown.kg6 === 0 ? '' : loadBreakdown.kg6}
-                    onChange={e => setLoadBreakdown(prev => ({...prev, kg6: e.target.value === '' ? 0 : parseInt(e.target.value, 10) || 0}))}
+                    onChange={e => handleLoadChange('kg6', e.target.value === '' ? 0 : parseInt(e.target.value, 10) || 0)}
                     onFocus={(e) => e.target.select()}
                     className="mt-1 border-gray-300 focus:border-orange-400 focus:ring-orange-200"
                     placeholder="0"
@@ -363,7 +390,7 @@ export default function AddTransactionForm({ customerId, customerName, onBack, o
                   <Input
                     type="number"
                     value={loadBreakdown.kg13 === 0 ? '' : loadBreakdown.kg13}
-                    onChange={e => setLoadBreakdown(prev => ({...prev, kg13: e.target.value === '' ? 0 : parseInt(e.target.value, 10) || 0}))}
+                    onChange={e => handleLoadChange('kg13', e.target.value === '' ? 0 : parseInt(e.target.value, 10) || 0)}
                     onFocus={(e) => e.target.select()}
                     className="mt-1 border-gray-300 focus:border-orange-400 focus:ring-orange-200"
                     placeholder="0"
@@ -374,7 +401,7 @@ export default function AddTransactionForm({ customerId, customerName, onBack, o
                   <Input
                     type="number"
                     value={loadBreakdown.kg50 === 0 ? '' : loadBreakdown.kg50}
-                    onChange={e => setLoadBreakdown(prev => ({...prev, kg50: e.target.value === '' ? 0 : parseInt(e.target.value, 10) || 0}))}
+                    onChange={e => handleLoadChange('kg50', e.target.value === '' ? 0 : parseInt(e.target.value, 10) || 0)}
                     onFocus={(e) => e.target.select()}
                     className="mt-1 border-gray-300 focus:border-orange-400 focus:ring-orange-200"
                     placeholder="0"

@@ -158,19 +158,6 @@ export default function EnhancedCustomerDetail({ customerId, onBack }) {
             <p className="text-lg text-orange-600 font-semibold">Total of All Transactions</p>
           </CardContent>
         </Card>
-        <Card className="border-0 bg-gradient-to-br from-red-50 to-red-100 shadow-lg">
-          <CardHeader className="bg-gradient-to-r from-red-600 to-red-700 text-white rounded-t-lg">
-            <div className="flex items-center justify-between">
-              <CardTitle className="text-xl font-bold">Outstanding Balance</CardTitle>
-              <DollarSign className="h-6 w-6" />
-            </div>
-          </CardHeader>
-          <CardContent className="p-6 text-center">
-            <div className="text-3xl font-bold text-red-700 mb-2">Ksh {formatNumber(financialBalance || 0)}</div>
-            <p className="text-lg text-red-600 font-semibold">{financialBalance > 0 ? 'Amount Due' : 'Fully Paid'}</p>
-          </CardContent>
-        </Card>
-        
         <Card className="border-0 bg-gradient-to-br from-green-50 to-green-100 shadow-lg">
           <CardHeader className="bg-gradient-to-r from-green-600 to-green-700 text-white rounded-t-lg">
             <div className="flex items-center justify-between">
@@ -183,7 +170,6 @@ export default function EnhancedCustomerDetail({ customerId, onBack }) {
             <p className="text-lg text-green-600 font-semibold">Payments Received</p>
           </CardContent>
         </Card>
-        
         <Card className="border-0 bg-gradient-to-br from-blue-50 to-blue-100 shadow-lg">
           <CardHeader className="bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-t-lg">
             <div className="flex items-center justify-between">
@@ -212,6 +198,18 @@ export default function EnhancedCustomerDetail({ customerId, onBack }) {
                 <div>50kg</div>
               </div>
             </div>
+          </CardContent>
+        </Card>
+        <Card className="border-0 bg-gradient-to-br from-red-50 to-red-100 shadow-lg">
+          <CardHeader className="bg-gradient-to-r from-red-600 to-red-700 text-white rounded-t-lg">
+            <div className="flex items-center justify-between">
+              <CardTitle className="text-xl font-bold">Outstanding Balance</CardTitle>
+              <DollarSign className="h-6 w-6" />
+            </div>
+          </CardHeader>
+          <CardContent className="p-6 text-center">
+            <div className="text-3xl font-bold text-red-700 mb-2">Ksh {formatNumber(financialBalance || 0)}</div>
+            <p className="text-lg text-red-600 font-semibold">{financialBalance > 0 ? 'Amount Due' : 'Fully Paid'}</p>
           </CardContent>
         </Card>
       </div>

@@ -522,6 +522,48 @@ export default function BulkPaymentForm({ customerId, customerName, outstandingA
               >
                 🔍 Debug: Test API & Data
               </Button>
+              
+              {/* Manual Update Test */}
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={async () => {
+                  if (selectedIds.length === 0) {
+                    alert('Please select a transaction first')
+                    return
+                  }
+                  
+                  const transactionId = selectedIds[0]
+                  console.log('[MANUAL TEST] Manually updating transaction:', transactionId)
+                  
+                  try {
+                    const { apiCall } = useStore.getState()
+                    const result = await apiCall(`/transactions/${transactionId}`, {
+                      method: 'PUT',
+                      body: JSON.stringify({
+                        customerId: customerId,
+                        loadBreakdown: { kg6: 10, kg13: 0, kg50: 0 },
+                        returnsBreakdown: { max_empty: { kg6: 10, price6: 135 }, swap_empty: {}, return_full: {} },
+                        outrightBreakdown: { kg6: 10, price6: 2200 },
+                        amountPaid: 30100,
+                        paymentMethod: 'cash',
+                        notes: 'Manual test update'
+                      })
+                    })
+                    console.log('[MANUAL TEST] Manual update result:', result)
+                    
+                    // Refresh data
+                    await refreshAllData()
+                    console.log('[MANUAL TEST] Data refreshed after manual update')
+                  } catch (error) {
+                    console.error('[MANUAL TEST] Manual update failed:', error)
+                  }
+                }}
+                className="w-full text-xs mt-2"
+              >
+                🔧 Manual Update Test
+              </Button>
             </div>
           </form>
         </div>

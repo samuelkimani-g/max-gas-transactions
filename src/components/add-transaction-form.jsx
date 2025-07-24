@@ -271,28 +271,6 @@ export default function AddTransactionForm({ customerId, customerName, onBack, o
     }));
   }, [loadBreakdown]);
 
-  // Auto-update load when outright changes (like returns) - only in add mode
-  useEffect(() => {
-    if (mode === 'add') {
-      const suggested6kg = (returnsBreakdown.max_empty.kg6 + returnsBreakdown.swap_empty.kg6 + returnsBreakdown.return_full.kg6) + outrightBreakdown.kg6;
-      const suggested13kg = (returnsBreakdown.max_empty.kg13 + returnsBreakdown.swap_empty.kg13 + returnsBreakdown.return_full.kg13) + outrightBreakdown.kg13;
-      const suggested50kg = (returnsBreakdown.max_empty.kg50 + returnsBreakdown.swap_empty.kg50 + returnsBreakdown.return_full.kg50) + outrightBreakdown.kg50;
-      
-      setTotalLoad(prev => ({ 
-        kg6: suggested6kg, 
-        kg13: suggested13kg, 
-        kg50: suggested50kg 
-      }));
-      
-      // Also update loadBreakdown to keep them in sync
-      setLoadBreakdown(prev => ({
-        kg6: suggested6kg,
-        kg13: suggested13kg,
-        kg50: suggested50kg
-      }));
-    }
-  }, [returnsBreakdown, outrightBreakdown, mode]);
-
   const validateAndSubmit = async () => {
     if (!customerId) {
       toast({ title: 'Validation Error', description: 'Please select a customer', variant: 'destructive' });

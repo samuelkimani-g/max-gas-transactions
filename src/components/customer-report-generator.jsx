@@ -166,8 +166,20 @@ export default function CustomerReportGenerator({ customerId, customerName }) {
             .status-paid { color: #059669; font-weight: 600; }
             .status-outstanding { color: #dc2626; font-weight: 600; }
             @media print {
-              body { padding: 0; }
+              body { padding: 0; background: #f8fafc !important; }
               .report { max-width: none; }
+              .header {
+                background: linear-gradient(135deg, #1e293b, #334155) !important;
+                color: white !important;
+              }
+              .summary-card {
+                background: #f8fafc !important;
+                border-left: 4px solid #f97316 !important;
+              }
+              .transactions-table th {
+                background: #f9fafb !important;
+                color: #374151 !important;
+              }
             }
           </style>
         </head>

@@ -336,13 +336,36 @@ export default function ReceiptGenerator({ transaction, customer }) {
               body { 
                 margin: 0; 
                 padding: 0;
-                background: white;
+                background: #f7fafc !important;
               }
               .receipt { 
                 box-shadow: none; 
                 margin: 0;
                 max-width: none;
                 border-radius: 0;
+                background: white !important;
+              }
+              .header {
+                background: linear-gradient(135deg, #1e293b 0%, #334155 100%) !important;
+                color: white !important;
+              }
+              .receipt::before {
+                background: linear-gradient(90deg, #f97316, #ea580c, #dc2626) !important;
+              }
+              .receipt-title {
+                background: rgba(249, 115, 22, 0.2) !important;
+                color: #f97316 !important;
+              }
+              .serial-number {
+                background: #f8fafc !important;
+                color: #475569 !important;
+              }
+              .totals-section {
+                background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%) !important;
+              }
+              .footer {
+                background: linear-gradient(135deg, #1e293b 0%, #334155 100%) !important;
+                color: white !important;
               }
               .no-print { display: none; }
             }

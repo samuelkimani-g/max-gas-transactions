@@ -145,7 +145,19 @@ export default function EnhancedCustomerDetail({ customerId, onBack }) {
       </div>
 
       {/* Balance Cards */}
-      <div className="grid gap-6 md:grid-cols-3">
+      <div className="grid gap-6 md:grid-cols-4">
+        <Card className="border-0 bg-gradient-to-br from-orange-50 to-orange-100 shadow-lg">
+          <CardHeader className="bg-gradient-to-r from-orange-600 to-orange-700 text-white rounded-t-lg">
+            <div className="flex items-center justify-between">
+              <CardTitle className="text-xl font-bold">Total Billed</CardTitle>
+              <DollarSign className="h-6 w-6" />
+            </div>
+          </CardHeader>
+          <CardContent className="p-6 text-center">
+            <div className="text-3xl font-bold text-orange-700 mb-2">Ksh {formatNumber(totalBill || 0)}</div>
+            <p className="text-lg text-orange-600 font-semibold">Total of All Transactions</p>
+          </CardContent>
+        </Card>
         <Card className="border-0 bg-gradient-to-br from-red-50 to-red-100 shadow-lg">
           <CardHeader className="bg-gradient-to-r from-red-600 to-red-700 text-white rounded-t-lg">
             <div className="flex items-center justify-between">

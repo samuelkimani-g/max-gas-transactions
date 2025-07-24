@@ -208,10 +208,7 @@ export default function AddTransactionForm({ customerId, customerName, onBack, o
         [field]: value
       }
     }));
-    // If editing a size, reset manual edit for that size (for totalLoad)
-    if (['kg6', 'kg13', 'kg50'].includes(field)) {
-      setTotalLoadManuallyEdited(prev => ({ ...prev, [field]: false }));
-    }
+    // Do NOT reset manual edit flag here; once user edits load, keep it manual until they change it again.
   };
 
   // Calculated values using centralized functions

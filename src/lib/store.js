@@ -558,10 +558,19 @@ export const useStore = create()(
             })
             // After payment, reload transactions from backend
             const result = await apiCall(`/transactions?customerId=${customerId}`)
+            // Patch: handle both {data: {transactions: [...]}} and {transactions: [...]} response shapes
+            let transactions = [];
+            if (result.data && Array.isArray(result.data.transactions)) {
+              transactions = result.data.transactions;
+            } else if (Array.isArray(result.transactions)) {
+              transactions = result.transactions;
+            } else if (Array.isArray(result.data)) {
+              transactions = result.data;
+            }
             set((state) => ({
               transactions: [
                 ...state.transactions.filter(t => t.customerId !== customerId),
-                ...result.data.transactions
+                ...transactions
               ]
             }))
           } catch (error) {

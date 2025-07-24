@@ -165,31 +165,10 @@ export function calculateFinancialBalance(totalBill, amountPaid) {
  * @returns {number} Total bill amount
  */
 export function calculateTransactionTotal(transaction) {
-  console.log('[DEBUG] calculateTransactionTotal called with:', transaction);
   if (!transaction) return 0;
-  
-  // Use the new calculation method if the transaction has the new structure
-  if (transaction.returns_breakdown && transaction.outright_breakdown) {
-    return calculateTotalBill(transaction.returns_breakdown, transaction.outright_breakdown);
-  }
-  
-  // Legacy calculation for old transaction format
-  const maxEmptyTotal = 
-    (transaction.maxGas6kgLoad || 0) * (transaction.refillPrice6kg || 135) * 6 +
-    (transaction.maxGas13kgLoad || 0) * (transaction.refillPrice13kg || 135) * 13 +
-    (transaction.maxGas50kgLoad || 0) * (transaction.refillPrice50kg || 135) * 50;
-  
-  const swapEmptyTotal = 
-    (transaction.swipeReturn6kg || 0) * (transaction.swipeRefillPrice6kg || 160) * 6 +
-    (transaction.swipeReturn13kg || 0) * (transaction.swipeRefillPrice13kg || 160) * 13 +
-    (transaction.swipeReturn50kg || 0) * (transaction.swipeRefillPrice50kg || 160) * 50;
-  
-  const outrightTotal = 
-    (transaction.outright6kg || 0) * (transaction.outrightPrice6kg || 2200) +
-    (transaction.outright13kg || 0) * (transaction.outrightPrice13kg || 4400) +
-    (transaction.outright50kg || 0) * (transaction.outrightPrice50kg || 8000);
-  
-  return maxEmptyTotal + swapEmptyTotal + outrightTotal;
+  const returnsBreakdown = transaction.returns_breakdown || {};
+  const outrightBreakdown = transaction.outright_breakdown || {};
+  return calculateTotalBill(returnsBreakdown, outrightBreakdown);
 }
 
 /**

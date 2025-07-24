@@ -96,6 +96,7 @@ export default function TransactionHistory({ transactions = [], customerId, onEd
         <TableBody>
           {sortedTransactions.map((t) => (
             <>
+              {console.log('[Transaction Row]', t)}
               <TableRow key={t.id} className="cursor-pointer hover:bg-slate-50 transition-colors" onClick={() => setModalTransaction(t)}>
                 <TableCell>
                   {expandedRow === t.id ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
@@ -104,10 +105,10 @@ export default function TransactionHistory({ transactions = [], customerId, onEd
                 <TableCell className="font-medium">{format(new Date(t.date), 'PP')}</TableCell>
                 <TableCell className="text-center">
                   {(() => {
+                    // Status badge logic: uses t.total_bill and t.amount_paid
                     const total = t.total_bill || 0;
                     const paid = t.amount_paid || 0;
                     const outstanding = total - paid;
-                    
                     if (outstanding <= 0) {
                       return <Badge className="bg-green-100 text-green-800 border-green-200 font-semibold">✓ Paid</Badge>;
                     } else if (paid > 0) {

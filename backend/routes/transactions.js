@@ -399,8 +399,8 @@ router.put('/bulk-customer-payment-select', [
         updatedTransactions.push(transactionRecord);
         continue;
       }
-      const total = transactionRecord.total_bill || 0;
-      const currentPaid = transactionRecord.amount_paid || 0;
+      const total = parseFloat(transactionRecord.total_bill) || 0;
+      const currentPaid = parseFloat(transactionRecord.amount_paid) || 0;
       const outstanding = total - currentPaid;
       console.log('[BACKEND DEBUG] Transaction calculations:', {
         total,
@@ -415,14 +415,15 @@ router.put('/bulk-customer-payment-select', [
       }
       const paymentForThis = Math.min(outstanding, remainingAmount);
       remainingAmount -= paymentForThis;
+      const newAmountPaid = currentPaid + paymentForThis;
       console.log('[BACKEND DEBUG] Updating transaction:', {
         paymentForThis,
-        newAmountPaid: currentPaid + paymentForThis,
+        newAmountPaid,
         remainingAmount
       });
       
       const updatedTransaction = await transactionRecord.update({
-        amount_paid: Math.round((currentPaid + paymentForThis) * 100) / 100,
+        amount_paid: Math.round(newAmountPaid * 100) / 100,
         payment_method: method || transactionRecord.payment_method,
         notes: transactionRecord.notes ? `${transactionRecord.notes}\n${note}` : note,
       }, { transaction: dbTransaction });

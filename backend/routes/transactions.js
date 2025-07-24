@@ -348,6 +348,87 @@ router.put('/bulk-customer-payment', [
   }
 });
 
+// @route   PUT /api/transactions/bulk-customer-payment-select
+// @desc    Record a bulk payment for a customer across selected transactions
+// @access  Private
+router.put('/bulk-customer-payment-select', [
+  authenticateToken,
+  requirePermission('transactions:update')
+], async (req, res) => {
+  const dbTransaction = await sequelize.transaction();
+  try {
+    const { customerId, transactionIds, amount, method, note } = req.body;
+    if (!customerId || !Array.isArray(transactionIds) || transactionIds.length === 0 || !amount) {
+      await dbTransaction.rollback();
+      return res.status(400).json({ success: false, error: 'Missing required fields.' });
+    }
+    // Validate customer exists
+    const customer = await Customer.findByPk(customerId);
+    if (!customer) {
+      await dbTransaction.rollback();
+      return res.status(404).json({ success: false, error: 'Customer not found' });
+    }
+    // Get the selected transactions for this customer, in the order provided
+    const transactions = await Transaction.findAll({
+      where: { id: transactionIds, customerId },
+      order: [['date', 'ASC']],
+      transaction: dbTransaction
+    });
+    // Sort transactions in the order of transactionIds
+    const orderedTransactions = transactionIds.map(id => transactions.find(t => t.id === id)).filter(Boolean);
+    let remainingAmount = amount;
+    const updatedTransactions = [];
+    for (const transactionRecord of orderedTransactions) {
+      if (remainingAmount <= 0) {
+        updatedTransactions.push(transactionRecord);
+        continue;
+      }
+      const total = transactionRecord.total_bill || 0;
+      const currentPaid = transactionRecord.amount_paid || 0;
+      const outstanding = total - currentPaid;
+      if (outstanding <= 0) {
+        updatedTransactions.push(transactionRecord);
+        continue;
+      }
+      const paymentForThis = Math.min(outstanding, remainingAmount);
+      remainingAmount -= paymentForThis;
+      const updatedTransaction = await transactionRecord.update({
+        amount_paid: Math.round((currentPaid + paymentForThis) * 100) / 100,
+        payment_method: method || transactionRecord.payment_method,
+        notes: transactionRecord.notes ? `${transactionRecord.notes}\n${note}` : note,
+      }, { transaction: dbTransaction });
+      updatedTransactions.push(updatedTransaction);
+    }
+    // Update customer's financial balance
+    const totalPaid = amount - remainingAmount;
+    const newFinancialBalance = (customer.financial_balance || 0) - totalPaid;
+    await Customer.update({
+      financial_balance: newFinancialBalance
+    }, {
+      where: { id: customerId },
+      transaction: dbTransaction
+    });
+    await dbTransaction.commit();
+    res.json({
+      success: true,
+      data: {
+        message: `Bulk payment of ${totalPaid} recorded successfully`,
+        remainingAmount,
+        updatedTransactions
+      }
+    });
+  } catch (error) {
+    if (dbTransaction && !dbTransaction.finished) {
+      await dbTransaction.rollback();
+    }
+    console.error('Bulk payment select error:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to record bulk payment: ' + error.message
+    });
+  }
+});
+
 // @route   PUT /api/transactions/:id
 // @desc    Update a transaction
 // @access  Private

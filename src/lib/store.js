@@ -556,10 +556,11 @@ export const useStore = create()(
               method: 'PUT',
               body: JSON.stringify({ customerId, amount, note })
             })
+            // Wait 200ms to ensure DB commit
+            await new Promise(resolve => setTimeout(resolve, 200));
             // After payment, reload transactions from backend
-            const result = await apiCall(`/transactions?customerId=${customerId}`)
-            // Patch: handle both {data: {transactions: [...]}} and {transactions: [...]} response shapes
             let transactions = [];
+            const result = await apiCall(`/transactions?customerId=${customerId}`)
             if (result.data && Array.isArray(result.data.transactions)) {
               transactions = result.data.transactions;
             } else if (Array.isArray(result.transactions)) {

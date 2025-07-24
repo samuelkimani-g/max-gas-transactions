@@ -376,27 +376,63 @@ router.put('/bulk-customer-payment-select', [
     });
     // Sort transactions in the order of transactionIds
     const orderedTransactions = transactionIds.map(id => transactions.find(t => t.id === id)).filter(Boolean);
+    console.log('[BACKEND DEBUG] Processing bulk payment:', {
+      customerId,
+      transactionIds,
+      amount,
+      method,
+      orderedTransactionsCount: orderedTransactions.length
+    });
+    
     let remainingAmount = amount;
     const updatedTransactions = [];
     for (const transactionRecord of orderedTransactions) {
+      console.log('[BACKEND DEBUG] Processing transaction:', {
+        id: transactionRecord.id,
+        total_bill: transactionRecord.total_bill,
+        current_amount_paid: transactionRecord.amount_paid,
+        remainingAmount
+      });
+      
       if (remainingAmount <= 0) {
+        console.log('[BACKEND DEBUG] No remaining amount, skipping transaction');
         updatedTransactions.push(transactionRecord);
         continue;
       }
       const total = transactionRecord.total_bill || 0;
       const currentPaid = transactionRecord.amount_paid || 0;
       const outstanding = total - currentPaid;
+      console.log('[BACKEND DEBUG] Transaction calculations:', {
+        total,
+        currentPaid,
+        outstanding
+      });
+      
       if (outstanding <= 0) {
+        console.log('[BACKEND DEBUG] No outstanding amount, skipping transaction');
         updatedTransactions.push(transactionRecord);
         continue;
       }
       const paymentForThis = Math.min(outstanding, remainingAmount);
       remainingAmount -= paymentForThis;
+      console.log('[BACKEND DEBUG] Updating transaction:', {
+        paymentForThis,
+        newAmountPaid: currentPaid + paymentForThis,
+        remainingAmount
+      });
+      
       const updatedTransaction = await transactionRecord.update({
         amount_paid: Math.round((currentPaid + paymentForThis) * 100) / 100,
         payment_method: method || transactionRecord.payment_method,
         notes: transactionRecord.notes ? `${transactionRecord.notes}\n${note}` : note,
       }, { transaction: dbTransaction });
+      
+      console.log('[BACKEND DEBUG] Transaction updated:', {
+        id: updatedTransaction.id,
+        amount_paid: updatedTransaction.amount_paid,
+        payment_method: updatedTransaction.payment_method
+      });
+      
       updatedTransactions.push(updatedTransaction);
     }
     // Update customer's financial balance

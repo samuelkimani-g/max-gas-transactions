@@ -589,7 +589,8 @@ export const useStore = create()(
             })
             // Wait 200ms to ensure DB commit
             await new Promise(resolve => setTimeout(resolve, 200));
-            // After payment, reload transactions from backend
+            
+            // After payment, reload both transactions and customer data from backend
             let transactions = [];
             const result = await apiCall(`/transactions?customerId=${customerId}`)
             if (result.data && Array.isArray(result.data.transactions)) {
@@ -599,13 +600,21 @@ export const useStore = create()(
             } else if (Array.isArray(result.data)) {
               transactions = result.data;
             }
+            
+            // Also reload customer data to get updated financial_balance
+            const customerResult = await apiCall(`/customers/${customerId}`)
+            const updatedCustomer = customerResult.data?.customer || customerResult.customer
+            
             set((state) => ({
               transactions: [
                 ...state.transactions.filter(t => t.customerId !== customerId),
                 ...transactions
-              ]
+              ],
+              customers: state.customers.map(c => 
+                c.id === customerId ? { ...c, ...updatedCustomer } : c
+              )
             }))
-            console.log('[Store] Updated transactions for customer', customerId, transactions);
+            console.log('[Store] Updated transactions and customer for customer', customerId, transactions, updatedCustomer);
           } catch (error) {
             console.error('Failed to record selectable bulk payment:', error)
             throw error

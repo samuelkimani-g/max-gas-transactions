@@ -12,7 +12,7 @@ import { formatCurrency, calculateTransactionTotal } from "../lib/calculations"
 import { toast } from "../hooks/use-toast"
 
 export default function BulkPaymentForm({ customerId, customerName, outstandingAmount }) {
-  const { recordBulkPaymentSelect, getCustomerTransactions } = useStore()
+  const { recordBulkPaymentSelect, getCustomerTransactions, refreshAllData } = useStore()
   const [paymentAmount, setPaymentAmount] = useState("")
   const [paymentNote, setPaymentNote] = useState("")
   const [paymentDate, setPaymentDate] = useState(new Date().toISOString().split("T")[0])
@@ -119,6 +119,7 @@ export default function BulkPaymentForm({ customerId, customerName, outstandingA
       setPaymentAmount("")
       setPaymentNote("")
       setIsOpen(false)
+      refreshAllData() // Trigger a refresh to update the outstanding balance
     } catch (error) {
       console.error('Failed to record selectable bulk payment:', error)
       toast({

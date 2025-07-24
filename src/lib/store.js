@@ -556,40 +556,14 @@ export const useStore = create()(
               method: 'PUT',
               body: JSON.stringify({ customerId, amount, note })
             })
-            
-            set((state) => {
-              const customerTransactions = state.transactions
-                .filter((t) => t.customerId === customerId)
-                .sort((a, b) => new Date(a.date) - new Date(b.date)) // Oldest first
-
-              let remainingAmount = amount
-              const updatedTransactions = state.transactions.map((transaction) => {
-                if (transaction.customerId !== customerId || remainingAmount <= 0) {
-                  return transaction
-                }
-
-                const total = calculateTransactionTotal(transaction)
-                const currentPaid = transaction.amount_paid || 0
-                const outstanding = total - currentPaid
-
-                if (outstanding <= 0) {
-                  return transaction
-                }
-
-                const paymentForThis = Math.min(outstanding, remainingAmount)
-                remainingAmount -= paymentForThis
-
-                return {
-                  ...transaction,
-                  amount_paid: Math.round((currentPaid + paymentForThis) * 100) / 100,
-                  notes: transaction.notes ? `${transaction.notes}\n${note}` : note,
-                }
-              })
-
-              return {
-                transactions: updatedTransactions,
-              }
-            })
+            // After payment, reload transactions from backend
+            const result = await apiCall(`/transactions?customerId=${customerId}`)
+            set((state) => ({
+              transactions: [
+                ...state.transactions.filter(t => t.customerId !== customerId),
+                ...result.data.transactions
+              ]
+            }))
           } catch (error) {
             console.error('Failed to record bulk payment:', error)
             throw error

@@ -78,13 +78,6 @@ export default function BulkPaymentForm({ customerId, customerName, outstandingA
     
     try {
       const amount = Number.parseFloat(paymentAmount)
-      console.log('[BULK PAYMENT DEBUG] Starting payment process:', {
-        customerId,
-        selectedIds,
-        amount,
-        paymentMethod,
-        totalOutstandingSelected
-      })
       
       if (selectedIds.length === 0) {
         toast({
@@ -111,7 +104,6 @@ export default function BulkPaymentForm({ customerId, customerName, outstandingA
         return
       }
 
-      console.log('[BULK PAYMENT DEBUG] Calling recordBulkPaymentSelect...')
       await recordBulkPaymentSelect(
         customerId,
         selectedIds,
@@ -119,8 +111,6 @@ export default function BulkPaymentForm({ customerId, customerName, outstandingA
         paymentMethod,
         `${paymentMethod.toUpperCase()}: ${paymentNote || `Bulk payment of ${formatCurrency(amount)}`} (${paymentDate})`
       )
-      
-      console.log('[BULK PAYMENT DEBUG] Payment recorded successfully, refreshing data...')
       
       toast({
         title: "Payment Recorded Successfully",
@@ -131,12 +121,10 @@ export default function BulkPaymentForm({ customerId, customerName, outstandingA
       setPaymentNote("")
       setIsOpen(false)
       
-      console.log('[BULK PAYMENT DEBUG] Triggering refreshAllData...')
       await refreshAllData() // Trigger a refresh to update the outstanding balance
-      console.log('[BULK PAYMENT DEBUG] Refresh completed')
       
     } catch (error) {
-      console.error('[BULK PAYMENT DEBUG] Failed to record selectable bulk payment:', error)
+      console.error('Failed to record selectable bulk payment:', error)
       toast({
         title: "Payment Failed",
         description: "Failed to record payment. Please try again.",
@@ -254,9 +242,11 @@ export default function BulkPaymentForm({ customerId, customerName, outstandingA
                                 <input
                                   type="checkbox"
                                   checked={isSelected}
-                                  onChange={() => handleSelect(t.id)}
-                                  className="w-5 h-5 text-green-600 border-gray-300 rounded focus:ring-green-500"
-                                  onClick={(e) => e.stopPropagation()}
+                                  onChange={(e) => {
+                                    e.stopPropagation();
+                                    handleSelect(t.id);
+                                  }}
+                                  className="w-5 h-5 text-green-600 border-gray-300 rounded focus:ring-green-500 cursor-pointer"
                                 />
                               </div>
                             </td>
@@ -493,76 +483,6 @@ export default function BulkPaymentForm({ customerId, customerName, outstandingA
                     Record Payment
                   </>
                 )}
-              </Button>
-            </div>
-            
-            {/* Debug Test Button */}
-            <div className="mt-4 pt-4 border-t border-gray-200">
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                onClick={async () => {
-                  console.log('[TEST] Current customer transactions:', customerTransactions)
-                  console.log('[TEST] Unpaid transactions:', unpaidTransactions)
-                  console.log('[TEST] Selected IDs:', selectedIds)
-                  console.log('[TEST] Outstanding amount:', outstandingAmount)
-                  console.log('[TEST] Customer ID:', customerId)
-                  
-                  // Test API call
-                  try {
-                    const { apiCall } = useStore.getState()
-                    const result = await apiCall(`/transactions?customerId=${customerId}`)
-                    console.log('[TEST] API call result:', result)
-                  } catch (error) {
-                    console.error('[TEST] API call failed:', error)
-                  }
-                }}
-                className="w-full text-xs"
-              >
-                🔍 Debug: Test API & Data
-              </Button>
-              
-              {/* Manual Update Test */}
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                onClick={async () => {
-                  if (selectedIds.length === 0) {
-                    alert('Please select a transaction first')
-                    return
-                  }
-                  
-                  const transactionId = selectedIds[0]
-                  console.log('[MANUAL TEST] Manually updating transaction:', transactionId)
-                  
-                  try {
-                    const { apiCall } = useStore.getState()
-                    const result = await apiCall(`/transactions/${transactionId}`, {
-                      method: 'PUT',
-                      body: JSON.stringify({
-                        customerId: customerId,
-                        loadBreakdown: { kg6: 10, kg13: 0, kg50: 0 },
-                        returnsBreakdown: { max_empty: { kg6: 10, price6: 135 }, swap_empty: {}, return_full: {} },
-                        outrightBreakdown: { kg6: 10, price6: 2200 },
-                        amountPaid: 30100,
-                        paymentMethod: 'cash',
-                        notes: 'Manual test update'
-                      })
-                    })
-                    console.log('[MANUAL TEST] Manual update result:', result)
-                    
-                    // Refresh data
-                    await refreshAllData()
-                    console.log('[MANUAL TEST] Data refreshed after manual update')
-                  } catch (error) {
-                    console.error('[MANUAL TEST] Manual update failed:', error)
-                  }
-                }}
-                className="w-full text-xs mt-2"
-              >
-                🔧 Manual Update Test
               </Button>
             </div>
           </form>

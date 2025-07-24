@@ -319,7 +319,11 @@ export default function AddTransactionForm({ customerId, customerName, onBack, o
     try {
       const transactionData = {
         customerId: customerId,
-        loadBreakdown,
+        loadBreakdown: {
+          kg6: loadBreakdown.kg6,
+          kg13: loadBreakdown.kg13,
+          kg50: loadBreakdown.kg50,
+        },
         returnsBreakdown,
         outrightBreakdown,
         totalLoad: totalLoad.kg6 + totalLoad.kg13 + totalLoad.kg50,

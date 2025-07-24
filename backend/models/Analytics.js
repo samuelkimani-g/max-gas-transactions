@@ -52,12 +52,6 @@ const Analytics = sequelize.define('Analytics', {
   indexes: [
     {
       fields: ['type', 'date']
-    },
-    {
-      fields: ['branch_id']
-    },
-    {
-      fields: ['generated_by']
     }
   ]
 });

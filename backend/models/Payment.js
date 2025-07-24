@@ -72,21 +72,7 @@ const Payment = sequelize.define('Payment', {
   }
 }, {
   tableName: 'payments',
-  timestamps: true,
-  indexes: [
-    {
-      fields: ['transaction_id']
-    },
-    {
-      fields: ['customer_id']
-    },
-    {
-      fields: ['payment_date']
-    },
-    {
-      fields: ['receipt_number']
-    }
-  ]
+  timestamps: true
 });
 
 // Instance methods

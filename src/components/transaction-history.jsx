@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useStore } from '../lib/store';
 import { useRBAC } from '../lib/rbac';
 import { Button } from './ui/button';
@@ -19,7 +19,7 @@ import ConfirmationDialog from './confirmation-dialog';
 const formatNumber = (num) => new Intl.NumberFormat('en-US').format(num);
 
 export default function TransactionHistory({ transactions = [], customerId, onEdit }) {
-  const { deleteTransaction, submitApprovalRequest, user } = useStore();
+  const { deleteTransaction, submitApprovalRequest, user, getCustomerTransactions } = useStore();
   const rbac = useRBAC(user);
   const [expandedRow, setExpandedRow] = useState(null);
   const { toast } = useToast();
@@ -75,6 +75,11 @@ export default function TransactionHistory({ transactions = [], customerId, onEd
   if (!sortedTransactions || sortedTransactions.length === 0) {
     return <p className="text-center text-gray-500 py-4">No transactions found for this customer.</p>;
   }
+
+  // Always get the latest transaction by ID when modalTransaction is set
+  const latestModalTransaction = modalTransaction
+    ? transactions.find(t => t.id === modalTransaction.id) || modalTransaction
+    : null;
 
   return (
     <div className="overflow-x-auto">
@@ -206,7 +211,7 @@ export default function TransactionHistory({ transactions = [], customerId, onEd
       {/* Transaction Details Modal */}
       <Dialog open={!!modalTransaction} onOpenChange={open => { if (!open) setModalTransaction(null); }}>
         <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto p-0 bg-white rounded-xl shadow-2xl">
-          <DialogHeader className="sr-only">
+          <DialogHeader>
             <DialogTitle>Transaction Details</DialogTitle>
             <DialogDescription>View detailed transaction information and generate receipt</DialogDescription>
           </DialogHeader>
@@ -214,10 +219,10 @@ export default function TransactionHistory({ transactions = [], customerId, onEd
             <div>
               <DialogTitle className="text-2xl font-extrabold text-orange-600 flex items-center gap-2">
                 <Package className="w-7 h-7 text-orange-400" />
-                Transaction Details #{modalTransaction?.transaction_number}
+                Transaction Details #{latestModalTransaction?.transaction_number}
               </DialogTitle>
               <DialogDescription className="text-gray-500 mt-1">
-                Date: {modalTransaction ? format(new Date(modalTransaction.date), 'PPpp') : ''}
+                Date: {latestModalTransaction ? format(new Date(latestModalTransaction.date), 'PPpp') : ''}
               </DialogDescription>
             </div>
             <DialogClose asChild>
@@ -226,19 +231,19 @@ export default function TransactionHistory({ transactions = [], customerId, onEd
               </Button>
             </DialogClose>
           </div>
-          {modalTransaction && (() => {
-            const cylinderBalance6kg = (modalTransaction.load_6kg || 0) - ((modalTransaction.returns_breakdown?.max_empty?.kg6 || 0) + (modalTransaction.returns_breakdown?.swap_empty?.kg6 || 0) + (modalTransaction.returns_breakdown?.return_full?.kg6 || 0) + (modalTransaction.outright_breakdown?.kg6 || 0));
-            const cylinderBalance13kg = (modalTransaction.load_13kg || 0) - ((modalTransaction.returns_breakdown?.max_empty?.kg13 || 0) + (modalTransaction.returns_breakdown?.swap_empty?.kg13 || 0) + (modalTransaction.returns_breakdown?.return_full?.kg13 || 0) + (modalTransaction.outright_breakdown?.kg13 || 0));
-            const cylinderBalance50kg = (modalTransaction.load_50kg || 0) - ((modalTransaction.returns_breakdown?.max_empty?.kg50 || 0) + (modalTransaction.returns_breakdown?.swap_empty?.kg50 || 0) + (modalTransaction.returns_breakdown?.return_full?.kg50 || 0) + (modalTransaction.outright_breakdown?.kg50 || 0));
+          {latestModalTransaction && (() => {
+            const cylinderBalance6kg = (latestModalTransaction.load_6kg || 0) - ((latestModalTransaction.returns_breakdown?.max_empty?.kg6 || 0) + (latestModalTransaction.returns_breakdown?.swap_empty?.kg6 || 0) + (latestModalTransaction.returns_breakdown?.return_full?.kg6 || 0) + (latestModalTransaction.outright_breakdown?.kg6 || 0));
+            const cylinderBalance13kg = (latestModalTransaction.load_13kg || 0) - ((latestModalTransaction.returns_breakdown?.max_empty?.kg13 || 0) + (latestModalTransaction.returns_breakdown?.swap_empty?.kg13 || 0) + (latestModalTransaction.returns_breakdown?.return_full?.kg13 || 0) + (latestModalTransaction.outright_breakdown?.kg13 || 0));
+            const cylinderBalance50kg = (latestModalTransaction.load_50kg || 0) - ((latestModalTransaction.returns_breakdown?.max_empty?.kg50 || 0) + (latestModalTransaction.returns_breakdown?.swap_empty?.kg50 || 0) + (latestModalTransaction.returns_breakdown?.return_full?.kg50 || 0) + (latestModalTransaction.outright_breakdown?.kg50 || 0));
             const cylinderBalance = cylinderBalance6kg + cylinderBalance13kg + cylinderBalance50kg;
-            const returns6kg = (modalTransaction.returns_breakdown?.max_empty?.kg6 || 0) + (modalTransaction.returns_breakdown?.swap_empty?.kg6 || 0) + (modalTransaction.returns_breakdown?.return_full?.kg6 || 0);
-            const returns13kg = (modalTransaction.returns_breakdown?.max_empty?.kg13 || 0) + (modalTransaction.returns_breakdown?.swap_empty?.kg13 || 0) + (modalTransaction.returns_breakdown?.return_full?.kg13 || 0);
-            const returns50kg = (modalTransaction.returns_breakdown?.max_empty?.kg50 || 0) + (modalTransaction.returns_breakdown?.swap_empty?.kg50 || 0) + (modalTransaction.returns_breakdown?.return_full?.kg50 || 0);
+            const returns6kg = (latestModalTransaction.returns_breakdown?.max_empty?.kg6 || 0) + (latestModalTransaction.returns_breakdown?.swap_empty?.kg6 || 0) + (latestModalTransaction.returns_breakdown?.return_full?.kg6 || 0);
+            const returns13kg = (latestModalTransaction.returns_breakdown?.max_empty?.kg13 || 0) + (latestModalTransaction.returns_breakdown?.swap_empty?.kg13 || 0) + (latestModalTransaction.returns_breakdown?.return_full?.kg13 || 0);
+            const returns50kg = (latestModalTransaction.returns_breakdown?.max_empty?.kg50 || 0) + (latestModalTransaction.returns_breakdown?.swap_empty?.kg50 || 0) + (latestModalTransaction.returns_breakdown?.return_full?.kg50 || 0);
             const totalReturns = returns6kg + returns13kg + returns50kg;
-            const outright6kg = modalTransaction.outright_breakdown?.kg6 || 0;
-            const outright13kg = modalTransaction.outright_breakdown?.kg13 || 0;
-            const outright50kg = modalTransaction.outright_breakdown?.kg50 || 0;
-            const outrightTotal = (outright6kg * (modalTransaction.outright_breakdown?.price6 || 0)) + (outright13kg * (modalTransaction.outright_breakdown?.price13 || 0)) + (outright50kg * (modalTransaction.outright_breakdown?.price50 || 0));
+            const outright6kg = latestModalTransaction.outright_breakdown?.kg6 || 0;
+            const outright13kg = latestModalTransaction.outright_breakdown?.kg13 || 0;
+            const outright50kg = latestModalTransaction.outright_breakdown?.kg50 || 0;
+            const outrightTotal = (outright6kg * (latestModalTransaction.outright_breakdown?.price6 || 0)) + (outright13kg * (latestModalTransaction.outright_breakdown?.price13 || 0)) + (outright50kg * (latestModalTransaction.outright_breakdown?.price50 || 0));
             const totalOutright = outright6kg + outright13kg + outright50kg;
             return (
               <div className="p-6 space-y-6">
@@ -250,7 +255,7 @@ export default function TransactionHistory({ transactions = [], customerId, onEd
                   <Button size="sm" variant="outline" onClick={() => { setShowReport(true); }}>
                     <CheckCircle className="w-4 h-4 mr-1" /> View Report
                   </Button>
-                  <Button size="sm" variant="outline" onClick={() => { setModalTransaction(null); setEditingTransaction(modalTransaction); }}>
+                  <Button size="sm" variant="outline" onClick={() => { setModalTransaction(null); setEditingTransaction(latestModalTransaction); }}>
                     <Edit className="w-4 h-4 mr-1" /> Edit Transaction
                   </Button>
                 </div>
@@ -271,17 +276,17 @@ export default function TransactionHistory({ transactions = [], customerId, onEd
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                           <div>
                             <label className="text-xs font-medium text-gray-600">6kg</label>
-                            <div className="text-lg font-bold text-gray-900">{modalTransaction.returns_breakdown?.max_empty?.kg6 || 0}</div>
+                            <div className="text-lg font-bold text-gray-900">{latestModalTransaction.returns_breakdown?.max_empty?.kg6 || 0}</div>
                             <div className="text-xs text-gray-500">Max Empty</div>
                           </div>
                           <div>
                             <label className="text-xs font-medium text-gray-600">13kg</label>
-                            <div className="text-lg font-bold text-gray-900">{modalTransaction.returns_breakdown?.max_empty?.kg13 || 0}</div>
+                            <div className="text-lg font-bold text-gray-900">{latestModalTransaction.returns_breakdown?.max_empty?.kg13 || 0}</div>
                             <div className="text-xs text-gray-500">Max Empty</div>
                           </div>
                           <div>
                             <label className="text-xs font-medium text-gray-600">50kg</label>
-                            <div className="text-lg font-bold text-gray-900">{modalTransaction.returns_breakdown?.max_empty?.kg50 || 0}</div>
+                            <div className="text-lg font-bold text-gray-900">{latestModalTransaction.returns_breakdown?.max_empty?.kg50 || 0}</div>
                             <div className="text-xs text-gray-500">Max Empty</div>
                           </div>
                         </div>
@@ -292,18 +297,18 @@ export default function TransactionHistory({ transactions = [], customerId, onEd
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                           <div>
                             <label className="text-xs font-medium text-gray-600">6kg</label>
-                            <div className="text-lg font-bold text-gray-900">{modalTransaction.returns_breakdown?.swap_empty?.kg6 || 0}</div>
-                            <div className="text-xs text-gray-500">@ Ksh {modalTransaction.returns_breakdown?.swap_empty?.price6 || 160}</div>
+                            <div className="text-lg font-bold text-gray-900">{latestModalTransaction.returns_breakdown?.swap_empty?.kg6 || 0}</div>
+                            <div className="text-xs text-gray-500">@ Ksh {latestModalTransaction.returns_breakdown?.swap_empty?.price6 || 160}</div>
                           </div>
                           <div>
                             <label className="text-xs font-medium text-gray-600">13kg</label>
-                            <div className="text-lg font-bold text-gray-900">{modalTransaction.returns_breakdown?.swap_empty?.kg13 || 0}</div>
-                            <div className="text-xs text-gray-500">@ Ksh {modalTransaction.returns_breakdown?.swap_empty?.price13 || 160}</div>
+                            <div className="text-lg font-bold text-gray-900">{latestModalTransaction.returns_breakdown?.swap_empty?.kg13 || 0}</div>
+                            <div className="text-xs text-gray-500">@ Ksh {latestModalTransaction.returns_breakdown?.swap_empty?.price13 || 160}</div>
                           </div>
                           <div>
                             <label className="text-xs font-medium text-gray-600">50kg</label>
-                            <div className="text-lg font-bold text-gray-900">{modalTransaction.returns_breakdown?.swap_empty?.kg50 || 0}</div>
-                            <div className="text-xs text-gray-500">@ Ksh {modalTransaction.returns_breakdown?.swap_empty?.price50 || 160}</div>
+                            <div className="text-lg font-bold text-gray-900">{latestModalTransaction.returns_breakdown?.swap_empty?.kg50 || 0}</div>
+                            <div className="text-xs text-gray-500">@ Ksh {latestModalTransaction.returns_breakdown?.swap_empty?.price50 || 160}</div>
                           </div>
                         </div>
                       </div>
@@ -313,15 +318,15 @@ export default function TransactionHistory({ transactions = [], customerId, onEd
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                           <div>
                             <label className="text-xs font-medium text-gray-600">6kg</label>
-                            <div className="text-lg font-bold text-gray-900">{modalTransaction.returns_breakdown?.return_full?.kg6 || 0}</div>
+                            <div className="text-lg font-bold text-gray-900">{latestModalTransaction.returns_breakdown?.return_full?.kg6 || 0}</div>
                           </div>
                           <div>
                             <label className="text-xs font-medium text-gray-600">13kg</label>
-                            <div className="text-lg font-bold text-gray-900">{modalTransaction.returns_breakdown?.return_full?.kg13 || 0}</div>
+                            <div className="text-lg font-bold text-gray-900">{latestModalTransaction.returns_breakdown?.return_full?.kg13 || 0}</div>
                           </div>
                           <div>
                             <label className="text-xs font-medium text-gray-600">50kg</label>
-                            <div className="text-lg font-bold text-gray-900">{modalTransaction.returns_breakdown?.return_full?.kg50 || 0}</div>
+                            <div className="text-lg font-bold text-gray-900">{latestModalTransaction.returns_breakdown?.return_full?.kg50 || 0}</div>
                           </div>
                         </div>
                       </div>
@@ -341,18 +346,18 @@ export default function TransactionHistory({ transactions = [], customerId, onEd
                       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                         <div>
                           <label className="text-xs font-medium text-gray-600">6kg</label>
-                          <div className="text-lg font-bold text-gray-900">{modalTransaction.outright_breakdown?.kg6 || 0}</div>
-                          <div className="text-xs text-gray-500">@ Ksh {modalTransaction.outright_breakdown?.price6 || 2200}</div>
+                          <div className="text-lg font-bold text-gray-900">{latestModalTransaction.outright_breakdown?.kg6 || 0}</div>
+                          <div className="text-xs text-gray-500">@ Ksh {latestModalTransaction.outright_breakdown?.price6 || 2200}</div>
                         </div>
                         <div>
                           <label className="text-xs font-medium text-gray-600">13kg</label>
-                          <div className="text-lg font-bold text-gray-900">{modalTransaction.outright_breakdown?.kg13 || 0}</div>
-                          <div className="text-xs text-gray-500">@ Ksh {modalTransaction.outright_breakdown?.price13 || 4400}</div>
+                          <div className="text-lg font-bold text-gray-900">{latestModalTransaction.outright_breakdown?.kg13 || 0}</div>
+                          <div className="text-xs text-gray-500">@ Ksh {latestModalTransaction.outright_breakdown?.price13 || 4400}</div>
                         </div>
                         <div>
                           <label className="text-xs font-medium text-gray-600">50kg</label>
-                          <div className="text-lg font-bold text-gray-900">{modalTransaction.outright_breakdown?.kg50 || 0}</div>
-                          <div className="text-xs text-gray-500">@ Ksh {modalTransaction.outright_breakdown?.price50 || 8000}</div>
+                          <div className="text-lg font-bold text-gray-900">{latestModalTransaction.outright_breakdown?.kg50 || 0}</div>
+                          <div className="text-xs text-gray-500">@ Ksh {latestModalTransaction.outright_breakdown?.price50 || 8000}</div>
                         </div>
                       </div>
                       <div className="mt-3 pt-3 border-t border-blue-100">
@@ -374,22 +379,22 @@ export default function TransactionHistory({ transactions = [], customerId, onEd
                       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                         <div>
                           <label className="text-xs font-medium text-gray-600">6kg</label>
-                          <div className="text-lg font-bold text-gray-900">{modalTransaction.load_6kg || 0}</div>
+                          <div className="text-lg font-bold text-gray-900">{latestModalTransaction.load_6kg || 0}</div>
                           <div className="text-xs text-gray-500">cylinders</div>
                         </div>
                         <div>
                           <label className="text-xs font-medium text-gray-600">13kg</label>
-                          <div className="text-lg font-bold text-gray-900">{modalTransaction.load_13kg || 0}</div>
+                          <div className="text-lg font-bold text-gray-900">{latestModalTransaction.load_13kg || 0}</div>
                           <div className="text-xs text-gray-500">cylinders</div>
                         </div>
                         <div>
                           <label className="text-xs font-medium text-gray-600">50kg</label>
-                          <div className="text-lg font-bold text-gray-900">{modalTransaction.load_50kg || 0}</div>
+                          <div className="text-lg font-bold text-gray-900">{latestModalTransaction.load_50kg || 0}</div>
                           <div className="text-xs text-gray-500">cylinders</div>
                         </div>
                       </div>
                       <div className="mt-3 pt-3 border-t border-green-100">
-                        <div className="font-bold text-green-700">Total Load: {modalTransaction.total_load || 0} cylinders</div>
+                        <div className="font-bold text-green-700">Total Load: {latestModalTransaction.total_load || 0} cylinders</div>
                       </div>
                     </div>
                   </div>
@@ -407,15 +412,15 @@ export default function TransactionHistory({ transactions = [], customerId, onEd
                         <div className="space-y-2">
                           <div className="flex justify-between">
                             <span className="text-sm text-gray-600">Total Bill:</span>
-                            <span className="font-bold text-orange-700">Ksh {formatNumber(modalTransaction.total_bill)}</span>
+                            <span className="font-bold text-orange-700">Ksh {formatNumber(latestModalTransaction.total_bill)}</span>
                           </div>
                           <div className="flex justify-between">
                             <span className="text-sm text-gray-600">Amount Paid:</span>
-                            <span className="font-bold text-green-700">Ksh {formatNumber(modalTransaction.amount_paid)}</span>
+                            <span className="font-bold text-green-700">Ksh {formatNumber(latestModalTransaction.amount_paid)}</span>
                           </div>
                           <div className="flex justify-between pt-2 border-t border-gray-200">
                             <span className="text-sm font-semibold text-gray-700">Balance:</span>
-                            <span className="font-bold text-red-700">Ksh {formatNumber(modalTransaction.financial_balance)}</span>
+                            <span className="font-bold text-red-700">Ksh {formatNumber(latestModalTransaction.financial_balance)}</span>
                           </div>
                         </div>
                       </div>

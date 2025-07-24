@@ -4,9 +4,9 @@ import { useState, useEffect, useMemo } from "react"
 import { Button } from "./ui/button"
 import { Input } from "./ui/input"
 import { Label } from "./ui/label"
-import { Card, CardContent } from "./ui/card"
+import { Card, CardContent, CardHeader, CardTitle } from "./ui/card"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "./ui/dialog"
-import { DollarSign, CreditCard, CalendarDays, CheckSquare, Square } from "lucide-react"
+import { DollarSign, CreditCard, CalendarDays, CheckSquare, Square, Users, FileText, AlertCircle } from "lucide-react"
 import { useStore } from "../lib/store"
 import { formatCurrency, calculateTransactionTotal } from "../lib/calculations"
 import { toast } from "../hooks/use-toast"
@@ -20,6 +20,7 @@ export default function BulkPaymentForm({ customerId, customerName, outstandingA
   const [paymentMethod, setPaymentMethod] = useState("cash")
   const [selectedIds, setSelectedIds] = useState([])
   const [selectAll, setSelectAll] = useState(false)
+  const [isSubmitting, setIsSubmitting] = useState(false)
 
   // Get all customer transactions to show in the payment form
   const customerTransactions = getCustomerTransactions(customerId)
@@ -43,6 +44,7 @@ export default function BulkPaymentForm({ customerId, customerName, outstandingA
       setPaymentMethod("cash")
       setSelectedIds([])
       setSelectAll(false)
+      setIsSubmitting(false)
     }
   }, [isOpen])
 
@@ -64,7 +66,7 @@ export default function BulkPaymentForm({ customerId, customerName, outstandingA
 
   const handleAmountButton = (type) => {
     if (type === 'half') {
-      setPaymentAmount(String(totalOutstandingSelected / 2))
+      setPaymentAmount(String(Math.round(totalOutstandingSelected / 2)))
     } else if (type === 'full') {
       setPaymentAmount(String(totalOutstandingSelected))
     }
@@ -72,32 +74,35 @@ export default function BulkPaymentForm({ customerId, customerName, outstandingA
 
   const handleSubmit = async (e) => {
     e.preventDefault()
-    const amount = Number.parseFloat(paymentAmount)
-    if (selectedIds.length === 0) {
-      toast({
-        title: "No Transactions Selected",
-        description: "Please select at least one transaction to pay.",
-        variant: "destructive",
-      })
-      return
-    }
-    if (amount <= 0 || isNaN(amount)) {
-      toast({
-        title: "Invalid Amount",
-        description: "Please enter a valid payment amount.",
-        variant: "destructive",
-      })
-      return
-    }
-    if (amount > totalOutstandingSelected) {
-      toast({
-        title: "Amount Too High",
-        description: "Payment amount exceeds total outstanding for selected transactions.",
-        variant: "destructive",
-      })
-      return
-    }
+    setIsSubmitting(true)
+    
     try {
+      const amount = Number.parseFloat(paymentAmount)
+      if (selectedIds.length === 0) {
+        toast({
+          title: "No Transactions Selected",
+          description: "Please select at least one transaction to pay.",
+          variant: "destructive",
+        })
+        return
+      }
+      if (amount <= 0 || isNaN(amount)) {
+        toast({
+          title: "Invalid Amount",
+          description: "Please enter a valid payment amount.",
+          variant: "destructive",
+        })
+        return
+      }
+      if (amount > totalOutstandingSelected) {
+        toast({
+          title: "Amount Too High",
+          description: "Payment amount exceeds total outstanding for selected transactions.",
+          variant: "destructive",
+        })
+        return
+      }
+
       await recordBulkPaymentSelect(
         customerId,
         selectedIds,
@@ -105,221 +110,377 @@ export default function BulkPaymentForm({ customerId, customerName, outstandingA
         paymentMethod,
         `${paymentMethod.toUpperCase()}: ${paymentNote || `Bulk payment of ${formatCurrency(amount)}`} (${paymentDate})`
       )
+      
       toast({
-        title: "Payment Recorded",
+        title: "Payment Recorded Successfully",
         description: `Payment of ${formatCurrency(amount)} has been recorded for ${customerName}.`,
       })
+      
       setPaymentAmount("")
       setPaymentNote("")
       setIsOpen(false)
     } catch (error) {
       console.error('Failed to record selectable bulk payment:', error)
       toast({
-        title: "Error",
+        title: "Payment Failed",
         description: "Failed to record payment. Please try again.",
         variant: "destructive",
       })
+    } finally {
+      setIsSubmitting(false)
     }
   }
 
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>
-        <Button className="w-full bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800">
-          <DollarSign className="w-4 h-4 mr-2" />
+        <Button className="w-full bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white font-semibold py-3">
+          <DollarSign className="w-5 h-5 mr-2" />
           Record Payment
         </Button>
       </DialogTrigger>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            <CreditCard className="w-5 h-5" />
+      <DialogContent className="max-w-4xl max-h-[95vh] overflow-y-auto">
+        <DialogHeader className="pb-4 border-b">
+          <DialogTitle className="flex items-center gap-3 text-2xl font-bold text-gray-800">
+            <CreditCard className="w-6 h-6 text-green-600" />
             Record Bulk Payment
           </DialogTitle>
         </DialogHeader>
-        <Card className="border-0 shadow-none">
-          <CardContent className="p-0 space-y-4">
-            <div className="bg-gradient-to-r from-orange-50 to-orange-100 p-4 rounded-lg">
-              <div className="text-center">
-                <p className="text-sm text-gray-600">Outstanding Balance</p>
-                <p className="text-2xl font-bold text-red-600">{formatCurrency(outstandingAmount)}</p>
-                <p className="text-sm text-gray-500 mt-1">for {customerName}</p>
-              </div>
-            </div>
-            {unpaidTransactions.length > 0 && (
-              <div className="bg-gray-50 p-3 rounded-lg">
-                <div className="flex items-center justify-between mb-2">
-                  <p className="text-sm font-medium">Unpaid Transactions</p>
-                  <button
-                    type="button"
-                    className="flex items-center gap-1 text-xs text-blue-700 hover:underline"
-                    onClick={handleSelectAll}
-                  >
-                    {selectAll ? <CheckSquare className="w-4 h-4" /> : <Square className="w-4 h-4" />} Select All
-                  </button>
+        
+        <div className="space-y-6 py-4">
+          {/* Customer Summary Card */}
+          <Card className="bg-gradient-to-r from-blue-50 to-indigo-50 border-blue-200">
+            <CardHeader className="pb-3">
+              <CardTitle className="flex items-center gap-2 text-lg text-blue-800">
+                <Users className="w-5 h-5" />
+                Customer Summary
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="text-center">
+                  <p className="text-sm text-gray-600 mb-1">Customer</p>
+                  <p className="font-semibold text-gray-800">{customerName}</p>
                 </div>
-                <div className="max-h-48 overflow-y-auto">
-                  <table className="min-w-full text-xs">
-                    <thead>
-                      <tr className="bg-slate-100">
-                        <th></th>
-                        <th>Serial No.</th>
-                        <th>Date</th>
-                        <th>Total</th>
-                        <th>Paid</th>
-                        <th>Outstanding</th>
-                        <th>Status</th>
+                <div className="text-center">
+                  <p className="text-sm text-gray-600 mb-1">Outstanding Balance</p>
+                  <p className="text-2xl font-bold text-red-600">{formatCurrency(outstandingAmount)}</p>
+                </div>
+                <div className="text-center">
+                  <p className="text-sm text-gray-600 mb-1">Unpaid Transactions</p>
+                  <p className="text-xl font-semibold text-blue-600">{unpaidTransactions.length}</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Transactions Selection */}
+          {unpaidTransactions.length > 0 && (
+            <Card className="border-gray-200">
+              <CardHeader className="pb-3">
+                <div className="flex items-center justify-between">
+                  <CardTitle className="flex items-center gap-2 text-lg">
+                    <FileText className="w-5 h-5 text-gray-600" />
+                    Select Transactions to Pay
+                  </CardTitle>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={handleSelectAll}
+                    className="flex items-center gap-2"
+                  >
+                    {selectAll ? <CheckSquare className="w-4 h-4" /> : <Square className="w-4 h-4" />}
+                    {selectAll ? 'Deselect All' : 'Select All'}
+                  </Button>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <div className="max-h-64 overflow-y-auto border rounded-lg">
+                  <table className="w-full">
+                    <thead className="bg-gray-50 sticky top-0">
+                      <tr>
+                        <th className="px-4 py-3 text-left">
+                          <div className="flex items-center justify-center">
+                            <input
+                              type="checkbox"
+                              checked={selectAll}
+                              onChange={handleSelectAll}
+                              className="w-5 h-5 text-green-600 border-gray-300 rounded focus:ring-green-500"
+                            />
+                          </div>
+                        </th>
+                        <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700">Transaction</th>
+                        <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700">Date</th>
+                        <th className="px-4 py-3 text-right text-sm font-semibold text-gray-700">Total</th>
+                        <th className="px-4 py-3 text-right text-sm font-semibold text-gray-700">Paid</th>
+                        <th className="px-4 py-3 text-right text-sm font-semibold text-gray-700">Outstanding</th>
+                        <th className="px-4 py-3 text-center text-sm font-semibold text-gray-700">Status</th>
                       </tr>
                     </thead>
-                    <tbody>
+                    <tbody className="divide-y divide-gray-200">
                       {unpaidTransactions.map((t) => {
                         const total = calculateTransactionTotal(t)
                         const paid = t.amount_paid || 0
                         const outstanding = total - paid
+                        const isSelected = selectedIds.includes(t.id)
+                        
                         return (
-                          <tr key={t.id} className={selectedIds.includes(t.id) ? "bg-green-50" : ""}>
-                            <td>
-                              <input
-                                type="checkbox"
-                                checked={selectedIds.includes(t.id)}
-                                onChange={() => handleSelect(t.id)}
-                              />
+                          <tr 
+                            key={t.id} 
+                            className={`hover:bg-gray-50 cursor-pointer transition-colors ${
+                              isSelected ? 'bg-green-50 border-l-4 border-l-green-500' : ''
+                            }`}
+                            onClick={() => handleSelect(t.id)}
+                          >
+                            <td className="px-4 py-3">
+                              <div className="flex items-center justify-center">
+                                <input
+                                  type="checkbox"
+                                  checked={isSelected}
+                                  onChange={() => handleSelect(t.id)}
+                                  className="w-5 h-5 text-green-600 border-gray-300 rounded focus:ring-green-500"
+                                  onClick={(e) => e.stopPropagation()}
+                                />
+                              </div>
                             </td>
-                            <td className="font-mono text-blue-700 font-semibold">{t.transaction_number}</td>
-                            <td>{new Date(t.date).toLocaleDateString("en-GB", { day: "2-digit", month: "2-digit", year: "2-digit" })}</td>
-                            <td>{formatCurrency(total)}</td>
-                            <td>{formatCurrency(paid)}</td>
-                            <td className="text-red-600 font-bold">{formatCurrency(outstanding)}</td>
-                            <td>{outstanding <= 0 ? <span className="text-green-700 font-semibold">Paid</span> : paid > 0 ? <span className="text-yellow-700 font-semibold">Partial</span> : <span className="text-red-700 font-semibold">Pending</span>}</td>
+                            <td className="px-4 py-3">
+                              <span className="font-mono text-blue-700 font-semibold text-sm">
+                                {t.transaction_number}
+                              </span>
+                            </td>
+                            <td className="px-4 py-3 text-sm text-gray-600">
+                              {new Date(t.date).toLocaleDateString("en-GB", { 
+                                day: "2-digit", 
+                                month: "2-digit", 
+                                year: "2-digit" 
+                              })}
+                            </td>
+                            <td className="px-4 py-3 text-right text-sm font-medium">
+                              {formatCurrency(total)}
+                            </td>
+                            <td className="px-4 py-3 text-right text-sm text-gray-600">
+                              {formatCurrency(paid)}
+                            </td>
+                            <td className="px-4 py-3 text-right text-sm font-bold text-red-600">
+                              {formatCurrency(outstanding)}
+                            </td>
+                            <td className="px-4 py-3 text-center">
+                              {outstanding <= 0 ? (
+                                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                  Paid
+                                </span>
+                              ) : paid > 0 ? (
+                                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+                                  Partial
+                                </span>
+                              ) : (
+                                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                                  Pending
+                                </span>
+                              )}
+                            </td>
                           </tr>
                         )
                       })}
                     </tbody>
                   </table>
                 </div>
-              </div>
-            )}
-            {selectedIds.length > 0 && (
-              <div className="bg-green-50 p-3 rounded-lg">
-                <p className="text-sm text-green-800">
-                  Selected {selectedIds.length} transaction{selectedIds.length > 1 ? "s" : ""} totaling <span className="font-bold">{formatCurrency(totalOutstandingSelected)}</span>
-                </p>
-              </div>
-            )}
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div>
-                <Label htmlFor="paymentAmount">Payment Amount (KSH)</Label>
-                <Input
-                  id="paymentAmount"
-                  type="number"
-                  step="0.01"
-                  min="0"
-                  placeholder="Enter payment amount"
-                  value={paymentAmount}
-                  onChange={(e) => setPaymentAmount(e.target.value)}
-                  required
-                  className="mt-1"
-                  disabled={selectedIds.length === 0}
-                />
-                <div className="flex gap-2 mt-2">
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    onClick={() => handleAmountButton('half')}
-                    disabled={selectedIds.length === 0}
-                  >
-                    Half
-                  </Button>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    onClick={() => handleAmountButton('full')}
-                    disabled={selectedIds.length === 0}
-                  >
-                    Full Amount
-                  </Button>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Selection Summary */}
+          {selectedIds.length > 0 && (
+            <Card className="bg-green-50 border-green-200">
+              <CardContent className="pt-4">
+                <div className="flex items-center gap-2 text-green-800">
+                  <CheckSquare className="w-5 h-5" />
+                  <span className="font-semibold">
+                    Selected {selectedIds.length} transaction{selectedIds.length > 1 ? "s" : ""} 
+                    totaling <span className="text-green-900">{formatCurrency(totalOutstandingSelected)}</span>
+                  </span>
                 </div>
-              </div>
-              <div>
-                <Label htmlFor="paymentDate">Payment Date</Label>
-                <div className="flex items-center mt-1">
-                  <CalendarDays className="w-4 h-4 mr-2 text-gray-400" />
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Payment Form */}
+          <form onSubmit={handleSubmit} className="space-y-6">
+            <Card className="border-gray-200">
+              <CardHeader className="pb-3">
+                <CardTitle className="flex items-center gap-2 text-lg">
+                  <DollarSign className="w-5 h-5 text-green-600" />
+                  Payment Details
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                {/* Payment Amount */}
+                <div>
+                  <Label htmlFor="paymentAmount" className="text-base font-semibold text-gray-700">
+                    Payment Amount (KSH)
+                  </Label>
+                  <div className="mt-2 space-y-3">
+                    <Input
+                      id="paymentAmount"
+                      type="number"
+                      step="0.01"
+                      min="0"
+                      placeholder="Enter payment amount"
+                      value={paymentAmount}
+                      onChange={(e) => setPaymentAmount(e.target.value)}
+                      required
+                      className="text-lg font-semibold"
+                      disabled={selectedIds.length === 0}
+                    />
+                    <div className="flex gap-3">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={() => handleAmountButton('half')}
+                        disabled={selectedIds.length === 0}
+                        className="flex-1"
+                      >
+                        Half Amount
+                      </Button>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={() => handleAmountButton('full')}
+                        disabled={selectedIds.length === 0}
+                        className="flex-1"
+                      >
+                        Full Amount
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Payment Date */}
+                <div>
+                  <Label htmlFor="paymentDate" className="text-base font-semibold text-gray-700">
+                    Payment Date
+                  </Label>
+                  <div className="flex items-center mt-2">
+                    <CalendarDays className="w-5 h-5 mr-2 text-gray-400" />
+                    <Input
+                      id="paymentDate"
+                      type="date"
+                      value={paymentDate}
+                      onChange={(e) => setPaymentDate(e.target.value)}
+                      className="flex-1"
+                    />
+                  </div>
+                </div>
+
+                {/* Payment Method */}
+                <div>
+                  <Label className="text-base font-semibold text-gray-700 mb-3 block">
+                    Payment Method
+                  </Label>
+                  <div className="grid grid-cols-3 gap-3">
+                    <Button
+                      type="button"
+                      variant={paymentMethod === "cash" ? "default" : "outline"}
+                      className={`h-12 ${paymentMethod === "cash" ? "bg-green-600 hover:bg-green-700" : ""}`}
+                      onClick={() => setPaymentMethod("cash")}
+                    >
+                      💵 Cash
+                    </Button>
+                    <Button
+                      type="button"
+                      variant={paymentMethod === "mpesa" ? "default" : "outline"}
+                      className={`h-12 ${paymentMethod === "mpesa" ? "bg-green-600 hover:bg-green-700" : ""}`}
+                      onClick={() => setPaymentMethod("mpesa")}
+                    >
+                      📱 M-Pesa
+                    </Button>
+                    <Button
+                      type="button"
+                      variant={paymentMethod === "bank" ? "default" : "outline"}
+                      className={`h-12 ${paymentMethod === "bank" ? "bg-green-600 hover:bg-green-700" : ""}`}
+                      onClick={() => setPaymentMethod("bank")}
+                    >
+                      🏦 Bank
+                    </Button>
+                  </div>
+                </div>
+
+                {/* Payment Note */}
+                <div>
+                  <Label htmlFor="paymentNote" className="text-base font-semibold text-gray-700">
+                    Payment Note (Optional)
+                  </Label>
                   <Input
-                    id="paymentDate"
-                    type="date"
-                    value={paymentDate}
-                    onChange={(e) => setPaymentDate(e.target.value)}
-                    className="flex-1"
+                    id="paymentNote"
+                    placeholder="Add a note about this payment..."
+                    value={paymentNote}
+                    onChange={(e) => setPaymentNote(e.target.value)}
+                    className="mt-2"
                   />
                 </div>
-              </div>
-              <div>
-                <Label htmlFor="paymentMethod">Payment Method</Label>
-                <div className="grid grid-cols-3 gap-2 mt-1">
-                  <Button
-                    type="button"
-                    variant={paymentMethod === "cash" ? "default" : "outline"}
-                    className={paymentMethod === "cash" ? "bg-orange-500 hover:bg-orange-600" : ""}
-                    onClick={() => setPaymentMethod("cash")}
-                  >
-                    Cash
-                  </Button>
-                  <Button
-                    type="button"
-                    variant={paymentMethod === "mpesa" ? "default" : "outline"}
-                    className={paymentMethod === "mpesa" ? "bg-orange-500 hover:bg-orange-600" : ""}
-                    onClick={() => setPaymentMethod("mpesa")}
-                  >
-                    M-Pesa
-                  </Button>
-                  <Button
-                    type="button"
-                    variant={paymentMethod === "bank" ? "default" : "outline"}
-                    className={paymentMethod === "bank" ? "bg-orange-500 hover:bg-orange-600" : ""}
-                    onClick={() => setPaymentMethod("bank")}
-                  >
-                    Bank
-                  </Button>
-                </div>
-              </div>
-              <div>
-                <Label htmlFor="paymentNote">Payment Note (Optional)</Label>
-                <Input
-                  id="paymentNote"
-                  placeholder="Add a note about this payment"
-                  value={paymentNote}
-                  onChange={(e) => setPaymentNote(e.target.value)}
-                  className="mt-1"
-                />
-              </div>
-              {paymentAmount && (
-                <div className="bg-green-50 p-3 rounded-lg">
-                  <p className="text-sm text-green-800">
-                    Recording payment of {" "}
-                    <span className="font-bold">{formatCurrency(Number.parseFloat(paymentAmount) || 0)}</span>
-                  </p>
-                  <p className="text-xs text-green-600 mt-1">
-                    Remaining balance: {formatCurrency(totalOutstandingSelected - (Number.parseFloat(paymentAmount) || 0))}
-                  </p>
-                </div>
-              )}
-              <div className="flex gap-2 pt-2">
-                <Button type="button" variant="outline" onClick={() => setIsOpen(false)} className="flex-1">
-                  Cancel
-                </Button>
-                <Button
-                  type="submit"
-                  className="flex-1 bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800"
-                  disabled={selectedIds.length === 0 || !paymentAmount || Number(paymentAmount) <= 0}
-                >
-                  Record Payment
-                </Button>
-              </div>
-            </form>
-          </CardContent>
-        </Card>
+              </CardContent>
+            </Card>
+
+            {/* Payment Summary */}
+            {paymentAmount && selectedIds.length > 0 && (
+              <Card className="bg-blue-50 border-blue-200">
+                <CardContent className="pt-4">
+                  <div className="space-y-2">
+                    <div className="flex items-center gap-2 text-blue-800">
+                      <AlertCircle className="w-5 h-5" />
+                      <span className="font-semibold">Payment Summary</span>
+                    </div>
+                    <div className="grid grid-cols-2 gap-4 text-sm">
+                      <div>
+                        <span className="text-gray-600">Payment Amount:</span>
+                        <span className="ml-2 font-bold text-blue-900">
+                          {formatCurrency(Number.parseFloat(paymentAmount) || 0)}
+                        </span>
+                      </div>
+                      <div>
+                        <span className="text-gray-600">Remaining Balance:</span>
+                        <span className="ml-2 font-bold text-red-600">
+                          {formatCurrency(totalOutstandingSelected - (Number.parseFloat(paymentAmount) || 0))}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Action Buttons */}
+            <div className="flex gap-4 pt-4">
+              <Button 
+                type="button" 
+                variant="outline" 
+                onClick={() => setIsOpen(false)} 
+                className="flex-1 h-12 text-lg"
+                disabled={isSubmitting}
+              >
+                Cancel
+              </Button>
+              <Button
+                type="submit"
+                className="flex-1 h-12 text-lg bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800"
+                disabled={selectedIds.length === 0 || !paymentAmount || Number(paymentAmount) <= 0 || isSubmitting}
+              >
+                {isSubmitting ? (
+                  <>
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                    Processing...
+                  </>
+                ) : (
+                  <>
+                    <DollarSign className="w-5 h-5 mr-2" />
+                    Record Payment
+                  </>
+                )}
+              </Button>
+            </div>
+          </form>
+        </div>
       </DialogContent>
     </Dialog>
   )

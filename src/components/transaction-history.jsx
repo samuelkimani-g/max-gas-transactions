@@ -50,10 +50,10 @@ export default function TransactionHistory({ transactions = [], customerId, onEd
       // Manager/Operator: Submit approval request
       try {
         await submitApprovalRequest({
-          entity_type: 'transaction',
-          entity_id: transaction.id,
-          request_type: 'delete',
-          request_notes: `${user.role === 'manager' ? 'Manager' : 'Operator'} requests deletion of transaction #${transaction.transaction_number || transaction.id}.`,
+          entityType: 'transaction',
+          entityId: transaction.id,
+          requestType: 'transaction_delete',
+          reason: `${user.role === 'manager' ? 'Manager' : 'Operator'} requests deletion of transaction #${transaction.transaction_number || transaction.id}.`,
         });
         toast({ title: 'Deletion Requested', description: 'Deletion request submitted for admin approval.', variant: 'success' });
       } catch (error) {

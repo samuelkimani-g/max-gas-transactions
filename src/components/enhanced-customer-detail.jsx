@@ -115,10 +115,10 @@ export default function EnhancedCustomerDetail({ customerId, onBack }) {
       try {
         setIsDeleting(true)
         await submitApprovalRequest({
-          entity_type: 'customer',
-          entity_id: customerId,
-          request_type: 'delete',
-          request_notes: `${user.role === 'manager' ? 'Manager' : 'Operator'} requests deletion of customer ${customer.name}.`,
+          entityType: 'customer',
+          entityId: customerId,
+          requestType: 'customer_delete',
+          reason: `${user.role === 'manager' ? 'Manager' : 'Operator'} requests deletion of customer ${customer.name}.`,
         });
         toast({ title: 'Deletion Requested', description: 'Customer deletion request submitted for admin approval.', variant: 'success' });
         setShowDeleteConfirm(false)

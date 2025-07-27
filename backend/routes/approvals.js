@@ -187,6 +187,9 @@ router.put('/:id/approve', [
           returning: true
         });
       } else if (approval.requestType === 'customer_delete') {
+        // Delete related transactions first to avoid foreign key constraint
+        await Transaction.destroy({ where: { customerId: approval.entityId } });
+        // Then delete the customer
         await Customer.destroy({ where: { id: approval.entityId } });
         updatedEntity = { deleted: true };
       }

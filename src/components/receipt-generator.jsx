@@ -699,7 +699,7 @@ export default function ReceiptGenerator({ transaction, customer }) {
                 {paymentHistory.map((payment, index) => (
                   <tr key={index}>
                     <td>{formatDate(payment.paymentDate)}</td>
-                    <td>{formatCurrency(payment.amount)}</td>
+                    <td>{formatCurrency(parseFloat(payment.amount) || 0)}</td>
                     <td>{payment.paymentMethod}</td>
                     <td>{payment.reference || '-'}</td>
                   </tr>

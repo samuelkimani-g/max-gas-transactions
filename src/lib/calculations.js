@@ -173,16 +173,19 @@ export function calculateTransactionTotal(transaction) {
 
 /**
  * Format currency for display
- * @param {number} amount - Amount to format
+ * @param {number|string} amount - Amount to format
  * @returns {string} Formatted currency string
  */
 export function formatCurrency(amount) {
-  if (typeof amount !== 'number' || isNaN(amount)) return 'Ksh 0.00';
+  // Convert string to number if needed
+  const numAmount = typeof amount === 'string' ? parseFloat(amount) : amount;
+  
+  if (typeof numAmount !== 'number' || isNaN(numAmount)) return 'Ksh 0.00';
   return new Intl.NumberFormat('en-US', {
     style: 'currency',
     currency: 'KES',
     minimumFractionDigits: 2
-  }).format(amount);
+  }).format(numAmount);
 }
 
 /**

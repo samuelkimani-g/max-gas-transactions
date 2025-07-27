@@ -386,6 +386,8 @@ router.put('/bulk-customer-payment-select', [
     
     let remainingAmount = amount;
     const updatedTransactions = [];
+    const createdPayments = [];
+    
     for (const transactionRecord of orderedTransactions) {
       console.log('[BACKEND DEBUG] Processing transaction:', {
         id: transactionRecord.id,
@@ -428,10 +430,27 @@ router.put('/bulk-customer-payment-select', [
         notes: transactionRecord.notes ? `${transactionRecord.notes}\n${note}` : note,
       }, { transaction: dbTransaction });
       
-      console.log('[BACKEND DEBUG] Transaction updated:', {
+      // Create Payment record for this transaction
+      const Payment = require('../models/Payment');
+      const paymentRecord = await Payment.create({
+        transactionId: transactionRecord.id,
+        customerId: customerId,
+        amount: paymentForThis,
+        paymentMethod: method || 'cash',
+        reference: note || `Bulk payment - ${new Date().toISOString()}`,
+        processedBy: 1, // Default to admin user
+        status: 'completed',
+        paymentDate: new Date(),
+        notes: note || `Bulk payment of ${paymentForThis} for transaction ${transactionRecord.transaction_number}`
+      }, { transaction: dbTransaction });
+      
+      createdPayments.push(paymentRecord);
+      
+      console.log('[BACKEND DEBUG] Transaction updated and payment created:', {
         id: updatedTransaction.id,
         amount_paid: updatedTransaction.amount_paid,
-        payment_method: updatedTransaction.payment_method
+        payment_method: updatedTransaction.payment_method,
+        paymentId: paymentRecord.id
       });
       
       updatedTransactions.push(updatedTransaction);
@@ -448,6 +467,8 @@ router.put('/bulk-customer-payment-select', [
     await dbTransaction.commit();
     res.json({
       success: true,
+      message: `Bulk payment of ${amount} applied to ${updatedTransactions.length} transactions`,
+      payments: createdPayments,
       data: {
         message: `Bulk payment of ${totalPaid} recorded successfully`,
         remainingAmount,

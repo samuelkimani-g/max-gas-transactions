@@ -22,7 +22,7 @@ export default function ReceiptGenerator({ transaction, customer }) {
   const fetchPaymentHistory = async () => {
     setLoadingPayments(true)
     try {
-      const response = await fetch(`/api/payments/transaction/${transaction.id}`, {
+      const response = await fetch(`https://max-gas-backend.onrender.com/api/payments/transaction/${transaction.id}`, {
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('token')}`,
           'Content-Type': 'application/json'
@@ -31,6 +31,9 @@ export default function ReceiptGenerator({ transaction, customer }) {
       if (response.ok) {
         const payments = await response.json()
         setPaymentHistory(payments)
+        console.log('Payment history loaded:', payments)
+      } else {
+        console.error('Failed to fetch payment history:', response.status, response.statusText)
       }
     } catch (error) {
       console.error('Failed to fetch payment history:', error)
@@ -80,28 +83,37 @@ export default function ReceiptGenerator({ transaction, customer }) {
             
             .header {
               text-align: center;
-              border-bottom: 1px solid #000;
+              border-bottom: 2px solid #f97316;
               padding-bottom: 3mm;
               margin-bottom: 3mm;
+              background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
+              color: white;
+              padding: 3mm;
+              border-radius: 2mm;
             }
             
             .company-name {
               font-size: 14px;
               font-weight: bold;
               margin-bottom: 1mm;
+              color: #f97316;
             }
             
             .company-tagline {
               font-size: 8px;
               margin-bottom: 2mm;
+              color: #60a5fa;
             }
             
             .receipt-title {
               font-size: 10px;
               font-weight: bold;
-              border: 1px solid #000;
+              border: 2px solid #f97316;
+              background: #f97316;
+              color: white;
               padding: 1mm 2mm;
               display: inline-block;
+              border-radius: 1mm;
             }
             
             .transaction-info {
@@ -124,10 +136,12 @@ export default function ReceiptGenerator({ transaction, customer }) {
               font-weight: bold;
               font-size: 9px;
               text-align: center;
-              background: #f0f0f0;
+              background: #60a5fa;
+              color: white;
               padding: 1mm;
               margin: 2mm 0;
-              border: 1px solid #000;
+              border: 1px solid #2563eb;
+              border-radius: 1mm;
             }
             
             .status-badge {
@@ -154,8 +168,12 @@ export default function ReceiptGenerator({ transaction, customer }) {
               font-size: 10px;
               font-weight: bold;
               margin: 3mm 0 2mm 0;
-              border-bottom: 1px solid #000;
+              border-bottom: 2px solid #f97316;
               padding-bottom: 1mm;
+              color: #1e293b;
+              background: #fef3e2;
+              padding: 1mm 2mm;
+              border-radius: 1mm;
             }
             
             .cylinder-summary {
@@ -181,7 +199,9 @@ export default function ReceiptGenerator({ transaction, customer }) {
               font-size: 9px;
               font-weight: bold;
               margin-bottom: 1mm;
-              text-decoration: underline;
+              color: #2563eb;
+              border-bottom: 1px solid #60a5fa;
+              padding-bottom: 1mm;
             }
             
             .item-row {
@@ -225,9 +245,12 @@ export default function ReceiptGenerator({ transaction, customer }) {
             }
             
             .totals-section {
-              border-top: 2px solid #000;
+              border-top: 2px solid #f97316;
               padding-top: 2mm;
               margin-bottom: 3mm;
+              background: #fef3e2;
+              padding: 2mm;
+              border-radius: 1mm;
             }
             
             .total-row {
@@ -246,9 +269,13 @@ export default function ReceiptGenerator({ transaction, customer }) {
             
             .footer {
               text-align: center;
-              border-top: 1px solid #000;
+              border-top: 2px solid #f97316;
               padding-top: 3mm;
               font-size: 8px;
+              background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
+              color: white;
+              padding: 3mm;
+              border-radius: 2mm;
             }
             
             .footer-message {
@@ -277,20 +304,25 @@ export default function ReceiptGenerator({ transaction, customer }) {
                 background: white !important;
               }
               .header {
-                color: black !important;
-                border-bottom: 1px solid black !important;
+                background: linear-gradient(135deg, #1e293b 0%, #334155 100%) !important;
+                color: white !important;
+                border-bottom: 2px solid #f97316 !important;
               }
               .company-name {
-                color: black !important;
+                color: #f97316 !important;
+              }
+              .company-tagline {
+                color: #60a5fa !important;
               }
               .receipt-title {
-                color: black !important;
-                border: 1px solid black !important;
+                background: #f97316 !important;
+                color: white !important;
+                border: 2px solid #f97316 !important;
               }
               .serial-number {
-                background: #f0f0f0 !important;
-                color: black !important;
-                border: 1px solid black !important;
+                background: #60a5fa !important;
+                color: white !important;
+                border: 1px solid #2563eb !important;
               }
               .status-paid {
                 background: #90EE90 !important;
@@ -308,11 +340,13 @@ export default function ReceiptGenerator({ transaction, customer }) {
                 border: 1px solid black !important;
               }
               .section-title {
-                color: black !important;
-                border-bottom: 1px solid black !important;
+                color: #1e293b !important;
+                border-bottom: 2px solid #f97316 !important;
+                background: #fef3e2 !important;
               }
               .group-title {
-                color: black !important;
+                color: #2563eb !important;
+                border-bottom: 1px solid #60a5fa !important;
               }
               .item-description {
                 color: black !important;
@@ -332,14 +366,15 @@ export default function ReceiptGenerator({ transaction, customer }) {
                 color: black !important;
               }
               .footer {
-                color: black !important;
-                border-top: 1px solid black !important;
+                background: linear-gradient(135deg, #1e293b 0%, #334155 100%) !important;
+                color: white !important;
+                border-top: 2px solid #f97316 !important;
               }
               .footer-message {
-                color: black !important;
+                color: white !important;
               }
               .footer-contact {
-                color: black !important;
+                color: white !important;
               }
               .no-print { display: none; }
             }

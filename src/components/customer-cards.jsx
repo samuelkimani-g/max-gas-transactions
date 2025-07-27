@@ -81,29 +81,29 @@ export default function CustomerCards() {
                 <div className="space-y-1">
                   <div className="flex justify-between items-center">
                     <span className="text-xs text-gray-500">6kg:</span>
-                    <span className={`text-xs font-medium ${cylinderBalance['6kg'] < 0 ? 'text-red-600' : cylinderBalance['6kg'] > 0 ? 'text-yellow-600' : 'text-green-600'}`}>
-                      {cylinderBalance['6kg'] < 0 ? `-${Math.abs(cylinderBalance['6kg'])}` : cylinderBalance['6kg'] > 0 ? `+${cylinderBalance['6kg']}` : cylinderBalance['6kg']}
+                    <span className={`text-xs font-medium ${cylinderBalance['6kg'] > 0 ? 'text-red-700' : cylinderBalance['6kg'] < 0 ? 'text-green-700' : 'text-gray-700'}`}>
+                      {cylinderBalance['6kg'] > 0 ? `+${cylinderBalance['6kg']}` : cylinderBalance['6kg'] < 0 ? cylinderBalance['6kg'] : 0}
                     </span>
                   </div>
                   <div className="flex justify-between items-center">
                     <span className="text-xs text-gray-500">13kg:</span>
-                    <span className={`text-xs font-medium ${cylinderBalance['13kg'] < 0 ? 'text-red-600' : cylinderBalance['13kg'] > 0 ? 'text-yellow-600' : 'text-green-600'}`}>
-                      {cylinderBalance['13kg'] < 0 ? `-${Math.abs(cylinderBalance['13kg'])}` : cylinderBalance['13kg'] > 0 ? `+${cylinderBalance['13kg']}` : cylinderBalance['13kg']}
+                    <span className={`text-xs font-medium ${cylinderBalance['13kg'] > 0 ? 'text-red-700' : cylinderBalance['13kg'] < 0 ? 'text-green-700' : 'text-gray-700'}`}>
+                      {cylinderBalance['13kg'] > 0 ? `+${cylinderBalance['13kg']}` : cylinderBalance['13kg'] < 0 ? cylinderBalance['13kg'] : 0}
                     </span>
                   </div>
                   <div className="flex justify-between items-center">
                     <span className="text-xs text-gray-500">50kg:</span>
-                    <span className={`text-xs font-medium ${cylinderBalance['50kg'] < 0 ? 'text-red-600' : cylinderBalance['50kg'] > 0 ? 'text-yellow-600' : 'text-green-600'}`}>
-                      {cylinderBalance['50kg'] < 0 ? `-${Math.abs(cylinderBalance['50kg'])}` : cylinderBalance['50kg'] > 0 ? `+${cylinderBalance['50kg']}` : cylinderBalance['50kg']}
+                    <span className={`text-xs font-medium ${cylinderBalance['50kg'] > 0 ? 'text-red-700' : cylinderBalance['50kg'] < 0 ? 'text-green-700' : 'text-gray-700'}`}>
+                      {cylinderBalance['50kg'] > 0 ? `+${cylinderBalance['50kg']}` : cylinderBalance['50kg'] < 0 ? cylinderBalance['50kg'] : 0}
                     </span>
                   </div>
                 </div>
                 <div className="mt-2 text-xs text-gray-400">
                   {cylinderBalance['6kg'] > 0 || cylinderBalance['13kg'] > 0 || cylinderBalance['50kg'] > 0 ? 
-                    "⚠️ Customer owes cylinders" : 
+                    "🔴 Customer owes us" : 
                     cylinderBalance['6kg'] < 0 || cylinderBalance['13kg'] < 0 || cylinderBalance['50kg'] < 0 ? 
-                    "✅ You owe cylinders" : 
-                    "✅ Balance settled"
+                    "🟢 We owe customer" : 
+                    "⚫ Balance settled"
                   }
                 </div>
               </div>

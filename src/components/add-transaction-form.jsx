@@ -110,6 +110,7 @@ export default function AddTransactionForm({ customerId, customerName, onBack, o
   const [paymentMethod, setPaymentMethod] = useState('cash');
   const [notes, setNotes] = useState('');
   const [error, setError] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const { toast } = useToast();
 
   // Detailed load tracking
@@ -267,6 +268,7 @@ export default function AddTransactionForm({ customerId, customerName, onBack, o
       return;
     }
 
+    setIsSubmitting(true);
     try {
       const transactionData = {
         customerId: customerId,
@@ -306,6 +308,8 @@ export default function AddTransactionForm({ customerId, customerName, onBack, o
       onBack();
     } catch (error) {
       setError(error.message || 'Failed to save transaction.');
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -819,9 +823,19 @@ export default function AddTransactionForm({ customerId, customerName, onBack, o
         <Button 
           onClick={validateAndSubmit} 
           className="bg-orange-500 hover:bg-orange-600 text-white"
+          disabled={isSubmitting}
         >
-          <Save className="w-4 h-4 mr-2" />
-          Save Transaction
+          {isSubmitting ? (
+            <>
+              <div className="w-4 h-4 mr-2 border-2 border-white border-t-transparent rounded-full animate-spin" />
+              Saving...
+            </>
+          ) : (
+            <>
+              <Save className="w-4 h-4 mr-2" />
+              Save Transaction
+            </>
+          )}
         </Button>
       </div>
     </div>

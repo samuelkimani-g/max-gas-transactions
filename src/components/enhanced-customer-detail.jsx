@@ -72,6 +72,37 @@ export default function EnhancedCustomerDetail({ customerId, onBack }) {
   
   const cylinderBalance = cylinderBalance6kg + cylinderBalance13kg + cylinderBalance50kg;
 
+  // Helper function to get cylinder balance status
+  const getCylinderBalanceStatus = () => {
+    if (cylinderBalance > 0) {
+      return {
+        text: 'Cylinders Owed to Us',
+        color: 'text-red-700',
+        bgColor: 'bg-red-50',
+        borderColor: 'border-red-200',
+        status: 'customer-owes-us'
+      };
+    } else if (cylinderBalance < 0) {
+      return {
+        text: 'Cylinders Owed to Customer',
+        color: 'text-green-700',
+        bgColor: 'bg-green-50',
+        borderColor: 'border-green-200',
+        status: 'we-owe-customer'
+      };
+    } else {
+      return {
+        text: 'Balance Settled',
+        color: 'text-gray-700',
+        bgColor: 'bg-gray-50',
+        borderColor: 'border-gray-200',
+        status: 'balanced'
+      };
+    }
+  };
+
+  const cylinderStatus = getCylinderBalanceStatus();
+
   const handleDeleteCustomer = async () => {
     setShowDeleteConfirm(true);
   }
@@ -180,32 +211,54 @@ export default function EnhancedCustomerDetail({ customerId, onBack }) {
             <p className="text-lg text-red-600 font-semibold">{financialBalance > 0 ? 'Amount Due' : 'Fully Paid'}</p>
           </CardContent>
         </Card>
-        <Card className="border-0 bg-gradient-to-br from-blue-50 to-blue-100 shadow-lg">
-          <CardHeader className="bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-t-lg">
+        <Card className={`border-0 ${cylinderStatus.bgColor} shadow-lg`}>
+          <CardHeader className={`bg-gradient-to-r ${cylinderBalance > 0 ? 'from-red-600 to-red-700' : cylinderBalance < 0 ? 'from-green-600 to-green-700' : 'from-gray-600 to-gray-700'} text-white rounded-t-lg`}>
             <div className="flex items-center justify-between">
               <CardTitle className="text-xl font-bold">Cylinder Status</CardTitle>
               <Package className="h-6 w-6" />
             </div>
           </CardHeader>
           <CardContent className="p-6 text-center">
-            <div className={`text-3xl font-bold mb-2 ${cylinderBalance > 0 ? 'text-red-700' : 'text-green-700'}`}>
-              {cylinderBalance > 0 ? `+${cylinderBalance}` : (cylinderBalance || 0)}
+            <div className={`text-3xl font-bold mb-2 ${cylinderStatus.color}`}>
+              {cylinderBalance > 0 ? `+${cylinderBalance}` : cylinderBalance < 0 ? cylinderBalance : 0}
             </div>
-            <p className="text-lg font-semibold mb-4">
-              {cylinderBalance > 0 ? 'Cylinders Owed to Us' : 'Cylinders Owed to Customer'}
+            <p className={`text-lg font-semibold mb-4 ${cylinderStatus.color}`}>
+              {cylinderStatus.text}
             </p>
             <div className="grid grid-cols-3 gap-2 text-xs">
-              <div className="bg-white p-2 rounded border">
-                <div className="font-bold">{cylinderBalance6kg || 0}</div>
+              <div className={`bg-white p-2 rounded border ${cylinderBalance6kg > 0 ? 'border-red-300' : cylinderBalance6kg < 0 ? 'border-green-300' : 'border-gray-300'}`}>
+                <div className={`font-bold ${cylinderBalance6kg > 0 ? 'text-red-700' : cylinderBalance6kg < 0 ? 'text-green-700' : 'text-gray-700'}`}>
+                  {cylinderBalance6kg > 0 ? `+${cylinderBalance6kg}` : cylinderBalance6kg < 0 ? cylinderBalance6kg : 0}
+                </div>
                 <div>6kg</div>
               </div>
-              <div className="bg-white p-2 rounded border">
-                <div className="font-bold">{cylinderBalance13kg || 0}</div>
+              <div className={`bg-white p-2 rounded border ${cylinderBalance13kg > 0 ? 'border-red-300' : cylinderBalance13kg < 0 ? 'border-green-300' : 'border-gray-300'}`}>
+                <div className={`font-bold ${cylinderBalance13kg > 0 ? 'text-red-700' : cylinderBalance13kg < 0 ? 'text-green-700' : 'text-gray-700'}`}>
+                  {cylinderBalance13kg > 0 ? `+${cylinderBalance13kg}` : cylinderBalance13kg < 0 ? cylinderBalance13kg : 0}
+                </div>
                 <div>13kg</div>
               </div>
-              <div className="bg-white p-2 rounded border">
-                <div className="font-bold">{cylinderBalance50kg || 0}</div>
+              <div className={`bg-white p-2 rounded border ${cylinderBalance50kg > 0 ? 'border-red-300' : cylinderBalance50kg < 0 ? 'border-green-300' : 'border-gray-300'}`}>
+                <div className={`font-bold ${cylinderBalance50kg > 0 ? 'text-red-700' : cylinderBalance50kg < 0 ? 'text-green-700' : 'text-gray-700'}`}>
+                  {cylinderBalance50kg > 0 ? `+${cylinderBalance50kg}` : cylinderBalance50kg < 0 ? cylinderBalance50kg : 0}
+                </div>
                 <div>50kg</div>
+              </div>
+            </div>
+            <div className="mt-4 text-xs text-gray-600">
+              <div className="flex justify-center space-x-4">
+                <div className="flex items-center">
+                  <div className="w-3 h-3 bg-red-500 rounded-full mr-1"></div>
+                  <span>Customer owes us</span>
+                </div>
+                <div className="flex items-center">
+                  <div className="w-3 h-3 bg-green-500 rounded-full mr-1"></div>
+                  <span>We owe customer</span>
+                </div>
+                <div className="flex items-center">
+                  <div className="w-3 h-3 bg-gray-500 rounded-full mr-1"></div>
+                  <span>Balanced</span>
+                </div>
               </div>
             </div>
           </CardContent>

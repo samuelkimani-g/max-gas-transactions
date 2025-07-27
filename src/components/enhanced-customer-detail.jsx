@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react"
 import { useStore } from "../lib/store"
 import { useRBAC } from "../lib/rbac"
+import { useToast } from "../hooks/use-toast"
 import { Button } from "./ui/button"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "./ui/card"
 import { ArrowLeft, PlusCircle, Trash2, FileText, DollarSign, Package, AlertTriangle, Shield, Settings } from "lucide-react"
@@ -21,8 +22,9 @@ import ConfirmationDialog from "./confirmation-dialog"
 const formatNumber = (num) => new Intl.NumberFormat('en-US').format(num);
 
 export default function EnhancedCustomerDetail({ customerId, onBack }) {
-  const { customers, getCustomerTransactions, deleteCustomer, user } = useStore()
+  const { customers, getCustomerTransactions, deleteCustomer, submitApprovalRequest, user } = useStore()
   const rbac = useRBAC(user)
+  const { toast } = useToast()
   
   const [isAddingTransaction, setIsAddingTransaction] = useState(false)
   const [isEditingCustomer, setIsEditingCustomer] = useState(false)
@@ -108,14 +110,34 @@ export default function EnhancedCustomerDetail({ customerId, onBack }) {
   }
 
   const confirmDeleteCustomer = async () => {
-    try {
-      setIsDeleting(true)
-      await deleteCustomer(customerId)
-      onBack() // Go back to the customer list after deletion
-    } catch (error) {
-      alert(`Failed to delete customer: ${error.message}`)
-    } finally {
-      setIsDeleting(false)
+    if (rbac?.permissions?.canRequestCustomerApproval) {
+      // Manager/Operator: Submit approval request
+      try {
+        setIsDeleting(true)
+        await submitApprovalRequest({
+          entity_type: 'customer',
+          entity_id: customerId,
+          request_type: 'delete',
+          request_notes: `${user.role === 'manager' ? 'Manager' : 'Operator'} requests deletion of customer ${customer.name}.`,
+        });
+        toast({ title: 'Deletion Requested', description: 'Customer deletion request submitted for admin approval.', variant: 'success' });
+        setShowDeleteConfirm(false)
+      } catch (error) {
+        toast({ title: 'Error', description: `Failed to submit deletion request: ${error.message}`, variant: 'destructive' });
+      } finally {
+        setIsDeleting(false)
+      }
+    } else if (rbac?.permissions?.canDeleteCustomer) {
+      // Admin: Direct delete
+      try {
+        setIsDeleting(true)
+        await deleteCustomer(customerId)
+        onBack() // Go back to the customer list after deletion
+      } catch (error) {
+        toast({ title: 'Error', description: `Failed to delete customer: ${error.message}`, variant: 'destructive' });
+      } finally {
+        setIsDeleting(false)
+      }
     }
   }
   
@@ -343,13 +365,15 @@ export default function EnhancedCustomerDetail({ customerId, onBack }) {
                   This action cannot be undone. This will permanently delete the customer and all associated data.
                 </p>
                 <div className="flex gap-2">
-                  <Button
-                    onClick={handleDeleteCustomer}
-                    className="bg-red-600 hover:bg-red-700 text-white"
-                    disabled={isDeleting}
-                  >
-                    {isDeleting ? 'Deleting...' : 'Delete Customer'}
-                  </Button>
+                  {(rbac?.permissions?.canDeleteCustomer || rbac?.permissions?.canRequestCustomerApproval) && (
+                    <Button
+                      onClick={handleDeleteCustomer}
+                      className="bg-red-600 hover:bg-red-700 text-white"
+                      disabled={isDeleting}
+                    >
+                      {isDeleting ? 'Processing...' : (rbac?.permissions?.canRequestCustomerApproval ? 'Request Deletion' : 'Delete Customer')}
+                    </Button>
+                  )}
                   <Button
                     onClick={() => setShowDeleteOptions(false)}
                     variant="outline"
@@ -393,9 +417,13 @@ export default function EnhancedCustomerDetail({ customerId, onBack }) {
         open={showDeleteConfirm}
         onOpenChange={setShowDeleteConfirm}
         onConfirm={confirmDeleteCustomer}
-        title="Delete Customer"
-        description={`Are you sure you want to delete ${customer.name}? This action cannot be undone.`}
-        confirmText="Delete Customer"
+        title={rbac?.permissions?.canRequestCustomerApproval ? "Request Customer Deletion" : "Delete Customer"}
+        description={
+          rbac?.permissions?.canRequestCustomerApproval 
+            ? `Are you sure you want to request deletion of ${customer.name}? This will submit a request for admin approval.`
+            : `Are you sure you want to delete ${customer.name}? This action cannot be undone.`
+        }
+        confirmText={rbac?.permissions?.canRequestCustomerApproval ? "Request Deletion" : "Delete Customer"}
         type="customer"
         customerName={customer.name}
         transactionCount={customerTransactions?.length || 0}

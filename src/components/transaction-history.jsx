@@ -46,20 +46,21 @@ export default function TransactionHistory({ transactions = [], customerId, onEd
   const confirmDelete = async () => {
     const { transaction } = deleteConfirm;
     
-    if (rbac?.permissions?.canRequestApproval && !rbac?.permissions?.canDeleteTransaction) {
+    if (rbac?.permissions?.canRequestTransactionApproval) {
+      // Manager/Operator: Submit approval request
       try {
         await submitApprovalRequest({
           entity_type: 'transaction',
           entity_id: transaction.id,
           request_type: 'delete',
-          request_notes: `Operator requests deletion of transaction #${transaction.id}.`,
+          request_notes: `${user.role === 'manager' ? 'Manager' : 'Operator'} requests deletion of transaction #${transaction.transaction_number || transaction.id}.`,
         });
-        toast({ title: 'Deletion Requested', description: 'Deletion request submitted for approval.', variant: 'success' });
+        toast({ title: 'Deletion Requested', description: 'Deletion request submitted for admin approval.', variant: 'success' });
       } catch (error) {
         toast({ title: 'Error', description: `Failed to submit deletion request: ${error.message}`, variant: 'destructive' });
       }
-    } else {
-      // Direct delete for managers/admins
+    } else if (rbac?.permissions?.canDeleteTransaction) {
+      // Admin: Direct delete
       try {
         await deleteTransaction(transaction.id);
         toast({ title: 'Transaction Deleted', description: 'Transaction deleted successfully.', variant: 'success' });
@@ -123,7 +124,7 @@ export default function TransactionHistory({ transactions = [], customerId, onEd
                   <Button variant="ghost" size="icon" onClick={(e) => {e.stopPropagation(); handleEdit(t);}}>
                     <Edit className="h-4 w-4 text-blue-500" />
                   </Button>
-                  {rbac?.permissions?.canDeleteTransaction && (
+                  {(rbac?.permissions?.canDeleteTransaction || rbac?.permissions?.canRequestTransactionApproval) && (
                      <Button variant="ghost" size="icon" onClick={(e) => {e.stopPropagation(); handleDelete(t.id);}}>
                        <Trash2 className="h-4 w-4 text-red-500" />
                      </Button>
@@ -511,9 +512,13 @@ export default function TransactionHistory({ transactions = [], customerId, onEd
         open={deleteConfirm.show}
         onOpenChange={(open) => setDeleteConfirm({ show: open, transaction: null })}
         onConfirm={confirmDelete}
-        title="Delete Transaction"
-        description={`Are you sure you want to delete transaction #${deleteConfirm.transaction?.transaction_number || deleteConfirm.transaction?.id}? This action cannot be undone.`}
-        confirmText="Delete Transaction"
+        title={rbac?.permissions?.canRequestTransactionApproval ? "Request Transaction Deletion" : "Delete Transaction"}
+        description={
+          rbac?.permissions?.canRequestTransactionApproval 
+            ? `Are you sure you want to request deletion of transaction #${deleteConfirm.transaction?.transaction_number || deleteConfirm.transaction?.id}? This will submit a request for admin approval.`
+            : `Are you sure you want to delete transaction #${deleteConfirm.transaction?.transaction_number || deleteConfirm.transaction?.id}? This action cannot be undone.`
+        }
+        confirmText={rbac?.permissions?.canRequestTransactionApproval ? "Request Deletion" : "Delete Transaction"}
         type="transaction"
         isDestructive={true}
       />

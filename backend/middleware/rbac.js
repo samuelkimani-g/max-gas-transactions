@@ -20,18 +20,18 @@ const PERMISSIONS = {
   'customers:read': ['admin', 'manager', 'operator'],
   'customers:create': ['admin', 'manager', 'operator'],
   'customers:update': ['admin', 'manager', 'operator'],
-  'customers:delete': ['admin', 'manager'], // Operators need approval
+  'customers:delete': ['admin'], // Only admin can delete customers directly
   
   // Approval System
-  'approvals:read': ['admin', 'manager', 'operator'],
-  'approvals:create': ['operator'],
-  'approvals:approve': ['admin', 'manager'],
+  'approvals:read': ['admin'], // Only admin can see approval management
+  'approvals:create': ['manager', 'operator'], // Manager and operator can create approval requests
+  'approvals:approve': ['admin'], // Only admin can approve requests
   
   // Transaction Management
   'transactions:read': ['admin', 'manager', 'operator'],
   'transactions:create': ['admin', 'manager', 'operator'],
   'transactions:update': ['admin', 'manager', 'operator'],
-  'transactions:delete': ['admin', 'manager'], // Operators need approval
+  'transactions:delete': ['admin'], // Only admin can delete transactions directly
   
   // Analytics & Reports
   'analytics:read': ['admin', 'manager'],

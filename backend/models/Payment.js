@@ -79,7 +79,9 @@ const Payment = sequelize.define('Payment', {
   }
 }, {
   tableName: 'payments',
-  timestamps: true
+  timestamps: true,
+  createdAt: 'created_at',
+  updatedAt: 'updated_at'
 });
 
 // Instance methods
@@ -101,14 +103,20 @@ Payment.getCustomerPayments = async function(customerId, limit = 50) {
 };
 
 Payment.getTransactionPayments = async function(transactionId) {
-  return await this.findAll({
-    where: { transactionId },
-    order: [['paymentDate', 'ASC']],
-    include: [
-      { model: require('./Transaction'), as: 'Transaction' },
-      { model: require('./Customer'), as: 'Customer' }
-    ]
-  });
+  try {
+    return await this.findAll({
+      where: { transactionId },
+      order: [['paymentDate', 'ASC']],
+      attributes: [
+        'id', 'transactionId', 'customerId', 'amount', 'paymentMethod', 
+        'reference', 'receiptNumber', 'branchId', 'processedBy', 'status', 
+        'notes', 'paymentDate'
+      ]
+    });
+  } catch (error) {
+    console.error('Error fetching transaction payments:', error);
+    return [];
+  }
 };
 
 Payment.getPaymentsByDateRange = async function(startDate, endDate, branchId = null) {

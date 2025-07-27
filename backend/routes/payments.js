@@ -50,12 +50,7 @@ router.post('/', async (req, res) => {
 // @desc    Get payment by ID
 router.get('/:id', async (req, res) => {
   try {
-    const payment = await Payment.findByPk(req.params.id, {
-      include: [
-        { model: Transaction, as: 'Transaction' },
-        { model: Customer, as: 'Customer' }
-      ]
-    });
+    const payment = await Payment.findByPk(req.params.id);
     if (!payment) {
       return res.status(404).json({ error: 'Payment not found' });
     }
@@ -106,10 +101,6 @@ router.get('/customer/:customerId', async (req, res) => {
   try {
     const payments = await Payment.findAll({
       where: { customerId: req.params.customerId },
-      include: [
-        { model: Transaction, as: 'Transaction' },
-        { model: Customer, as: 'Customer' }
-      ],
       order: [['paymentDate', 'DESC']]
     });
     res.json(payments);
@@ -123,14 +114,7 @@ router.get('/customer/:customerId', async (req, res) => {
 // @desc    Get payments by transaction
 router.get('/transaction/:transactionId', async (req, res) => {
   try {
-    const payments = await Payment.findAll({
-      where: { transactionId: req.params.transactionId },
-      include: [
-        { model: Transaction, as: 'Transaction' },
-        { model: Customer, as: 'Customer' }
-      ],
-      order: [['paymentDate', 'ASC']]
-    });
+    const payments = await Payment.getTransactionPayments(req.params.transactionId);
     res.json(payments);
   } catch (error) {
     console.error('Get payments by transaction error:', error);

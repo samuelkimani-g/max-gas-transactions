@@ -432,6 +432,18 @@ router.put('/bulk-customer-payment-select', [
       
       // Create Payment record for this transaction
       const Payment = require('../models/Payment');
+      console.log('[BACKEND DEBUG] Creating payment record:', {
+        transactionId: transactionRecord.id,
+        customerId: customerId,
+        amount: paymentForThis,
+        paymentMethod: method || 'cash',
+        reference: note || `Bulk payment - ${new Date().toISOString()}`,
+        processedBy: 1,
+        status: 'completed',
+        paymentDate: new Date(),
+        notes: note || `Bulk payment of ${paymentForThis} for transaction ${transactionRecord.transaction_number}`
+      });
+      
       const paymentRecord = await Payment.create({
         transactionId: transactionRecord.id,
         customerId: customerId,
@@ -443,6 +455,14 @@ router.put('/bulk-customer-payment-select', [
         paymentDate: new Date(),
         notes: note || `Bulk payment of ${paymentForThis} for transaction ${transactionRecord.transaction_number}`
       }, { transaction: dbTransaction });
+      
+      console.log('[BACKEND DEBUG] Payment record created:', {
+        id: paymentRecord.id,
+        amount: paymentRecord.amount,
+        amountType: typeof paymentRecord.amount,
+        paymentMethod: paymentRecord.paymentMethod,
+        transactionId: paymentRecord.transactionId
+      });
       
       createdPayments.push(paymentRecord);
       

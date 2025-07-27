@@ -114,7 +114,15 @@ router.get('/customer/:customerId', async (req, res) => {
 // @desc    Get payments by transaction
 router.get('/transaction/:transactionId', async (req, res) => {
   try {
+    console.log('[BACKEND DEBUG] Fetching payments for transaction:', req.params.transactionId);
     const payments = await Payment.getTransactionPayments(req.params.transactionId);
+    console.log('[BACKEND DEBUG] Found payments:', payments.map(p => ({
+      id: p.id,
+      amount: p.amount,
+      amountType: typeof p.amount,
+      paymentMethod: p.paymentMethod,
+      transactionId: p.transactionId
+    })));
     res.json(payments);
   } catch (error) {
     console.error('Get payments by transaction error:', error);

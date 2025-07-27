@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useRef } from "react"
+import { useState, useRef, useEffect } from "react"
 import { Button } from "./ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "./ui/card"
 import { Printer, Building } from "lucide-react"
@@ -8,7 +8,36 @@ import { formatCurrency, formatDate, calculateTransactionTotal } from "../lib/ca
 
 export default function ReceiptGenerator({ transaction, customer }) {
   const [isPrinting, setIsPrinting] = useState(false)
+  const [paymentHistory, setPaymentHistory] = useState([])
+  const [loadingPayments, setLoadingPayments] = useState(false)
   const receiptRef = useRef(null)
+
+  // Fetch payment history for this transaction
+  useEffect(() => {
+    if (transaction?.id) {
+      fetchPaymentHistory()
+    }
+  }, [transaction?.id])
+
+  const fetchPaymentHistory = async () => {
+    setLoadingPayments(true)
+    try {
+      const response = await fetch(`/api/payments/transaction/${transaction.id}`, {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`,
+          'Content-Type': 'application/json'
+        }
+      })
+      if (response.ok) {
+        const payments = await response.json()
+        setPaymentHistory(payments)
+      }
+    } catch (error) {
+      console.error('Failed to fetch payment history:', error)
+    } finally {
+      setLoadingPayments(false)
+    }
+  }
 
   const handlePrint = () => {
     setIsPrinting(true)
@@ -20,6 +49,11 @@ export default function ReceiptGenerator({ transaction, customer }) {
         <head>
           <title>Receipt - ${customer?.name || "Customer"}</title>
           <style>
+            @page {
+              size: 80mm auto;
+              margin: 0;
+            }
+            
             * {
               margin: 0;
               padding: 0;
@@ -27,345 +61,285 @@ export default function ReceiptGenerator({ transaction, customer }) {
             }
             
             body {
-              font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-              line-height: 1.6;
-              color: #2d3748;
-              background: #f7fafc;
-              padding: 20px;
+              font-family: 'Courier New', monospace;
+              line-height: 1.2;
+              color: #000;
+              background: #fff;
+              width: 80mm;
+              max-width: 80mm;
+              margin: 0 auto;
+              font-size: 10px;
             }
             
             .receipt {
-              max-width: 420px;
-              margin: 0 auto;
+              width: 100%;
+              max-width: 80mm;
               background: white;
-              border-radius: 16px;
-              overflow: hidden;
-              box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
-              position: relative;
-            }
-            
-            .receipt::before {
-              content: '';
-              position: absolute;
-              top: 0;
-              left: 0;
-              right: 0;
-              height: 4px;
-              background: linear-gradient(90deg, #f97316, #ea580c, #dc2626);
+              padding: 5mm;
             }
             
             .header {
-              background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
-              color: white;
-              padding: 32px 24px;
               text-align: center;
-              position: relative;
+              border-bottom: 1px solid #000;
+              padding-bottom: 3mm;
+              margin-bottom: 3mm;
             }
             
-            .header::after {
-              content: '';
-              position: absolute;
-              bottom: -20px;
-              left: 50%;
-              transform: translateX(-50%);
-              width: 0;
-              height: 0;
-              border-left: 20px solid transparent;
-              border-right: 20px solid transparent;
-              border-top: 20px solid #334155;
-            }
-            
-            .company-logo {
-              font-size: 32px;
-              font-weight: 800;
-              margin-bottom: 8px;
-              letter-spacing: -1px;
+            .company-name {
+              font-size: 14px;
+              font-weight: bold;
+              margin-bottom: 1mm;
             }
             
             .company-tagline {
-              font-size: 14px;
-              opacity: 0.9;
-              margin-bottom: 16px;
-              font-weight: 300;
+              font-size: 8px;
+              margin-bottom: 2mm;
             }
             
             .receipt-title {
-              background: rgba(249, 115, 22, 0.2);
-              color: #f97316;
-              padding: 8px 20px;
-              border-radius: 25px;
-              font-size: 14px;
-              font-weight: 600;
-              letter-spacing: 1px;
+              font-size: 10px;
+              font-weight: bold;
+              border: 1px solid #000;
+              padding: 1mm 2mm;
               display: inline-block;
             }
             
-            .serial-number {
-              background: #f8fafc;
-              border: 1px solid #e2e8f0;
-              padding: 8px 12px;
-              border-radius: 8px;
-              font-family: 'Courier New', monospace;
-              font-size: 12px;
-              font-weight: 600;
-              color: #475569;
-              margin: 16px 0;
-              text-align: center;
-            }
-              border: 1px solid rgba(249, 115, 22, 0.3);
+            .transaction-info {
+              margin-bottom: 3mm;
             }
             
-            .receipt-body {
-              padding: 32px 24px 24px;
-            }
-            
-            .info-grid {
-              display: grid;
-              grid-template-columns: 1fr 1fr;
-              gap: 16px;
-              margin-bottom: 32px;
-            }
-            
-            .info-card {
-              background: #f8fafc;
-              padding: 16px;
-              border-radius: 12px;
-              border: 1px solid #e2e8f0;
-            }
-            
-            .info-card.customer {
-              grid-column: 1 / -1;
-              background: linear-gradient(135deg, #fef3e2 0%, #fed7aa 100%);
-              border: 1px solid #fdba74;
+            .info-row {
+              display: flex;
+              justify-content: space-between;
+              margin-bottom: 1mm;
+              font-size: 8px;
             }
             
             .info-label {
-              font-size: 12px;
-              color: #64748b;
-              font-weight: 600;
-              text-transform: uppercase;
-              letter-spacing: 0.5px;
-              margin-bottom: 4px;
+              font-weight: bold;
             }
             
-            .info-value {
-              font-size: 14px;
-              font-weight: 600;
-              color: #1e293b;
+            .serial-number {
+              font-family: monospace;
+              font-weight: bold;
+              font-size: 9px;
+              text-align: center;
+              background: #f0f0f0;
+              padding: 1mm;
+              margin: 2mm 0;
+              border: 1px solid #000;
             }
             
             .status-badge {
-              display: inline-flex;
-              align-items: center;
-              padding: 6px 12px;
-              border-radius: 20px;
-              font-size: 12px;
-              font-weight: 600;
-              text-transform: uppercase;
-              letter-spacing: 0.5px;
+              display: inline-block;
+              padding: 1mm 2mm;
+              font-size: 8px;
+              font-weight: bold;
+              border: 1px solid #000;
             }
             
             .status-paid {
-              background: #dcfce7;
-              color: #166534;
-              border: 1px solid #bbf7d0;
+              background: #90EE90;
+            }
+            
+            .status-partial {
+              background: #FFD700;
             }
             
             .status-outstanding {
-              background: #fef2f2;
-              color: #991b1b;
-              border: 1px solid #fecaca;
-            }
-            
-            .items-section {
-              margin-bottom: 32px;
+              background: #FFB6C1;
             }
             
             .section-title {
-              font-size: 18px;
-              font-weight: 700;
-              color: #1e293b;
-              margin-bottom: 20px;
-              display: flex;
-              align-items: center;
-              padding-bottom: 12px;
-              border-bottom: 2px solid #f1f5f9;
+              font-size: 10px;
+              font-weight: bold;
+              margin: 3mm 0 2mm 0;
+              border-bottom: 1px solid #000;
+              padding-bottom: 1mm;
             }
             
-            .section-icon {
-              width: 32px;
-              height: 32px;
-              background: linear-gradient(135deg, #f97316, #ea580c);
-              border-radius: 8px;
+            .cylinder-summary {
+              margin-bottom: 3mm;
+            }
+            
+            .summary-row {
               display: flex;
-              align-items: center;
-              justify-content: center;
-              margin-right: 12px;
-              font-size: 16px;
+              justify-content: space-between;
+              margin-bottom: 1mm;
+              font-size: 8px;
+            }
+            
+            .items-section {
+              margin-bottom: 3mm;
             }
             
             .item-group {
-              background: white;
-              border: 1px solid #e2e8f0;
-              border-radius: 12px;
-              padding: 20px;
-              margin-bottom: 16px;
-              box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
+              margin-bottom: 2mm;
             }
             
-            .item-group:last-child {
-              margin-bottom: 0;
-            }
-            
-            .item-group-title {
-              font-weight: 700;
-              color: #374151;
-              font-size: 14px;
-              margin-bottom: 12px;
-              text-transform: uppercase;
-              letter-spacing: 0.5px;
-              padding-bottom: 8px;
-              border-bottom: 1px solid #f3f4f6;
+            .group-title {
+              font-size: 9px;
+              font-weight: bold;
+              margin-bottom: 1mm;
+              text-decoration: underline;
             }
             
             .item-row {
               display: flex;
               justify-content: space-between;
-              align-items: center;
-              padding: 12px 0;
-              border-bottom: 1px dotted #d1d5db;
-            }
-            
-            .item-row:last-child {
-              border-bottom: none;
-              padding-bottom: 0;
+              margin-bottom: 1mm;
+              font-size: 8px;
             }
             
             .item-description {
-              color: #4b5563;
-              font-size: 14px;
-              font-weight: 500;
+              flex: 2;
             }
             
             .item-amount {
-              font-weight: 700;
-              color: #1f2937;
-              font-size: 14px;
+              flex: 1;
+              text-align: right;
+              font-weight: bold;
+            }
+            
+            .payment-history {
+              margin-bottom: 3mm;
+            }
+            
+            .payment-table {
+              width: 100%;
+              border-collapse: collapse;
+              font-size: 7px;
+              margin-bottom: 2mm;
+            }
+            
+            .payment-table th,
+            .payment-table td {
+              border: 1px solid #000;
+              padding: 1mm;
+              text-align: left;
+            }
+            
+            .payment-table th {
+              background: #f0f0f0;
+              font-weight: bold;
             }
             
             .totals-section {
-              background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
-              padding: 24px;
-              border-radius: 16px;
-              margin-bottom: 32px;
-              border: 1px solid #e2e8f0;
+              border-top: 2px solid #000;
+              padding-top: 2mm;
+              margin-bottom: 3mm;
             }
             
             .total-row {
               display: flex;
               justify-content: space-between;
-              align-items: center;
-              margin-bottom: 12px;
-              font-size: 16px;
+              margin-bottom: 1mm;
+              font-size: 9px;
             }
             
-            .total-row:last-child {
-              margin-bottom: 0;
-              padding-top: 16px;
-              border-top: 2px solid #cbd5e1;
-              font-size: 20px;
-              font-weight: 800;
-            }
-            
-            .total-label {
-              color: #4b5563;
-              font-weight: 600;
-            }
-            
-            .total-amount {
-              font-weight: 700;
-            }
-            
-            .total-amount.positive {
-              color: #059669;
-            }
-            
-            .total-amount.negative {
-              color: #dc2626;
+            .total-row.final {
+              font-size: 11px;
+              font-weight: bold;
+              border-top: 1px solid #000;
+              padding-top: 1mm;
             }
             
             .footer {
-              background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
-              color: white;
               text-align: center;
-              padding: 32px 24px;
+              border-top: 1px solid #000;
+              padding-top: 3mm;
+              font-size: 8px;
             }
             
             .footer-message {
-              font-size: 20px;
-              font-weight: 700;
-              margin-bottom: 8px;
-            }
-            
-            .footer-company {
-              font-size: 16px;
-              margin-bottom: 20px;
-              opacity: 0.9;
+              font-size: 10px;
+              font-weight: bold;
+              margin-bottom: 2mm;
             }
             
             .footer-contact {
-              font-size: 13px;
-              opacity: 0.8;
-              line-height: 1.6;
-            }
-            
-            .qr-placeholder {
-              width: 80px;
-              height: 80px;
-              background: rgba(255, 255, 255, 0.1);
-              border-radius: 8px;
-              margin: 20px auto 0;
-              display: flex;
-              align-items: center;
-              justify-content: center;
-              font-size: 12px;
-              border: 1px solid rgba(255, 255, 255, 0.2);
+              line-height: 1.3;
             }
             
             @media print {
               body { 
                 margin: 0; 
                 padding: 0;
-                background: #f7fafc !important;
+                background: white !important;
+                width: 80mm !important;
+                max-width: 80mm !important;
               }
               .receipt { 
                 box-shadow: none; 
                 margin: 0;
-                max-width: none;
-                border-radius: 0;
+                width: 80mm !important;
+                max-width: 80mm !important;
                 background: white !important;
               }
               .header {
-                background: linear-gradient(135deg, #1e293b 0%, #334155 100%) !important;
-                color: white !important;
+                color: black !important;
+                border-bottom: 1px solid black !important;
               }
-              .receipt::before {
-                background: linear-gradient(90deg, #f97316, #ea580c, #dc2626) !important;
+              .company-name {
+                color: black !important;
               }
               .receipt-title {
-                background: rgba(249, 115, 22, 0.2) !important;
-                color: #f97316 !important;
+                color: black !important;
+                border: 1px solid black !important;
               }
               .serial-number {
-                background: #f8fafc !important;
-                color: #475569 !important;
+                background: #f0f0f0 !important;
+                color: black !important;
+                border: 1px solid black !important;
               }
-              .totals-section {
-                background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%) !important;
+              .status-paid {
+                background: #90EE90 !important;
+                color: black !important;
+                border: 1px solid black !important;
+              }
+              .status-partial {
+                background: #FFD700 !important;
+                color: black !important;
+                border: 1px solid black !important;
+              }
+              .status-outstanding {
+                background: #FFB6C1 !important;
+                color: black !important;
+                border: 1px solid black !important;
+              }
+              .section-title {
+                color: black !important;
+                border-bottom: 1px solid black !important;
+              }
+              .group-title {
+                color: black !important;
+              }
+              .item-description {
+                color: black !important;
+              }
+              .item-amount {
+                color: black !important;
+              }
+              .payment-table th {
+                background: #f0f0f0 !important;
+                color: black !important;
+              }
+              .payment-table td {
+                color: black !important;
+                border: 1px solid black !important;
+              }
+              .total-row {
+                color: black !important;
               }
               .footer {
-                background: linear-gradient(135deg, #1e293b 0%, #334155 100%) !important;
-                color: white !important;
+                color: black !important;
+                border-top: 1px solid black !important;
+              }
+              .footer-message {
+                color: black !important;
+              }
+              .footer-contact {
+                color: black !important;
               }
               .no-print { display: none; }
             }
@@ -399,207 +373,340 @@ export default function ReceiptGenerator({ transaction, customer }) {
   const paid = transaction.amount_paid || 0
   const outstanding = total - paid
 
-  // New structure: breakdowns
-  const maxGasReturns = [];
-  const maxGasOutright = [];
+  // Determine payment status
+  const getPaymentStatus = () => {
+    if (outstanding <= 0) return { text: "FULLY PAID", class: "status-paid" }
+    if (paid > 0) return { text: "PARTIALLY PAID", class: "status-partial" }
+    return { text: "OUTSTANDING", class: "status-outstanding" }
+  }
 
-  // Returns Breakdown - Fixed calculation with kg multiplication (same as add transaction form)
+  const paymentStatus = getPaymentStatus()
+
+  // Calculate cylinder movements
+  const getCylinderMovements = () => {
+    const movements = {
+      in: { maxEmpty: { kg6: 0, kg13: 0, kg50: 0 }, swapEmpty: { kg6: 0, kg13: 0, kg50: 0 }, returnFull: { kg6: 0, kg13: 0, kg50: 0 } },
+      out: { refills: { kg6: 0, kg13: 0, kg50: 0 }, outright: { kg6: 0, kg13: 0, kg50: 0 } }
+    }
+
+    // Returns (IN)
+    if (transaction.returns_breakdown?.max_empty) {
+      movements.in.maxEmpty = transaction.returns_breakdown.max_empty
+    }
+    if (transaction.returns_breakdown?.swap_empty) {
+      movements.in.swapEmpty = transaction.returns_breakdown.swap_empty
+    }
+    if (transaction.returns_breakdown?.return_full) {
+      movements.in.returnFull = transaction.returns_breakdown.return_full
+    }
+
+    // Outright (OUT)
+    if (transaction.outright_breakdown) {
+      movements.out.outright = transaction.outright_breakdown
+    }
+
+    // Load (OUT) - what customer received
+    if (transaction.load_breakdown) {
+      movements.out.refills = transaction.load_breakdown
+    }
+
+    return movements
+  }
+
+  const cylinderMovements = getCylinderMovements()
+
+  // Calculate total cylinders handled
+  const totalIn = 
+    (cylinderMovements.in.maxEmpty.kg6 || 0) + (cylinderMovements.in.maxEmpty.kg13 || 0) + (cylinderMovements.in.maxEmpty.kg50 || 0) +
+    (cylinderMovements.in.swapEmpty.kg6 || 0) + (cylinderMovements.in.swapEmpty.kg13 || 0) + (cylinderMovements.in.swapEmpty.kg50 || 0) +
+    (cylinderMovements.in.returnFull.kg6 || 0) + (cylinderMovements.in.returnFull.kg13 || 0) + (cylinderMovements.in.returnFull.kg50 || 0)
+
+  const totalOut = 
+    (cylinderMovements.out.refills.kg6 || 0) + (cylinderMovements.out.refills.kg13 || 0) + (cylinderMovements.out.refills.kg50 || 0) +
+    (cylinderMovements.out.outright.kg6 || 0) + (cylinderMovements.out.outright.kg13 || 0) + (cylinderMovements.out.outright.kg50 || 0)
+
+  // Calculate items and services
+  const maxGasReturns = []
+  const maxGasOutright = []
+
+  // Returns Breakdown - Fixed calculation with kg multiplication
   if (transaction.returns_breakdown?.max_empty) {
-    if (transaction.returns_breakdown.max_empty.kg6 > 0) maxGasReturns.push({ description: `6kg Max Empty × ${transaction.returns_breakdown.max_empty.kg6}`, amount: transaction.returns_breakdown.max_empty.kg6 * (transaction.returns_breakdown.max_empty.price6 || 135) * 6 });
-    if (transaction.returns_breakdown.max_empty.kg13 > 0) maxGasReturns.push({ description: `13kg Max Empty × ${transaction.returns_breakdown.max_empty.kg13}`, amount: transaction.returns_breakdown.max_empty.kg13 * (transaction.returns_breakdown.max_empty.price13 || 135) * 13 });
-    if (transaction.returns_breakdown.max_empty.kg50 > 0) maxGasReturns.push({ description: `50kg Max Empty × ${transaction.returns_breakdown.max_empty.kg50}`, amount: transaction.returns_breakdown.max_empty.kg50 * (transaction.returns_breakdown.max_empty.price50 || 135) * 50 });
-  }
-  if (transaction.returns_breakdown?.swap_empty) {
-    if (transaction.returns_breakdown.swap_empty.kg6 > 0) maxGasReturns.push({ description: `6kg Swap Empty × ${transaction.returns_breakdown.swap_empty.kg6}`, amount: transaction.returns_breakdown.swap_empty.kg6 * (transaction.returns_breakdown.swap_empty.price6 || 160) * 6 });
-    if (transaction.returns_breakdown.swap_empty.kg13 > 0) maxGasReturns.push({ description: `13kg Swap Empty × ${transaction.returns_breakdown.swap_empty.kg13}`, amount: transaction.returns_breakdown.swap_empty.kg13 * (transaction.returns_breakdown.swap_empty.price13 || 160) * 13 });
-    if (transaction.returns_breakdown.swap_empty.kg50 > 0) maxGasReturns.push({ description: `50kg Swap Empty × ${transaction.returns_breakdown.swap_empty.kg50}`, amount: transaction.returns_breakdown.swap_empty.kg50 * (transaction.returns_breakdown.swap_empty.price50 || 160) * 50 });
-  }
-  if (transaction.returns_breakdown?.return_full) {
-    if (transaction.returns_breakdown.return_full.kg6 > 0) maxGasReturns.push({ description: `6kg Return Full × ${transaction.returns_breakdown.return_full.kg6}`, amount: 0 });
-    if (transaction.returns_breakdown.return_full.kg13 > 0) maxGasReturns.push({ description: `13kg Return Full × ${transaction.returns_breakdown.return_full.kg13}`, amount: 0 });
-    if (transaction.returns_breakdown.return_full.kg50 > 0) maxGasReturns.push({ description: `50kg Return Full × ${transaction.returns_breakdown.return_full.kg50}`, amount: 0 });
+    if (transaction.returns_breakdown.max_empty.kg6 > 0) {
+      const price = transaction.returns_breakdown.max_empty.price6 || 135
+      maxGasReturns.push({ 
+        description: `6kg Max Empty Swap Fee (${transaction.returns_breakdown.max_empty.kg6} units @ KES ${price}/unit)`, 
+        amount: transaction.returns_breakdown.max_empty.kg6 * price * 6 
+      })
+    }
+    if (transaction.returns_breakdown.max_empty.kg13 > 0) {
+      const price = transaction.returns_breakdown.max_empty.price13 || 135
+      maxGasReturns.push({ 
+        description: `13kg Max Empty Swap Fee (${transaction.returns_breakdown.max_empty.kg13} units @ KES ${price}/unit)`, 
+        amount: transaction.returns_breakdown.max_empty.kg13 * price * 13 
+      })
+    }
+    if (transaction.returns_breakdown.max_empty.kg50 > 0) {
+      const price = transaction.returns_breakdown.max_empty.price50 || 135
+      maxGasReturns.push({ 
+        description: `50kg Max Empty Swap Fee (${transaction.returns_breakdown.max_empty.kg50} units @ KES ${price}/unit)`, 
+        amount: transaction.returns_breakdown.max_empty.kg50 * price * 50 
+      })
+    }
   }
 
-  // Outright Breakdown - Fixed calculation (same as add transaction form)
-  if (transaction.outright_breakdown) {
-    if (transaction.outright_breakdown.kg6 > 0) maxGasOutright.push({ description: `6kg Outright × ${transaction.outright_breakdown.kg6}`, amount: transaction.outright_breakdown.kg6 * (transaction.outright_breakdown.price6 || 2200) });
-    if (transaction.outright_breakdown.kg13 > 0) maxGasOutright.push({ description: `13kg Outright × ${transaction.outright_breakdown.kg13}`, amount: transaction.outright_breakdown.kg13 * (transaction.outright_breakdown.price13 || 4400) });
-    if (transaction.outright_breakdown.kg50 > 0) maxGasOutright.push({ description: `50kg Outright × ${transaction.outright_breakdown.kg50}`, amount: transaction.outright_breakdown.kg50 * (transaction.outright_breakdown.price50 || 8000) });
+  if (transaction.returns_breakdown?.swap_empty) {
+    if (transaction.returns_breakdown.swap_empty.kg6 > 0) {
+      const price = transaction.returns_breakdown.swap_empty.price6 || 160
+      maxGasReturns.push({ 
+        description: `6kg Swap Empty Fee (${transaction.returns_breakdown.swap_empty.kg6} units @ KES ${price}/unit)`, 
+        amount: transaction.returns_breakdown.swap_empty.kg6 * price * 6 
+      })
+    }
+    if (transaction.returns_breakdown.swap_empty.kg13 > 0) {
+      const price = transaction.returns_breakdown.swap_empty.price13 || 160
+      maxGasReturns.push({ 
+        description: `13kg Swap Empty Fee (${transaction.returns_breakdown.swap_empty.kg13} units @ KES ${price}/unit)`, 
+        amount: transaction.returns_breakdown.swap_empty.kg13 * price * 13 
+      })
+    }
+    if (transaction.returns_breakdown.swap_empty.kg50 > 0) {
+      const price = transaction.returns_breakdown.swap_empty.price50 || 160
+      maxGasReturns.push({ 
+        description: `50kg Swap Empty Fee (${transaction.returns_breakdown.swap_empty.kg50} units @ KES ${price}/unit)`, 
+        amount: transaction.returns_breakdown.swap_empty.kg50 * price * 50 
+      })
+    }
   }
+
+  // Outright Breakdown
+  if (transaction.outright_breakdown) {
+    if (transaction.outright_breakdown.kg6 > 0) {
+      const price = transaction.outright_breakdown.price6 || 2200
+      maxGasOutright.push({ 
+        description: `6kg Outright Sale (${transaction.outright_breakdown.kg6} units @ KES ${price}/unit)`, 
+        amount: transaction.outright_breakdown.kg6 * price 
+      })
+    }
+    if (transaction.outright_breakdown.kg13 > 0) {
+      const price = transaction.outright_breakdown.price13 || 4400
+      maxGasOutright.push({ 
+        description: `13kg Outright Sale (${transaction.outright_breakdown.kg13} units @ KES ${price}/unit)`, 
+        amount: transaction.outright_breakdown.kg13 * price 
+      })
+    }
+    if (transaction.outright_breakdown.kg50 > 0) {
+      const price = transaction.outright_breakdown.price50 || 8000
+      maxGasOutright.push({ 
+        description: `50kg Outright Sale (${transaction.outright_breakdown.kg50} units @ KES ${price}/unit)`, 
+        amount: transaction.outright_breakdown.kg50 * price 
+      })
+    }
+  }
+
+  const totalOutrightAmount = maxGasOutright.reduce((sum, item) => sum + item.amount, 0)
 
   return (
     <div className="space-y-4">
       {/* Action Buttons */}
       <div className="flex justify-end">
-            <Button
-              onClick={handlePrint}
-              disabled={isPrinting}
+        <Button
+          onClick={handlePrint}
+          disabled={isPrinting}
           variant="outline"
-              size="sm"
-            >
-              <Printer className="w-4 h-4 mr-1" />
-              Print
-            </Button>
-          </div>
+          size="sm"
+        >
+          <Printer className="w-4 h-4 mr-1" />
+          Print
+        </Button>
+      </div>
 
       {/* Receipt Content */}
       <div ref={receiptRef} className="bg-white rounded-lg border max-w-md mx-auto">
-          {/* Header */}
-        <div className="bg-gradient-to-r from-slate-800 to-slate-700 text-white p-6 text-center relative">
-          <div className="text-3xl font-bold mb-2">MaxGas</div>
-          <div className="text-sm opacity-90 mb-4">Premium Gas Cylinder Solutions</div>
-          <div className="bg-orange-500/20 text-orange-300 px-4 py-2 rounded-full text-sm font-semibold border border-orange-300/30">
-            OFFICIAL RECEIPT
+        {/* Header */}
+        <div className="header">
+          <div className="company-name">MaxGas</div>
+          <div className="company-tagline">Premium Gas Cylinder Solutions</div>
+          <div className="receipt-title">OFFICIAL RECEIPT</div>
+        </div>
+
+        {/* Transaction Info */}
+        <div className="transaction-info">
+          <div className="info-row">
+            <span className="info-label">Transaction Serial:</span>
+            <span>{transaction.transaction_number}</span>
           </div>
+          <div className="info-row">
+            <span className="info-label">Receipt #:</span>
+            <span>#{transaction.id.toString().padStart(6, "0")}</span>
           </div>
-
-          {/* Receipt Body */}
-        <div className="p-6 space-y-6">
-            {/* Serial Number */}
-            <div className="bg-gradient-to-r from-blue-50 to-indigo-50 p-4 rounded-lg border border-blue-200 text-center">
-              <div className="text-xs font-semibold text-blue-600 uppercase tracking-wide mb-2">Transaction Serial</div>
-              <div className="font-mono text-lg font-bold text-blue-800">{transaction.transaction_number}</div>
-            </div>
-            
-            {/* Info Grid */}
-          <div className="grid grid-cols-2 gap-3">
-            <div className="bg-slate-50 p-3 rounded-lg border">
-              <div className="text-xs font-semibold text-slate-600 uppercase tracking-wide mb-1">Receipt #</div>
-              <div className="text-sm font-semibold text-slate-800">#{transaction.id.toString().padStart(6, "0")}</div>
-              </div>
-            <div className="bg-slate-50 p-3 rounded-lg border">
-              <div className="text-xs font-semibold text-slate-600 uppercase tracking-wide mb-1">Date</div>
-              <div className="text-sm font-semibold text-slate-800">{formatDate(transaction.date || new Date())}</div>
-              </div>
-            <div className="bg-gradient-to-r from-orange-50 to-amber-50 p-3 rounded-lg border border-orange-200 col-span-2">
-              <div className="text-xs font-semibold text-slate-600 uppercase tracking-wide mb-1">Customer</div>
-              <div className="text-sm font-semibold text-slate-800 mb-2">{customer.name}</div>
-              <div className="text-xs font-semibold text-slate-600 uppercase tracking-wide mb-1">Phone</div>
-              <div className="text-sm font-semibold text-slate-800 mb-3">{customer.phone}</div>
-              <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-semibold ${
-                outstanding <= 0 
-                  ? "bg-green-100 text-green-800 border border-green-200" 
-                  : "bg-red-100 text-red-800 border border-red-200"
-              }`}>
-                    {outstanding <= 0 ? "✓ Paid" : "⚠ Outstanding"}
-                  </span>
-              </div>
-            </div>
-
-            {/* Items */}
-          <div>
-            <div className="flex items-center mb-4 pb-2 border-b-2 border-slate-200">
-              <div className="w-8 h-8 bg-gradient-to-r from-orange-500 to-orange-600 rounded-lg flex items-center justify-center text-white font-bold mr-3">
-                📦
-              </div>
-              <h3 className="text-lg font-bold text-slate-800">Items & Services</h3>
-              </div>
-
-              {maxGasReturns.length > 0 && (
-              <div className="bg-white border border-slate-200 rounded-lg p-4 mb-3 shadow-sm">
-                <div className="font-bold text-slate-700 text-sm uppercase tracking-wide mb-2 pb-1 border-b border-slate-100">
-                  MaxGas Refills
-                </div>
-                  {maxGasReturns.map((item, index) => (
-                  <div key={index} className="flex justify-between items-center py-2 border-b border-dotted border-slate-200 last:border-b-0">
-                    <span className="text-slate-700 text-sm font-medium">{item.description}</span>
-                    <span className="font-bold text-slate-800 text-sm">{formatCurrency(item.amount)}</span>
-                    </div>
-                  ))}
-                </div>
-              )}
-
-              {maxGasOutright.length > 0 && (
-              <div className="bg-white border border-slate-200 rounded-lg p-4 mb-3 shadow-sm">
-                <div className="font-bold text-slate-700 text-sm uppercase tracking-wide mb-2 pb-1 border-b border-slate-100">
-                  MaxGas Outright Sales
-                </div>
-                  {maxGasOutright.map((item, index) => (
-                  <div key={index} className="flex justify-between items-center py-2 border-b border-dotted border-slate-200 last:border-b-0">
-                    <span className="text-slate-700 text-sm font-medium">{item.description}</span>
-                    <span className="font-bold text-slate-800 text-sm">{formatCurrency(item.amount)}</span>
-                    </div>
-                  ))}
-                </div>
-              )}
-
-              {/* New structure: load_6kg, swipe_6kg, swipe_13kg, swipe_50kg */}
-              {transaction.swipe_6kg > 0 && (
-                <div className="bg-white border border-slate-200 rounded-lg p-4 mb-3 shadow-sm">
-                  <div className="font-bold text-slate-700 text-sm uppercase tracking-wide mb-2 pb-1 border-b border-slate-100">
-                    Swipe 6kg
-                  </div>
-                  <div className="flex justify-between items-center py-2 border-b border-dotted border-slate-200 last:border-b-0">
-                    <span className="text-slate-700 text-sm font-medium">6kg Swipe</span>
-                    <span className="font-bold text-slate-800 text-sm">{formatCurrency(transaction.swipe_6kg * (transaction.swipe_price6kg || 0))}</span>
-                  </div>
-                </div>
-              )}
-
-              {transaction.swipe_13kg > 0 && (
-                <div className="bg-white border border-slate-200 rounded-lg p-4 mb-3 shadow-sm">
-                  <div className="font-bold text-slate-700 text-sm uppercase tracking-wide mb-2 pb-1 border-b border-slate-100">
-                    Swipe 13kg
-                  </div>
-                  <div className="flex justify-between items-center py-2 border-b border-dotted border-slate-200 last:border-b-0">
-                    <span className="text-slate-700 text-sm font-medium">13kg Swipe</span>
-                    <span className="font-bold text-slate-800 text-sm">{formatCurrency(transaction.swipe_13kg * (transaction.swipe_price13kg || 0))}</span>
-                  </div>
-                </div>
-              )}
-
-              {transaction.swipe_50kg > 0 && (
-                <div className="bg-white border border-slate-200 rounded-lg p-4 mb-3 shadow-sm">
-                  <div className="font-bold text-slate-700 text-sm uppercase tracking-wide mb-2 pb-1 border-b border-slate-100">
-                    Swipe 50kg
-                  </div>
-                  <div className="flex justify-between items-center py-2 border-b border-dotted border-slate-200 last:border-b-0">
-                    <span className="text-slate-700 text-sm font-medium">50kg Swipe</span>
-                    <span className="font-bold text-slate-800 text-sm">{formatCurrency(transaction.swipe_50kg * (transaction.swipe_price50kg || 0))}</span>
-                  </div>
-                </div>
-              )}
-            </div>
-
-            {/* Totals */}
-          <div className="bg-gradient-to-r from-slate-50 to-slate-100 p-4 rounded-lg border border-slate-200">
-            <div className="flex justify-between items-center mb-2">
-              <span className="text-slate-600 font-semibold">Subtotal:</span>
-              <span className="font-bold text-slate-800">{formatCurrency(total)}</span>
-              </div>
-            <div className="flex justify-between items-center mb-2">
-              <span className="text-slate-600 font-semibold">Amount Paid:</span>
-              <span className="font-bold text-green-600">{formatCurrency(paid)}</span>
-              </div>
-            <div className="flex justify-between items-center pt-2 border-t-2 border-slate-300">
-              <span className="text-slate-600 font-semibold">Outstanding:</span>
-              <span className={`font-bold text-lg ${outstanding > 0 ? "text-red-600" : "text-green-600"}`}>
-                  {formatCurrency(outstanding)}
-                </span>
-              </div>
-            </div>
-
-            {transaction.notes && (
-            <div className="bg-slate-50 p-3 rounded-lg border">
-              <div className="text-xs font-semibold text-slate-600 uppercase tracking-wide mb-1">Notes</div>
-              <div className="text-sm text-slate-700">{transaction.notes}</div>
-              </div>
-            )}
+          <div className="info-row">
+            <span className="info-label">Date:</span>
+            <span>{formatDate(transaction.date || new Date())}</span>
           </div>
-
-          {/* Footer */}
-        <div className="bg-gradient-to-r from-slate-800 to-slate-700 text-white text-center p-6">
-          <div className="text-xl font-bold mb-2">Thank you for your business!</div>
-          <div className="text-base mb-4 opacity-90">MaxGas - Premium Gas Cylinder Solutions</div>
-          <div className="text-xs opacity-80 leading-relaxed">
-              📧 info@maxgas.co.ke | 📞 +254 700 000 000
-              <br />🌐 www.maxgas.co.ke
-            </div>
-          {/* QR Code section commented out
-          <div className="w-20 h-20 bg-white/10 rounded-lg border border-white/20 mx-auto mt-4 flex items-center justify-center text-xs">
-            QR Code
+          <div className="info-row">
+            <span className="info-label">Customer:</span>
+            <span>{customer.name}</span>
           </div>
-          */}
+          <div className="info-row">
+            <span className="info-label">Phone:</span>
+            <span>{customer.phone}</span>
+          </div>
+          <div className="info-row">
+            <span className="info-label">Status:</span>
+            <span className={`status-badge ${paymentStatus.class}`}>{paymentStatus.text}</span>
+          </div>
+        </div>
+
+        {/* Cylinder Movements Summary */}
+        <div className="cylinder-summary">
+          <div className="section-title">Cylinder Movements Summary</div>
+          <div className="summary-row">
+            <span>IN (Customer Returns):</span>
+          </div>
+          <div className="summary-row">
+            <span>  - Max Empty: 6kg ({cylinderMovements.in.maxEmpty.kg6 || 0}), 13kg ({cylinderMovements.in.maxEmpty.kg13 || 0}), 50kg ({cylinderMovements.in.maxEmpty.kg50 || 0})</span>
+          </div>
+          <div className="summary-row">
+            <span>  - Swap Empty: 6kg ({cylinderMovements.in.swapEmpty.kg6 || 0}), 13kg ({cylinderMovements.in.swapEmpty.kg13 || 0}), 50kg ({cylinderMovements.in.swapEmpty.kg50 || 0})</span>
+          </div>
+          <div className="summary-row">
+            <span>  - Return Full: 6kg ({cylinderMovements.in.returnFull.kg6 || 0}), 13kg ({cylinderMovements.in.returnFull.kg13 || 0}), 50kg ({cylinderMovements.in.returnFull.kg50 || 0})</span>
+          </div>
+          <div className="summary-row">
+            <span>OUT (Customer Received):</span>
+          </div>
+          <div className="summary-row">
+            <span>  - Refills: 6kg ({cylinderMovements.out.refills.kg6 || 0}), 13kg ({cylinderMovements.out.refills.kg13 || 0}), 50kg ({cylinderMovements.out.refills.kg50 || 0})</span>
+          </div>
+          <div className="summary-row">
+            <span>  - Outright: 6kg ({cylinderMovements.out.outright.kg6 || 0}), 13kg ({cylinderMovements.out.outright.kg13 || 0}), 50kg ({cylinderMovements.out.outright.kg50 || 0})</span>
+          </div>
+          <div className="summary-row">
+            <span>Load Total: {totalOut} cylinders</span>
+          </div>
+        </div>
+
+        {/* Items & Services Breakdown */}
+        <div className="items-section">
+          <div className="section-title">Items & Services Breakdown</div>
+          
+          {maxGasReturns.length > 0 && (
+            <div className="item-group">
+              <div className="group-title">MaxGas Refills</div>
+              {maxGasReturns.map((item, index) => (
+                <div key={index} className="item-row">
+                  <span className="item-description">{item.description}</span>
+                  <span className="item-amount">{formatCurrency(item.amount)}</span>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {maxGasOutright.length > 0 && (
+            <div className="item-group">
+              <div className="group-title">MaxGas Outright Sales</div>
+              {maxGasOutright.map((item, index) => (
+                <div key={index} className="item-row">
+                  <span className="item-description">{item.description}</span>
+                  <span className="item-amount">{formatCurrency(item.amount)}</span>
+                </div>
+              ))}
+              <div className="item-row">
+                <span className="item-description">(Total for outright sales: {formatCurrency(totalOutrightAmount)})</span>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Transaction Summary */}
+        <div className="totals-section">
+          <div className="section-title">Transaction Summary</div>
+          <div className="item-row">
+            <span className="item-description">Subtotal:</span>
+            <span className="item-amount">{formatCurrency(total)}</span>
+          </div>
+          <div className="item-row">
+            <span className="item-description">Less: Discounts / Credits:</span>
+            <span className="item-amount">{formatCurrency(0)}</span>
+          </div>
+          <div className="item-row">
+            <span className="item-description">Plus: Taxes:</span>
+            <span className="item-amount">{formatCurrency(0)}</span>
+          </div>
+          <div className="item-row final">
+            <span className="item-description">TOTAL BILL:</span>
+            <span className="item-amount">{formatCurrency(total)}</span>
+          </div>
+        </div>
+
+        {/* Payment Details */}
+        <div className="payment-history">
+          <div className="section-title">Payment Details</div>
+          <div className="summary-row">
+            <span>Payment History for Transaction #{transaction.transaction_number}:</span>
+          </div>
+          
+          {loadingPayments ? (
+            <div className="summary-row">
+              <span>Loading payment history...</span>
+            </div>
+          ) : paymentHistory.length > 0 ? (
+            <table className="payment-table">
+              <thead>
+                <tr>
+                  <th>Date & Time</th>
+                  <th>Amount Paid</th>
+                  <th>Method</th>
+                  <th>Reference</th>
+                </tr>
+              </thead>
+              <tbody>
+                {paymentHistory.map((payment, index) => (
+                  <tr key={index}>
+                    <td>{formatDate(payment.paymentDate)}</td>
+                    <td>{formatCurrency(payment.amount)}</td>
+                    <td>{payment.paymentMethod}</td>
+                    <td>{payment.reference || '-'}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          ) : (
+            <div className="summary-row">
+              <span>No payment history available</span>
+            </div>
+          )}
+          
+          <div className="summary-row">
+            <span>Total Amount Paid to Date:</span>
+            <span>{formatCurrency(paid)}</span>
+          </div>
+          <div className="summary-row">
+            <span>Outstanding Balance:</span>
+            <span>{formatCurrency(outstanding)}</span>
+          </div>
+        </div>
+
+        {/* Notes */}
+        {transaction.notes && (
+          <div className="cylinder-summary">
+            <div className="section-title">Notes & Footer</div>
+            <div className="summary-row">
+              <span>Notes: {transaction.notes}</span>
+            </div>
+          </div>
+        )}
+
+        {/* Footer */}
+        <div className="footer">
+          <div className="footer-message">Thank you for your business!</div>
+          <div className="footer-contact">
+            MaxGas - Premium Gas Cylinder Solutions
+            <br />
+            📧 info@maxgas.co.ke | 📞 +254 700 000 000
+            <br />
+            🌐 www.maxgas.co.ke
+          </div>
         </div>
       </div>
     </div>

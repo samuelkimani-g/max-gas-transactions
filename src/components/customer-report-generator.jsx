@@ -108,7 +108,17 @@ export default function CustomerReportGenerator({ customerId, customerName }) {
         <head>
           <title>Customer Report - ${customerName}</title>
           <style>
-            * { margin: 0; padding: 0; box-sizing: border-box; }
+            @page {
+              size: A4;
+              margin: 1cm;
+            }
+            
+            * { 
+              margin: 0; 
+              padding: 0; 
+              box-sizing: border-box; 
+            }
+            
             body { 
               font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
               line-height: 1.6; 
@@ -116,7 +126,13 @@ export default function CustomerReportGenerator({ customerId, customerName }) {
               background: white;
               padding: 20px;
             }
-            .report { max-width: 800px; margin: 0 auto; }
+            
+            .report { 
+              max-width: 800px; 
+              margin: 0 auto; 
+              background: white;
+            }
+            
             .header { 
               background: linear-gradient(135deg, #1e293b, #334155); 
               color: white; 
@@ -125,15 +141,29 @@ export default function CustomerReportGenerator({ customerId, customerName }) {
               margin-bottom: 30px;
               text-align: center;
             }
-            .company-name { font-size: 28px; font-weight: bold; margin-bottom: 10px; }
-            .report-title { font-size: 20px; margin-bottom: 5px; }
-            .report-date { opacity: 0.9; }
+            
+            .company-name { 
+              font-size: 28px; 
+              font-weight: bold; 
+              margin-bottom: 10px; 
+            }
+            
+            .report-title { 
+              font-size: 20px; 
+              margin-bottom: 5px; 
+            }
+            
+            .report-date { 
+              opacity: 0.9; 
+            }
+            
             .summary-grid { 
               display: grid; 
               grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); 
               gap: 20px; 
               margin-bottom: 30px; 
             }
+            
             .summary-card { 
               background: #f8fafc; 
               padding: 20px; 
@@ -141,44 +171,148 @@ export default function CustomerReportGenerator({ customerId, customerName }) {
               border-left: 4px solid #f97316;
               text-align: center;
             }
-            .summary-value { font-size: 24px; font-weight: bold; color: #1e293b; }
-            .summary-label { color: #64748b; margin-top: 5px; }
+            
+            .summary-value { 
+              font-size: 24px; 
+              font-weight: bold; 
+              color: #1e293b; 
+            }
+            
+            .summary-label { 
+              color: #64748b; 
+              margin-top: 5px; 
+            }
+            
             .customer-info { 
               background: #f8fafc; 
               padding: 20px; 
               border-radius: 8px; 
               margin-bottom: 30px; 
             }
-            .info-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; }
-            .info-item { display: flex; justify-content: space-between; }
-            .info-label { font-weight: 600; color: #4b5563; }
-            .transactions-table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-            .transactions-table th, .transactions-table td { 
+            
+            .info-grid { 
+              display: grid; 
+              grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); 
+              gap: 15px; 
+            }
+            
+            .info-item { 
+              display: flex; 
+              justify-content: space-between; 
+            }
+            
+            .info-label { 
+              font-weight: 600; 
+              color: #4b5563; 
+            }
+            
+            .transactions-table { 
+              width: 100%; 
+              border-collapse: collapse; 
+              margin-top: 20px; 
+            }
+            
+            .transactions-table th, 
+            .transactions-table td { 
               padding: 12px; 
               text-align: left; 
               border-bottom: 1px solid #e5e7eb; 
             }
+            
             .transactions-table th { 
               background: #f9fafb; 
               font-weight: 600; 
               color: #374151; 
             }
-            .status-paid { color: #059669; font-weight: 600; }
-            .status-outstanding { color: #dc2626; font-weight: 600; }
+            
+            .status-paid { 
+              color: #059669; 
+              font-weight: 600; 
+            }
+            
+            .status-outstanding { 
+              color: #dc2626; 
+              font-weight: 600; 
+            }
+            
+            .status-partial { 
+              color: #d97706; 
+              font-weight: 600; 
+            }
+            
             @media print {
-              body { padding: 0; background: #f8fafc !important; }
-              .report { max-width: none; }
+              body { 
+                padding: 0; 
+                background: white !important; 
+                color: #333 !important;
+              }
+              
+              .report { 
+                max-width: none; 
+                background: white !important;
+              }
+              
               .header {
                 background: linear-gradient(135deg, #1e293b, #334155) !important;
                 color: white !important;
               }
+              
+              .company-name {
+                color: white !important;
+              }
+              
+              .report-title {
+                color: white !important;
+              }
+              
+              .report-date {
+                color: white !important;
+              }
+              
               .summary-card {
                 background: #f8fafc !important;
                 border-left: 4px solid #f97316 !important;
               }
+              
+              .summary-value {
+                color: #1e293b !important;
+              }
+              
+              .summary-label {
+                color: #64748b !important;
+              }
+              
+              .customer-info {
+                background: #f8fafc !important;
+              }
+              
+              .info-label {
+                color: #4b5563 !important;
+              }
+              
               .transactions-table th {
                 background: #f9fafb !important;
                 color: #374151 !important;
+              }
+              
+              .transactions-table td {
+                color: #333 !important;
+              }
+              
+              .status-paid {
+                color: #059669 !important;
+              }
+              
+              .status-outstanding {
+                color: #dc2626 !important;
+              }
+              
+              .status-partial {
+                color: #d97706 !important;
+              }
+              
+              .no-print { 
+                display: none; 
               }
             }
           </style>

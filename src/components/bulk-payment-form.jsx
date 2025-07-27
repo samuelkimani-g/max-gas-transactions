@@ -64,13 +64,7 @@ export default function BulkPaymentForm({ customerId, customerName, outstandingA
     setSelectAll(prev => !prev)
   }
 
-  const handleAmountButton = (type) => {
-    if (type === 'half') {
-      setPaymentAmount(String(Math.round(totalOutstandingSelected / 2)))
-    } else if (type === 'full') {
-      setPaymentAmount(String(totalOutstandingSelected))
-    }
-  }
+
 
   const handleSubmit = async (e) => {
     e.preventDefault()
@@ -339,26 +333,7 @@ export default function BulkPaymentForm({ customerId, customerName, outstandingA
                       className="text-lg font-semibold"
                       disabled={selectedIds.length === 0}
                     />
-                    <div className="flex gap-3">
-                      <Button
-                        type="button"
-                        variant="outline"
-                        onClick={() => handleAmountButton('half')}
-                        disabled={selectedIds.length === 0}
-                        className="flex-1"
-                      >
-                        Half Amount
-                      </Button>
-                      <Button
-                        type="button"
-                        variant="outline"
-                        onClick={() => handleAmountButton('full')}
-                        disabled={selectedIds.length === 0}
-                        className="flex-1"
-                      >
-                        Full Amount
-                      </Button>
-                    </div>
+
                   </div>
                 </div>
 

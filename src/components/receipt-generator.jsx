@@ -556,128 +556,132 @@ export default function ReceiptGenerator({ transaction, customer }) {
       </div>
 
       {/* Receipt Content */}
-      <div ref={receiptRef} className="bg-white rounded-lg border max-w-md mx-auto">
+      <div ref={receiptRef} className="bg-white rounded-lg border max-w-md mx-auto overflow-hidden">
         {/* Header */}
-        <div className="header">
-          <div className="company-name">MaxGas</div>
-          <div className="company-tagline">Premium Gas Cylinder Solutions</div>
-          <div className="receipt-title">OFFICIAL RECEIPT</div>
+        <div className="text-center border-b-2 border-orange-500 p-4 bg-gradient-to-r from-slate-800 to-slate-700 text-white">
+          <div className="text-lg font-bold text-orange-400">MaxGas</div>
+          <div className="text-sm text-blue-300">Premium Gas Cylinder Solutions</div>
+          <div className="text-xs font-semibold bg-orange-500 text-white border-2 border-orange-500 px-2 py-1 mt-2 inline-block rounded">OFFICIAL RECEIPT</div>
         </div>
 
         {/* Transaction Info */}
-        <div className="transaction-info">
-          <div className="info-row">
-            <span className="info-label">Transaction Serial:</span>
-            <span>{transaction.transaction_number}</span>
+        <div className="p-4 space-y-2 text-sm">
+          <div className="flex justify-between">
+            <span className="font-semibold">Transaction Serial:</span>
+            <span className="font-mono text-blue-600 bg-blue-100 px-2 py-1 rounded text-xs">{transaction.transaction_number}</span>
           </div>
-          <div className="info-row">
-            <span className="info-label">Receipt #:</span>
+          <div className="flex justify-between">
+            <span className="font-semibold">Receipt #:</span>
             <span>#{transaction.id.toString().padStart(6, "0")}</span>
           </div>
-          <div className="info-row">
-            <span className="info-label">Date:</span>
+          <div className="flex justify-between">
+            <span className="font-semibold">Date:</span>
             <span>{formatDate(transaction.date || new Date())}</span>
           </div>
-          <div className="info-row">
-            <span className="info-label">Customer:</span>
+          <div className="flex justify-between">
+            <span className="font-semibold">Customer:</span>
             <span>{customer.name}</span>
           </div>
-          <div className="info-row">
-            <span className="info-label">Phone:</span>
+          <div className="flex justify-between">
+            <span className="font-semibold">Phone:</span>
             <span>{customer.phone}</span>
           </div>
-          <div className="info-row">
-            <span className="info-label">Status:</span>
-            <span className={`status-badge ${paymentStatus.class}`}>{paymentStatus.text}</span>
+          <div className="flex justify-between">
+            <span className="font-semibold">Status:</span>
+            <span className={`px-2 py-1 rounded text-xs font-bold ${
+              paymentStatus.text === 'FULLY PAID' ? 'bg-green-100 text-green-800' :
+              paymentStatus.text === 'PARTIALLY PAID' ? 'bg-yellow-100 text-yellow-800' :
+              'bg-red-100 text-red-800'
+            }`}>{paymentStatus.text}</span>
           </div>
         </div>
 
         {/* Cylinder Movements Summary */}
-        <div className="cylinder-summary">
-          <div className="section-title">Cylinder Movements Summary</div>
-          <div className="summary-row">
-            <span>IN (Customer Returns):</span>
+        <div className="p-4 border-t border-gray-200">
+          <div className="text-sm font-bold text-gray-800 border-b-2 border-orange-500 bg-orange-50 p-2 rounded mb-3">Cylinder Movements Summary</div>
+          <div className="text-xs mb-1">
+            <span className="font-semibold">IN (Customer Returns):</span>
           </div>
-          <div className="summary-row">
+          <div className="text-xs mb-1 ml-2">
             <span>  - Max Empty: 6kg ({cylinderMovements.in.maxEmpty.kg6 || 0}), 13kg ({cylinderMovements.in.maxEmpty.kg13 || 0}), 50kg ({cylinderMovements.in.maxEmpty.kg50 || 0})</span>
           </div>
-          <div className="summary-row">
+          <div className="text-xs mb-1 ml-2">
             <span>  - Swap Empty: 6kg ({cylinderMovements.in.swapEmpty.kg6 || 0}), 13kg ({cylinderMovements.in.swapEmpty.kg13 || 0}), 50kg ({cylinderMovements.in.swapEmpty.kg50 || 0})</span>
           </div>
-          <div className="summary-row">
+          <div className="text-xs mb-1 ml-2">
             <span>  - Return Full: 6kg ({cylinderMovements.in.returnFull.kg6 || 0}), 13kg ({cylinderMovements.in.returnFull.kg13 || 0}), 50kg ({cylinderMovements.in.returnFull.kg50 || 0})</span>
           </div>
-          <div className="summary-row">
-            <span>OUT (Customer Received):</span>
+          <div className="text-xs mb-1">
+            <span className="font-semibold">OUT (Customer Received):</span>
           </div>
-          <div className="summary-row">
+          <div className="text-xs mb-1 ml-2">
             <span>  - Refills: 6kg ({cylinderMovements.out.refills.kg6 || 0}), 13kg ({cylinderMovements.out.refills.kg13 || 0}), 50kg ({cylinderMovements.out.refills.kg50 || 0})</span>
           </div>
-          <div className="summary-row">
+          <div className="text-xs mb-1 ml-2">
             <span>  - Outright: 6kg ({cylinderMovements.out.outright.kg6 || 0}), 13kg ({cylinderMovements.out.outright.kg13 || 0}), 50kg ({cylinderMovements.out.outright.kg50 || 0})</span>
           </div>
-          <div className="summary-row">
-            <span>Load Total: {totalOut} cylinders</span>
+          <div className="text-xs mb-1">
+            <span className="font-semibold">Load Total: {totalOut} cylinders</span>
           </div>
         </div>
 
         {/* Items & Services Breakdown */}
-        <div className="items-section">
-          <div className="section-title">Items & Services Breakdown</div>
+        <div className="p-4 border-t border-gray-200">
+          <div className="text-sm font-bold text-gray-800 border-b-2 border-orange-500 bg-orange-50 p-2 rounded mb-3">Items & Services Breakdown</div>
           
-          {maxGasReturns.length > 0 && (
-            <div className="item-group">
-              <div className="group-title">MaxGas Refills</div>
-              {maxGasReturns.map((item, index) => (
-                <div key={index} className="item-row">
-                  <span className="item-description">{item.description}</span>
-                  <span className="item-amount">{formatCurrency(item.amount)}</span>
-                </div>
-              ))}
+                      {maxGasReturns.length > 0 && (
+              <div className="mb-4">
+                <div className="text-xs font-bold text-blue-600 border-b border-blue-300 pb-1 mb-2">MaxGas Refills</div>
+                              {maxGasReturns.map((item, index) => (
+                  <div key={index} className="flex justify-between text-xs mb-1">
+                    <span className="flex-2">{item.description}</span>
+                    <span className="flex-1 text-right font-bold">{formatCurrency(item.amount)}</span>
+                  </div>
+                ))}
             </div>
           )}
 
-          {maxGasOutright.length > 0 && (
-            <div className="item-group">
-              <div className="group-title">MaxGas Outright Sales</div>
+                      {maxGasOutright.length > 0 && (
+              <div className="mb-4">
+                <div className="text-xs font-bold text-blue-600 border-b border-blue-300 pb-1 mb-2">MaxGas Outright Sales</div>
               {maxGasOutright.map((item, index) => (
-                <div key={index} className="item-row">
-                  <span className="item-description">{item.description}</span>
-                  <span className="item-amount">{formatCurrency(item.amount)}</span>
+                <div key={index} className="flex justify-between text-xs mb-1">
+                  <span className="flex-2">{item.description}</span>
+                  <span className="flex-1 text-right font-bold">{formatCurrency(item.amount)}</span>
                 </div>
               ))}
-              <div className="item-row">
-                <span className="item-description">(Total for outright sales: {formatCurrency(totalOutrightAmount)})</span>
+              <div className="flex justify-between text-xs mb-1">
+                <span className="flex-2">(Total for outright sales: {formatCurrency(totalOutrightAmount)})</span>
               </div>
             </div>
           )}
         </div>
 
         {/* Transaction Summary */}
-        <div className="totals-section">
-          <div className="section-title">Transaction Summary</div>
-          <div className="item-row">
-            <span className="item-description">Subtotal:</span>
-            <span className="item-amount">{formatCurrency(total)}</span>
+        <div className="p-4 border-t border-gray-200 bg-orange-50 rounded">
+          <div className="text-sm font-bold text-gray-800 border-b-2 border-orange-500 p-2 rounded mb-3">Transaction Summary</div>
+          <div className="flex justify-between text-xs mb-1">
+            <span>Subtotal:</span>
+            <span className="font-bold">{formatCurrency(total)}</span>
           </div>
-          <div className="item-row">
-            <span className="item-description">Less: Discounts / Credits:</span>
-            <span className="item-amount">{formatCurrency(0)}</span>
+          <div className="flex justify-between text-xs mb-1">
+            <span>Less: Discounts / Credits:</span>
+            <span className="font-bold">{formatCurrency(0)}</span>
           </div>
-          <div className="item-row">
-            <span className="item-description">Plus: Taxes:</span>
-            <span className="item-amount">{formatCurrency(0)}</span>
+          <div className="flex justify-between text-xs mb-1">
+            <span>Plus: Taxes:</span>
+            <span className="font-bold">{formatCurrency(0)}</span>
           </div>
-          <div className="item-row final">
-            <span className="item-description">TOTAL BILL:</span>
-            <span className="item-amount">{formatCurrency(total)}</span>
+          <div className="flex justify-between text-sm font-bold border-t border-gray-300 pt-2 mt-2">
+            <span>TOTAL BILL:</span>
+            <span>{formatCurrency(total)}</span>
           </div>
         </div>
 
         {/* Payment Details */}
-        <div className="payment-history">
-          <div className="section-title">Payment Details</div>
-          <div className="summary-row">
+        <div className="p-4 border-t border-gray-200">
+          <div className="text-sm font-bold text-gray-800 border-b-2 border-orange-500 bg-orange-50 p-2 rounded mb-3">Payment Details</div>
+          <div className="text-xs mb-2">
             <span>Payment History for Transaction #{transaction.transaction_number}:</span>
           </div>
           
@@ -686,22 +690,22 @@ export default function ReceiptGenerator({ transaction, customer }) {
               <span>Loading payment history...</span>
             </div>
           ) : paymentHistory.length > 0 ? (
-            <table className="payment-table">
+            <table className="w-full border-collapse text-xs mb-2">
               <thead>
-                <tr>
-                  <th>Date & Time</th>
-                  <th>Amount Paid</th>
-                  <th>Method</th>
-                  <th>Reference</th>
+                <tr className="bg-gray-100">
+                  <th className="border border-gray-300 p-1 text-left font-bold">Date & Time</th>
+                  <th className="border border-gray-300 p-1 text-left font-bold">Amount Paid</th>
+                  <th className="border border-gray-300 p-1 text-left font-bold">Method</th>
+                  <th className="border border-gray-300 p-1 text-left font-bold">Reference</th>
                 </tr>
               </thead>
               <tbody>
                 {paymentHistory.map((payment, index) => (
                   <tr key={index}>
-                    <td>{formatDate(payment.paymentDate)}</td>
-                    <td>{formatCurrency(parseFloat(payment.amount) || 0)}</td>
-                    <td>{payment.paymentMethod}</td>
-                    <td>{payment.reference || '-'}</td>
+                    <td className="border border-gray-300 p-1">{formatDate(payment.paymentDate)}</td>
+                    <td className="border border-gray-300 p-1 font-bold">{formatCurrency(parseFloat(payment.amount) || 0)}</td>
+                    <td className="border border-gray-300 p-1">{payment.paymentMethod}</td>
+                    <td className="border border-gray-300 p-1">{payment.reference || '-'}</td>
                   </tr>
                 ))}
               </tbody>
@@ -712,35 +716,33 @@ export default function ReceiptGenerator({ transaction, customer }) {
             </div>
           )}
           
-          <div className="summary-row">
-            <span>Total Amount Paid to Date:</span>
-            <span>{formatCurrency(paid)}</span>
+          <div className="flex justify-between text-xs mb-1">
+            <span className="font-semibold">Total Amount Paid to Date:</span>
+            <span className="font-bold text-green-600">{formatCurrency(paid)}</span>
           </div>
-          <div className="summary-row">
-            <span>Outstanding Balance:</span>
-            <span>{formatCurrency(outstanding)}</span>
+          <div className="flex justify-between text-xs mb-1">
+            <span className="font-semibold">Outstanding Balance:</span>
+            <span className="font-bold text-red-600">{formatCurrency(outstanding)}</span>
           </div>
         </div>
 
         {/* Notes */}
         {transaction.notes && (
-          <div className="cylinder-summary">
-            <div className="section-title">Notes & Footer</div>
-            <div className="summary-row">
+          <div className="p-4 border-t border-gray-200">
+            <div className="text-sm font-bold text-gray-800 border-b-2 border-orange-500 bg-orange-50 p-2 rounded mb-3">Notes & Footer</div>
+            <div className="text-xs">
               <span>Notes: {transaction.notes}</span>
             </div>
           </div>
         )}
 
         {/* Footer */}
-        <div className="footer">
-          <div className="footer-message">Thank you for your business!</div>
-          <div className="footer-contact">
-            MaxGas - Premium Gas Cylinder Solutions
-            <br />
-            📧 info@maxgas.co.ke | 📞 +254 700 000 000
-            <br />
-            🌐 www.maxgas.co.ke
+        <div className="text-center border-t-2 border-orange-500 p-4 bg-gradient-to-r from-slate-800 to-slate-700 text-white">
+          <div className="text-sm font-bold mb-3">Thank you for your business!</div>
+          <div className="text-xs">
+            <div>MaxGas - Premium Gas Cylinder Solutions</div>
+            <div>📧 info@maxgas.co.ke | 📞 +254 700 000 000</div>
+            <div>🌐 www.maxgas.co.ke</div>
           </div>
         </div>
       </div>

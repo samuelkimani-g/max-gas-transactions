@@ -98,7 +98,6 @@ export default function TransactionHistory({ transactions = [], customerId, onEd
         <TableBody>
           {sortedTransactions.map((t, idx) => (
             <React.Fragment key={t.id}>
-              {idx === 0 && console.log('[Badge Debug] total_bill:', t.total_bill, 'amount_paid:', t.amount_paid, 'Number(total_bill):', Number(t.total_bill), 'Number(amount_paid):', Number(t.amount_paid))}
               <TableRow className="cursor-pointer hover:bg-slate-50 transition-colors" onClick={() => setModalTransaction(t)}>
                 <TableCell>
                   {expandedRow === t.id ? <ChevronDown size={16} /> : <ChevronRight size={16} />}

@@ -10,6 +10,7 @@ const Payment = sequelize.define('Payment', {
   transactionId: {
     type: DataTypes.INTEGER,
     allowNull: false,
+    field: 'transaction_id',
     references: {
       model: 'transactions',
       key: 'id'
@@ -18,6 +19,7 @@ const Payment = sequelize.define('Payment', {
   customerId: {
     type: DataTypes.INTEGER,
     allowNull: false,
+    field: 'customer_id',
     references: {
       model: 'customers',
       key: 'id'
@@ -29,7 +31,8 @@ const Payment = sequelize.define('Payment', {
   },
   paymentMethod: {
     type: DataTypes.ENUM('cash', 'card', 'transfer', 'credit', 'mobile_money'),
-    allowNull: false
+    allowNull: false,
+    field: 'payment_method'
   },
   reference: {
     type: DataTypes.STRING(100),
@@ -38,11 +41,13 @@ const Payment = sequelize.define('Payment', {
   receiptNumber: {
     type: DataTypes.STRING(50),
     allowNull: true,
-    unique: true
+    unique: true,
+    field: 'receipt_number'
   },
   branchId: {
     type: DataTypes.INTEGER,
     allowNull: true,
+    field: 'branch_id',
     references: {
       model: 'branches',
       key: 'id'
@@ -51,6 +56,7 @@ const Payment = sequelize.define('Payment', {
   processedBy: {
     type: DataTypes.INTEGER,
     allowNull: false,
+    field: 'processed_by',
     references: {
       model: 'users',
       key: 'id'
@@ -68,7 +74,8 @@ const Payment = sequelize.define('Payment', {
   paymentDate: {
     type: DataTypes.DATE,
     allowNull: false,
-    defaultValue: DataTypes.NOW
+    defaultValue: DataTypes.NOW,
+    field: 'payment_date'
   }
 }, {
   tableName: 'payments',
@@ -96,7 +103,11 @@ Payment.getCustomerPayments = async function(customerId, limit = 50) {
 Payment.getTransactionPayments = async function(transactionId) {
   return await this.findAll({
     where: { transactionId },
-    order: [['paymentDate', 'ASC']]
+    order: [['paymentDate', 'ASC']],
+    include: [
+      { model: require('./Transaction'), as: 'Transaction' },
+      { model: require('./Customer'), as: 'Customer' }
+    ]
   });
 };
 

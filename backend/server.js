@@ -9,8 +9,9 @@ require('dotenv').config();
 const { sequelize } = require('./config/database');
 require('./models'); // This will load all models and associations
 
-// Import migration
+// Import migration and setup scripts
 const migrate = require('./scripts/migrate-db');
+const { setupTrustedDevices } = require('./scripts/setup-trusted-devices');
 
 // Import routes
 const authRoutes = require('./routes/auth');
@@ -23,6 +24,7 @@ const forecastRoutes = require('./routes/forecasts');
 const paymentRoutes = require('./routes/payments');
 const approvalRoutes = require('./routes/approvals');
 const adminRoutes = require('./routes/admin');
+const deviceRoutes = require('./routes/devices');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -162,6 +164,7 @@ app.use('/api/forecasts', forecastRoutes);
 app.use('/api/payments', paymentRoutes);
 app.use('/api/approvals', approvalRoutes);
 app.use('/api/admin', adminRoutes);
+app.use('/api/devices', deviceRoutes);
 
 // 404 handler
 app.use('*', (req, res) => {
@@ -271,6 +274,14 @@ async function startServer() {
       console.log('✅ Payments table setup completed successfully');
     } catch (error) {
       console.log('⚠️ Payments table setup had issues, but continuing...', error.message);
+    }
+
+    // Setup trusted devices table
+    try {
+      await setupTrustedDevices();
+      console.log('✅ Trusted devices table setup completed successfully');
+    } catch (error) {
+      console.log('⚠️ Trusted devices table setup had issues, but continuing...', error.message);
     }
 
     // Start server

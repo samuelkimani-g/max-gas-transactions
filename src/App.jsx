@@ -16,9 +16,12 @@ import ExportImport from "./components/export-import"
 import ReportingInsights from "./components/reporting-insights"
 import UserManagement from "./components/user-management"
 import ApprovalManagement from "./components/approval-management"
+import DeviceManagement from "./components/device-management"
 import Login from "./components/login"
 import { Toaster } from "./components/ui/toster";
 import { getAutoLoginCredentials, getDeviceInfo, isFeatureEnabled } from './lib/device-config'
+import deviceAuth from './lib/device-auth'
+import PermissionRequest from './components/permission-request'
 
 // import BarcodeScanner from "./components/barcode-scanner"
 
@@ -45,6 +48,7 @@ export default function App() {
   const [isAutoLoggingIn, setIsAutoLoggingIn] = useState(false)
   const [isAddingCustomer, setIsAddingCustomer] = useState(false)
   const [isInitializing, setIsInitializing] = useState(true)
+  const [authState, setAuthState] = useState('checking') // 'checking', 'trusted', 'manual', 'permission'
 
   useEffect(() => {
     const initializeApp = async () => {
@@ -57,20 +61,26 @@ export default function App() {
         await checkAuthStatus()
         
         if (!isAuthenticated) {
-          // Try auto-login for desktop devices
-          const autoCredentials = getAutoLoginCredentials()
-          if (autoCredentials && window.electron) { // Only for desktop app
-            setIsAutoLoggingIn(true)
-            try {
-              await login(autoCredentials.username, autoCredentials.password)
-              console.log(`[DEVICE] Auto-logged in as ${deviceConfig.role}: ${deviceConfig.displayName}`)
-            } catch (error) {
-              console.error('[DEVICE] Auto-login failed:', error)
-            } finally {
-              setIsAutoLoggingIn(false)
-            }
+          // Try trusted device auto-login first
+          console.log('[AUTH] Attempting trusted device auto-login...')
+          const autoLoginResult = await deviceAuth.attemptAutoLogin()
+          
+          if (autoLoginResult.success) {
+            console.log('[AUTH] Trusted device auto-login successful')
+            setAuthState('trusted')
+            // Update store with user info
+            useStore.getState().setUser(autoLoginResult.user)
+            useStore.getState().setAuthenticated(true)
+          } else {
+            console.log('[AUTH] Trusted device auto-login failed:', autoLoginResult.message)
+            setAuthState('permission')
           }
+        } else {
+          setAuthState('trusted')
         }
+      } catch (error) {
+        console.error('[AUTH] Initialization error:', error)
+        setAuthState('permission')
       } finally {
         setIsInitializing(false)
       }
@@ -129,6 +139,11 @@ export default function App() {
         </div>
       </div>
     )
+  }
+
+  // Show permission request if device is not trusted
+  if (authState === 'permission') {
+    return <PermissionRequest />
   }
 
   if (!isAuthenticated) {
@@ -220,6 +235,15 @@ export default function App() {
                   Users
                 </TabsTrigger>
               )}
+              {rbac?.permissions.canManageSystem && (
+                <TabsTrigger
+                  value="devices"
+                  className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-orange-500 data-[state=active]:to-orange-600 data-[state=active]:text-white"
+                >
+                  <Shield className="w-4 h-4 mr-2" />
+                  Devices
+                </TabsTrigger>
+              )}
               {rbac?.permissions.canApproveRequests && (
                 <TabsTrigger
                   value="approvals"
@@ -284,6 +308,11 @@ export default function App() {
           {rbac?.permissions.canAccessUsers && (
             <TabsContent value="users" className="m-0">
               <UserManagement />
+            </TabsContent>
+          )}
+          {rbac?.permissions.canManageSystem && (
+            <TabsContent value="devices" className="m-0">
+              <DeviceManagement />
             </TabsContent>
           )}
           {rbac?.permissions.canApproveRequests && (

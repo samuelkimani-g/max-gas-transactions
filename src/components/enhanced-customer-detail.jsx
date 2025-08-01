@@ -226,8 +226,8 @@ export default function EnhancedCustomerDetail({ customerId, onBack }) {
             <div className="flex items-center justify-between">
               <CardTitle className="text-xl font-bold">Outstanding Balance</CardTitle>
               <DollarSign className="h-6 w-6" />
-            </div>
-          </CardHeader>
+      </div>
+        </CardHeader>
           <CardContent className="p-6 text-center">
             <div className="text-3xl font-bold text-red-700 mb-2">Ksh {formatNumber(financialBalance || 0)}</div>
             <p className="text-lg text-red-600 font-semibold">{financialBalance > 0 ? 'Amount Due' : 'Fully Paid'}</p>
@@ -281,10 +281,10 @@ export default function EnhancedCustomerDetail({ customerId, onBack }) {
                   <div className="w-3 h-3 bg-gray-500 rounded-full mr-1"></div>
                   <span>Balanced</span>
                 </div>
-              </div>
             </div>
-          </CardContent>
-        </Card>
+          </div>
+        </CardContent>
+      </Card>
       </div>
 
       {/* Bulk Payment Section */}
@@ -366,13 +366,13 @@ export default function EnhancedCustomerDetail({ customerId, onBack }) {
                 </p>
                 <div className="flex gap-2">
                   {(rbac?.permissions?.canDeleteCustomer || rbac?.permissions?.canRequestCustomerApproval) && (
-                    <Button
-                      onClick={handleDeleteCustomer}
-                      className="bg-red-600 hover:bg-red-700 text-white"
-                      disabled={isDeleting}
-                    >
+                  <Button
+                    onClick={handleDeleteCustomer}
+                    className="bg-red-600 hover:bg-red-700 text-white"
+                    disabled={isDeleting}
+                  >
                       {isDeleting ? 'Processing...' : (rbac?.permissions?.canRequestCustomerApproval ? 'Request Deletion' : 'Delete Customer')}
-                    </Button>
+                  </Button>
                   )}
                   <Button
                     onClick={() => setShowDeleteOptions(false)}

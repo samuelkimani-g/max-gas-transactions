@@ -544,20 +544,20 @@ export default function ReceiptGenerator({ transaction, customer }) {
     <div className="space-y-4">
       {/* Action Buttons */}
       <div className="flex justify-end">
-        <Button
-          onClick={handlePrint}
-          disabled={isPrinting}
+            <Button
+              onClick={handlePrint}
+              disabled={isPrinting}
           variant="outline"
-          size="sm"
-        >
-          <Printer className="w-4 h-4 mr-1" />
-          Print
-        </Button>
-      </div>
+              size="sm"
+            >
+              <Printer className="w-4 h-4 mr-1" />
+              Print
+            </Button>
+          </div>
 
       {/* Receipt Content */}
       <div ref={receiptRef} className="bg-white rounded-lg border max-w-md mx-auto overflow-hidden">
-        {/* Header */}
+          {/* Header */}
         <div className="text-center border-b-2 border-orange-500 p-4 bg-gradient-to-r from-slate-800 to-slate-700 text-white">
           <div className="text-lg font-bold text-orange-400">MaxGas</div>
           <div className="text-sm text-blue-300">Premium Gas Cylinder Solutions</div>
@@ -581,11 +581,11 @@ export default function ReceiptGenerator({ transaction, customer }) {
           <div className="flex justify-between">
             <span className="font-semibold">Customer:</span>
             <span>{customer.name}</span>
-          </div>
+              </div>
           <div className="flex justify-between">
             <span className="font-semibold">Phone:</span>
             <span>{customer.phone}</span>
-          </div>
+              </div>
           <div className="flex justify-between">
             <span className="font-semibold">Status:</span>
             <span className={`px-2 py-1 rounded text-xs font-bold ${
@@ -593,8 +593,8 @@ export default function ReceiptGenerator({ transaction, customer }) {
               paymentStatus.text === 'PARTIALLY PAID' ? 'bg-yellow-100 text-yellow-800' :
               'bg-red-100 text-red-800'
             }`}>{paymentStatus.text}</span>
-          </div>
-        </div>
+              </div>
+            </div>
 
         {/* Cylinder Movements Summary */}
         <div className="p-4 border-t border-gray-200">
@@ -622,40 +622,40 @@ export default function ReceiptGenerator({ transaction, customer }) {
           </div>
           <div className="text-xs mb-1">
             <span className="font-semibold">Load Total: {totalOut} cylinders</span>
-          </div>
-        </div>
+              </div>
+              </div>
 
         {/* Items & Services Breakdown */}
         <div className="p-4 border-t border-gray-200">
           <div className="text-sm font-bold text-gray-800 border-b-2 border-orange-500 bg-orange-50 p-2 rounded mb-3">Items & Services Breakdown</div>
-          
-                      {maxGasReturns.length > 0 && (
+
+              {maxGasReturns.length > 0 && (
               <div className="mb-4">
                 <div className="text-xs font-bold text-blue-600 border-b border-blue-300 pb-1 mb-2">MaxGas Refills</div>
-                              {maxGasReturns.map((item, index) => (
+                  {maxGasReturns.map((item, index) => (
                   <div key={index} className="flex justify-between text-xs mb-1">
                     <span className="flex-2">{item.description}</span>
                     <span className="flex-1 text-right font-bold">{formatCurrency(item.amount)}</span>
-                  </div>
-                ))}
-            </div>
-          )}
+                    </div>
+                  ))}
+                </div>
+              )}
 
-                      {maxGasOutright.length > 0 && (
+              {maxGasOutright.length > 0 && (
               <div className="mb-4">
                 <div className="text-xs font-bold text-blue-600 border-b border-blue-300 pb-1 mb-2">MaxGas Outright Sales</div>
               {maxGasOutright.map((item, index) => (
                 <div key={index} className="flex justify-between text-xs mb-1">
                   <span className="flex-2">{item.description}</span>
                   <span className="flex-1 text-right font-bold">{formatCurrency(item.amount)}</span>
-                </div>
-              ))}
+                    </div>
+                  ))}
               <div className="flex justify-between text-xs mb-1">
                 <span className="flex-2">(Total for outright sales: {formatCurrency(totalOutrightAmount)})</span>
-              </div>
-            </div>
-          )}
-        </div>
+                  </div>
+                </div>
+              )}
+                  </div>
 
         {/* Transaction Summary */}
         <div className="p-4 border-t border-gray-200 bg-orange-50 rounded">
@@ -663,32 +663,32 @@ export default function ReceiptGenerator({ transaction, customer }) {
           <div className="flex justify-between text-xs mb-1">
             <span>Subtotal:</span>
             <span className="font-bold">{formatCurrency(total)}</span>
-          </div>
+                  </div>
           <div className="flex justify-between text-xs mb-1">
             <span>Less: Discounts / Credits:</span>
             <span className="font-bold">{formatCurrency(0)}</span>
-          </div>
+                </div>
           <div className="flex justify-between text-xs mb-1">
             <span>Plus: Taxes:</span>
             <span className="font-bold">{formatCurrency(0)}</span>
-          </div>
+                  </div>
           <div className="flex justify-between text-sm font-bold border-t border-gray-300 pt-2 mt-2">
             <span>TOTAL BILL:</span>
             <span>{formatCurrency(total)}</span>
-          </div>
-        </div>
+                  </div>
+                </div>
 
         {/* Payment Details */}
         <div className="p-4 border-t border-gray-200">
           <div className="text-sm font-bold text-gray-800 border-b-2 border-orange-500 bg-orange-50 p-2 rounded mb-3">Payment Details</div>
           <div className="text-xs mb-2">
             <span>Payment History for Transaction #{transaction.transaction_number}:</span>
-          </div>
+                  </div>
           
           {loadingPayments ? (
             <div className="summary-row">
               <span>Loading payment history...</span>
-            </div>
+                  </div>
           ) : paymentHistory.length > 0 ? (
             <table className="w-full border-collapse text-xs mb-2">
               <thead>
@@ -718,25 +718,25 @@ export default function ReceiptGenerator({ transaction, customer }) {
           
           <div className="flex justify-between text-xs mb-1">
             <span className="font-semibold">Total Amount Paid to Date:</span>
-            <span className="font-bold text-green-600">{formatCurrency(paid)}</span>
-          </div>
+              <span className="font-bold text-green-600">{formatCurrency(paid)}</span>
+              </div>
           <div className="flex justify-between text-xs mb-1">
             <span className="font-semibold">Outstanding Balance:</span>
             <span className="font-bold text-red-600">{formatCurrency(outstanding)}</span>
-          </div>
-        </div>
+              </div>
+            </div>
 
         {/* Notes */}
-        {transaction.notes && (
+            {transaction.notes && (
           <div className="p-4 border-t border-gray-200">
             <div className="text-sm font-bold text-gray-800 border-b-2 border-orange-500 bg-orange-50 p-2 rounded mb-3">Notes & Footer</div>
             <div className="text-xs">
               <span>Notes: {transaction.notes}</span>
-            </div>
+              </div>
           </div>
         )}
 
-        {/* Footer */}
+          {/* Footer */}
         <div className="text-center border-t-2 border-orange-500 p-4 bg-gradient-to-r from-slate-800 to-slate-700 text-white">
           <div className="text-sm font-bold mb-3">Thank you for your business!</div>
           <div className="text-xs">

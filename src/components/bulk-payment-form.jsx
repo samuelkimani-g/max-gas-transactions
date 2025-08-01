@@ -71,8 +71,8 @@ export default function BulkPaymentForm({ customerId, customerName, outstandingA
     setIsSubmitting(true)
     
     try {
-      const amount = Number.parseFloat(paymentAmount)
-      
+    const amount = Number.parseFloat(paymentAmount)
+
       if (selectedIds.length === 0) {
         toast({
           title: "No Transactions Selected",
@@ -82,13 +82,13 @@ export default function BulkPaymentForm({ customerId, customerName, outstandingA
         return
       }
       if (amount <= 0 || isNaN(amount)) {
-        toast({
-          title: "Invalid Amount",
-          description: "Please enter a valid payment amount.",
-          variant: "destructive",
-        })
-        return
-      }
+      toast({
+        title: "Invalid Amount",
+        description: "Please enter a valid payment amount.",
+        variant: "destructive",
+      })
+      return
+    }
       if (amount > totalOutstandingSelected) {
         toast({
           title: "Amount Too High",
@@ -105,12 +105,12 @@ export default function BulkPaymentForm({ customerId, customerName, outstandingA
         paymentMethod,
         `${paymentMethod.toUpperCase()}: ${paymentNote || `Bulk payment of ${formatCurrency(amount)}`} (${paymentDate})`
       )
-      
+
       toast({
         title: "Payment Recorded Successfully",
         description: `Payment of ${formatCurrency(amount)} has been recorded for ${customerName}.`,
       })
-      
+
       setPaymentAmount("")
       setPaymentNote("")
       setIsOpen(false)
@@ -144,7 +144,7 @@ export default function BulkPaymentForm({ customerId, customerName, outstandingA
             Record Bulk Payment
           </DialogTitle>
         </DialogHeader>
-        
+
         <div className="space-y-6 py-4">
           {/* Customer Summary Card */}
           <Card className="bg-gradient-to-r from-blue-50 to-indigo-50 border-blue-200">
@@ -160,9 +160,9 @@ export default function BulkPaymentForm({ customerId, customerName, outstandingA
                   <p className="text-sm text-gray-600 mb-1">Customer</p>
                   <p className="font-semibold text-gray-800">{customerName}</p>
                 </div>
-                <div className="text-center">
+              <div className="text-center">
                   <p className="text-sm text-gray-600 mb-1">Outstanding Balance</p>
-                  <p className="text-2xl font-bold text-red-600">{formatCurrency(outstandingAmount)}</p>
+                <p className="text-2xl font-bold text-red-600">{formatCurrency(outstandingAmount)}</p>
                 </div>
                 <div className="text-center">
                   <p className="text-sm text-gray-600 mb-1">Unpaid Transactions</p>
@@ -206,7 +206,7 @@ export default function BulkPaymentForm({ customerId, customerName, outstandingA
                               onChange={handleSelectAll}
                               className="w-5 h-5 text-green-600 border-gray-300 rounded focus:ring-green-500"
                             />
-                          </div>
+            </div>
                         </th>
                         <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700">Transaction</th>
                         <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700">Date</th>
@@ -321,15 +321,15 @@ export default function BulkPaymentForm({ customerId, customerName, outstandingA
                     Payment Amount (KSH)
                   </Label>
                   <div className="mt-2 space-y-3">
-                    <Input
-                      id="paymentAmount"
-                      type="number"
-                      step="0.01"
-                      min="0"
-                      placeholder="Enter payment amount"
-                      value={paymentAmount}
-                      onChange={(e) => setPaymentAmount(e.target.value)}
-                      required
+                  <Input
+                    id="paymentAmount"
+                    type="number"
+                    step="0.01"
+                    min="0"
+                    placeholder="Enter payment amount"
+                    value={paymentAmount}
+                    onChange={(e) => setPaymentAmount(e.target.value)}
+                    required
                       className="text-lg font-semibold"
                       disabled={selectedIds.length === 0}
                     />
@@ -423,8 +423,8 @@ export default function BulkPaymentForm({ customerId, customerName, outstandingA
                         <span className="text-gray-600">Remaining Balance:</span>
                         <span className="ml-2 font-bold text-red-600">
                           {formatCurrency(totalOutstandingSelected - (Number.parseFloat(paymentAmount) || 0))}
-                        </span>
-                      </div>
+                            </span>
+                          </div>
                     </div>
                   </div>
                 </CardContent>
@@ -440,10 +440,10 @@ export default function BulkPaymentForm({ customerId, customerName, outstandingA
                 className="flex-1 h-12 text-lg"
                 disabled={isSubmitting}
               >
-                Cancel
-              </Button>
-              <Button
-                type="submit"
+                    Cancel
+                  </Button>
+                  <Button
+                    type="submit"
                 className="flex-1 h-12 text-lg bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800"
                 disabled={selectedIds.length === 0 || !paymentAmount || Number(paymentAmount) <= 0 || isSubmitting}
               >
@@ -458,10 +458,10 @@ export default function BulkPaymentForm({ customerId, customerName, outstandingA
                     Record Payment
                   </>
                 )}
-              </Button>
+                  </Button>
+                </div>
+              </form>
             </div>
-          </form>
-        </div>
       </DialogContent>
     </Dialog>
   )

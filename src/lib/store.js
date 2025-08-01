@@ -515,17 +515,17 @@ export const useStore = create()(
             }
             console.log('[LOGIN] Frontend login success:', data)
             if (data.success) {
-              localStorage.setItem('authToken', data.data.token)
+              localStorage.setItem('authToken', data.token)
               set({
                 isAuthenticated: true,
-                user: data.data.user,
-                token: data.data.token
+                user: data.user,
+                token: data.token
               })
               
               // Start auto-refresh to keep data in sync across devices
               get().startAutoRefresh()
               
-              return data.data
+              return data
             } else {
               throw new Error(data.message || 'Login failed')
             }

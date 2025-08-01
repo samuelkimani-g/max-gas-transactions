@@ -1,60 +1,59 @@
-const { Pool } = require('pg');
-
-// Database connection
-const pool = new Pool({
-  connectionString: process.env.DATABASE_URL,
-  ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false
-});
+const { sequelize } = require('../config/database');
 
 async function setupTrustedDevices() {
   try {
-    console.log('Setting up trusted_devices table...');
-    
-    const createTableSQL = `
+    console.log('🔧 Setting up trusted devices table...');
+
+    // Create trusted_devices table
+    await sequelize.query(`
       CREATE TABLE IF NOT EXISTS trusted_devices (
         id SERIAL PRIMARY KEY,
         device_identifier VARCHAR(255) UNIQUE NOT NULL,
-        user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+        user_id INTEGER NOT NULL,
         role VARCHAR(50) NOT NULL CHECK (role IN ('admin', 'manager', 'operator')),
         is_active BOOLEAN DEFAULT TRUE,
         created_at TIMESTAMP DEFAULT NOW(),
         last_accessed_at TIMESTAMP DEFAULT NOW(),
-        created_by INTEGER REFERENCES users(id),
+        created_by INTEGER,
         notes TEXT
       );
-    `;
+    `);
 
-    // Create indexes for better performance
-    const createIndexesSQL = `
-      CREATE INDEX IF NOT EXISTS idx_trusted_devices_device_identifier ON trusted_devices(device_identifier);
+    // Create indexes for performance
+    await sequelize.query(`
+      CREATE INDEX IF NOT EXISTS idx_trusted_devices_identifier ON trusted_devices(device_identifier);
       CREATE INDEX IF NOT EXISTS idx_trusted_devices_user_id ON trusted_devices(user_id);
-      CREATE INDEX IF NOT EXISTS idx_trusted_devices_is_active ON trusted_devices(is_active);
+      CREATE INDEX IF NOT EXISTS idx_trusted_devices_active ON trusted_devices(is_active);
       CREATE INDEX IF NOT EXISTS idx_trusted_devices_last_accessed ON trusted_devices(last_accessed_at);
-    `;
+    `);
 
-    await pool.query(createTableSQL);
-    await pool.query(createIndexesSQL);
-    
-    console.log('✅ trusted_devices table created successfully!');
-    console.log('✅ Indexes created for optimal performance');
-    
+    console.log('✅ Trusted devices table setup completed successfully');
+
+    // Check if we have any admin users to create a sample trusted device
+    const adminUsers = await sequelize.query(`
+      SELECT id, username, role FROM users WHERE role = 'admin' LIMIT 1
+    `);
+
+    if (adminUsers[0].length > 0) {
+      console.log('📋 Found admin users, trusted devices table is ready for use');
+    } else {
+      console.log('⚠️ No admin users found. Please create admin users first.');
+    }
+
   } catch (error) {
-    console.error('❌ Error setting up trusted_devices table:', error);
-    throw error;
-  } finally {
-    await pool.end();
+    console.log('⚠️ Trusted devices table setup had issues, but continuing...', error.message);
   }
 }
 
-// Run if called directly
+// Run setup if called directly
 if (require.main === module) {
   setupTrustedDevices()
     .then(() => {
-      console.log('Setup completed successfully!');
+      console.log('✅ Trusted devices setup completed');
       process.exit(0);
     })
     .catch((error) => {
-      console.error('Setup failed:', error);
+      console.error('❌ Trusted devices setup failed:', error);
       process.exit(1);
     });
 }

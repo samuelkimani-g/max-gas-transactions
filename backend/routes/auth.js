@@ -2,14 +2,9 @@ const express = require('express');
 const router = express.Router();
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
-const { Pool } = require('pg');
+const { User } = require('../models');
+const { sequelize } = require('../config/database');
 const { requirePermission } = require('../middleware/rbac');
-
-// Database connection
-const pool = new Pool({
-  connectionString: process.env.DATABASE_URL,
-  ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false
-});
 
 // Helper function to validate device identifier format
 const isValidDeviceIdentifier = (deviceId) => {
@@ -30,22 +25,19 @@ router.post('/login', async (req, res) => {
     }
 
     // Find user
-    const result = await pool.query(
-      'SELECT * FROM users WHERE username = $1',
-      [username]
-    );
+    const user = await User.findOne({
+      where: { username: username }
+    });
 
-    if (result.rows.length === 0) {
+    if (!user) {
       return res.status(401).json({
         success: false,
         message: 'Invalid credentials'
       });
     }
 
-    const user = result.rows[0];
-
     // Check password
-    const isValidPassword = await bcrypt.compare(password, user.password_hash);
+    const isValidPassword = await bcrypt.compare(password, user.password);
     if (!isValidPassword) {
       return res.status(401).json({
         success: false,
@@ -67,10 +59,10 @@ router.post('/login', async (req, res) => {
     res.json({
       success: true,
       message: 'Login successful',
-      token,
-      user: {
-        id: user.id,
-        username: user.username,
+        token,
+        user: {
+          id: user.id,
+          username: user.username,
         role: user.role
       }
     });
@@ -104,14 +96,17 @@ router.post('/auto-login', async (req, res) => {
     }
 
     // Check if device is trusted and active
-    const deviceResult = await pool.query(`
+    const trustedDevice = await sequelize.query(`
       SELECT td.*, u.username, u.email
       FROM trusted_devices td
       JOIN users u ON td.user_id = u.id
-      WHERE td.device_identifier = $1 AND td.is_active = TRUE
-    `, [device_identifier]);
+      WHERE td.device_identifier = ? AND td.is_active = 1
+    `, {
+      replacements: [device_identifier],
+      type: sequelize.QueryTypes.SELECT
+    });
 
-    if (deviceResult.rows.length === 0) {
+    if (trustedDevice.length === 0) {
       return res.status(403).json({
         success: false,
         message: 'Device not trusted or inactive',
@@ -119,20 +114,22 @@ router.post('/auto-login', async (req, res) => {
       });
     }
 
-    const trustedDevice = deviceResult.rows[0];
+    const device = trustedDevice[0];
 
     // Update last accessed timestamp
-    await pool.query(
-      'UPDATE trusted_devices SET last_accessed_at = NOW() WHERE device_identifier = $1',
-      [device_identifier]
+    await sequelize.query(
+      'UPDATE trusted_devices SET last_accessed_at = datetime("now") WHERE device_identifier = ?',
+      {
+        replacements: [device_identifier]
+      }
     );
 
     // Generate JWT with role from trusted device
     const token = jwt.sign(
       { 
-        userId: trustedDevice.user_id, 
-        username: trustedDevice.username, 
-        role: trustedDevice.role,
+        userId: device.user_id, 
+        username: device.username, 
+        role: device.role,
         deviceId: device_identifier
       },
       process.env.JWT_SECRET,
@@ -144,9 +141,9 @@ router.post('/auto-login', async (req, res) => {
       message: 'Auto-login successful',
       token,
       user: {
-        id: trustedDevice.user_id,
-        username: trustedDevice.username,
-        role: trustedDevice.role
+        id: device.user_id,
+        username: device.username,
+        role: device.role
       },
       device: {
         identifier: device_identifier,
@@ -178,12 +175,11 @@ router.post('/verify', async (req, res) => {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
     
     // Get fresh user data
-    const userResult = await pool.query(
-      'SELECT id, username, role FROM users WHERE id = $1',
-      [decoded.userId]
-    );
+    const user = await User.findByPk(decoded.userId, {
+      attributes: ['id', 'username', 'role']
+    });
 
-    if (userResult.rows.length === 0) {
+    if (!user) {
       return res.status(401).json({
         success: false,
         message: 'User not found'
@@ -193,7 +189,7 @@ router.post('/verify', async (req, res) => {
     res.json({
       success: true,
       message: 'Token is valid',
-      user: userResult.rows[0]
+      user: user
     });
 
   } catch (error) {
@@ -226,17 +222,19 @@ router.post('/logout', async (req, res) => {
     const { device_identifier } = req.body;
     
     if (device_identifier) {
-      await pool.query(
-        'UPDATE trusted_devices SET last_accessed_at = NOW() WHERE device_identifier = $1',
-        [device_identifier]
+      await sequelize.query(
+        'UPDATE trusted_devices SET last_accessed_at = datetime("now") WHERE device_identifier = ?',
+        {
+          replacements: [device_identifier]
+        }
       );
     }
-
+    
     res.json({
       success: true,
       message: 'Logout successful'
     });
-
+    
   } catch (error) {
     console.error('Logout error:', error);
     res.status(500).json({

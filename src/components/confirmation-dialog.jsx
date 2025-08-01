@@ -7,11 +7,11 @@ import { Label } from "./ui/label"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "./ui/dialog"
 import { AlertTriangle, Trash2, User, Receipt } from "lucide-react"
 
-export default function ConfirmationDialog({ 
+export default function ConfirmationDialog({
   open, 
   onOpenChange, 
-  onConfirm, 
-  title, 
+  onConfirm,
+  title,
   description, 
   confirmText = "Confirm",
   cancelText = "Cancel",
@@ -171,7 +171,7 @@ export default function ConfirmationDialog({
             {step === 1 ? "This action cannot be undone." : "Final verification required."}
           </DialogDescription>
         </DialogHeader>
-        
+
         {getStepContent()}
         
         <DialogFooter>

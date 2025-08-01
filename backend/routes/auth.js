@@ -100,7 +100,7 @@ router.post('/auto-login', async (req, res) => {
       SELECT td.*, u.username, u.email
       FROM trusted_devices td
       JOIN users u ON td.user_id = u.id
-      WHERE td.device_identifier = ? AND td.is_active = 1
+      WHERE td.device_identifier = ? AND td.is_active = TRUE
     `, {
       replacements: [device_identifier],
       type: sequelize.QueryTypes.SELECT
@@ -118,7 +118,7 @@ router.post('/auto-login', async (req, res) => {
 
     // Update last accessed timestamp
     await sequelize.query(
-      'UPDATE trusted_devices SET last_accessed_at = datetime("now") WHERE device_identifier = ?',
+      'UPDATE trusted_devices SET last_accessed_at = NOW() WHERE device_identifier = ?',
       {
         replacements: [device_identifier]
       }
@@ -223,7 +223,7 @@ router.post('/logout', async (req, res) => {
     
     if (device_identifier) {
       await sequelize.query(
-        'UPDATE trusted_devices SET last_accessed_at = datetime("now") WHERE device_identifier = ?',
+        'UPDATE trusted_devices SET last_accessed_at = NOW() WHERE device_identifier = ?',
         {
           replacements: [device_identifier]
         }

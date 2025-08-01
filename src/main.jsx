@@ -3,8 +3,9 @@ import ReactDOM from "react-dom/client"
 import App from "./App.jsx"
 import "./index.css"
 
-// Cache bust: Force fresh deployment - ${Date.now()}
-console.log('App starting with fresh deployment at:', new Date().toISOString())
+// Cache bust: Force fresh deployment - v${Date.now()}
+const APP_VERSION = `v${Date.now()}`
+console.log('App starting with fresh deployment at:', new Date().toISOString(), 'Version:', APP_VERSION)
 
 // NUCLEAR SOLUTION: Add global customers variable to prevent ReferenceError
 window.customers = window.customers || []

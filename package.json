@@ -10,7 +10,7 @@
     "dev:backend": "nodemon backend/server.js",
     "dev:frontend": "vite",
     "build": "vite build",
-    "build:vercel": "rm -rf dist && vite build --clearScreen false",
+    "build:vercel": "rm -rf dist && echo 'Building with timestamp: $(date)' && vite build --clearScreen false",
     "lint": "eslint . --ext js,jsx --report-unused-disable-directives --max-warnings 0",
     "preview": "vite preview",
     "vercel-build": "npm run build",

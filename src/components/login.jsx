@@ -26,8 +26,24 @@ export default function Login({ isAutoLoggingIn = false }) {
     setError("")
 
     try {
-      await login(formData.username, formData.password)
+      console.log('[LOGIN] Starting login process...')
+      const result = await login(formData.username, formData.password)
+      console.log('[LOGIN] Login successful, result:', result)
+      
+      // Check if we're authenticated after login
+      const authStatus = useStore.getState().isAuthenticated
+      console.log('[LOGIN] Authentication status after login:', authStatus)
+      
+      // Check if token is stored
+      const token = localStorage.getItem('authToken')
+      console.log('[LOGIN] Token stored:', token ? 'Yes' : 'No')
+      
+      if (token) {
+        console.log('[LOGIN] Token preview:', token.substring(0, 20) + '...')
+      }
+      
     } catch (error) {
+      console.error('[LOGIN] Login error:', error)
       setError(error.message)
     } finally {
       setIsLoading(false)

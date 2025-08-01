@@ -21,6 +21,10 @@ export default defineConfig({
     minify: 'esbuild',
     target: 'es2015'
   },
+  // Force cache busting
+  define: {
+    __BUILD_TIME__: JSON.stringify(new Date().toISOString()),
+  },
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),

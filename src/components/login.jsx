@@ -7,6 +7,10 @@ import { useStore } from "../lib/store"
 import { getDeviceInfo } from "../lib/device-config"
 import { Eye, EyeOff } from "lucide-react"
 
+// CACHE BUST: This timestamp confirms we're using the latest version
+const LOGIN_VERSION = `v${Date.now()}`
+console.log('🔍 LOGIN COMPONENT LOADED:', LOGIN_VERSION)
+
 export default function Login({ isAutoLoggingIn = false }) {
   const { login } = useStore()
   const [formData, setFormData] = useState({
@@ -21,37 +25,37 @@ export default function Login({ isAutoLoggingIn = false }) {
   const deviceInfo = getDeviceInfo()
 
   const handleSubmit = async (e) => {
-    console.log('[LOGIN] Form submitted!')
+    console.log('🔍 [LOGIN] Form submitted! Version:', LOGIN_VERSION)
     e.preventDefault()
-    console.log('[LOGIN] Prevented default form submission')
+    console.log('🔍 [LOGIN] Prevented default form submission')
     setIsLoading(true)
     setError("")
 
     try {
-      console.log('[LOGIN] Starting login process...')
-      console.log('[LOGIN] Username:', formData.username)
-      console.log('[LOGIN] Password length:', formData.password.length)
+      console.log('🔍 [LOGIN] Starting login process...')
+      console.log('🔍 [LOGIN] Username:', formData.username)
+      console.log('🔍 [LOGIN] Password length:', formData.password.length)
       
       const result = await login(formData.username, formData.password)
-      console.log('[LOGIN] Login successful, result:', result)
+      console.log('🔍 [LOGIN] Login successful, result:', result)
       
       // Check if we're authenticated after login
       const authStatus = useStore.getState().isAuthenticated
-      console.log('[LOGIN] Authentication status after login:', authStatus)
+      console.log('🔍 [LOGIN] Authentication status after login:', authStatus)
       
       // Check if token is stored
       const token = localStorage.getItem('authToken')
-      console.log('[LOGIN] Token stored:', token ? 'Yes' : 'No')
+      console.log('🔍 [LOGIN] Token stored:', token ? 'Yes' : 'No')
       
       if (token) {
-        console.log('[LOGIN] Token preview:', token.substring(0, 20) + '...')
+        console.log('🔍 [LOGIN] Token preview:', token.substring(0, 20) + '...')
       }
       
       // Force a re-render by updating some state
-      console.log('[LOGIN] Login completed successfully!')
+      console.log('🔍 [LOGIN] Login completed successfully!')
       
     } catch (error) {
-      console.error('[LOGIN] Login error:', error)
+      console.error('🔍 [LOGIN] Login error:', error)
       setError(error.message)
     } finally {
       setIsLoading(false)
@@ -91,6 +95,11 @@ export default function Login({ isAutoLoggingIn = false }) {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-purple-50 flex items-center justify-center p-4">
+      {/* CACHE BUST INDICATOR */}
+      <div className="fixed top-4 right-4 bg-red-500 text-white px-2 py-1 rounded text-xs z-50">
+        FRESH VERSION: {LOGIN_VERSION}
+      </div>
+      
       <Card className="w-full max-w-md shadow-xl border-0 bg-white/80 backdrop-blur-sm">
         <CardHeader className="text-center pb-6">
           <div className="mx-auto w-16 h-16 bg-gradient-to-r from-orange-500 to-orange-600 rounded-full flex items-center justify-center mb-4">
@@ -162,7 +171,7 @@ export default function Login({ isAutoLoggingIn = false }) {
               type="submit"
               disabled={isLoading}
               className="w-full bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white shadow-lg"
-              onClick={() => console.log('[LOGIN] Button clicked!')}
+              onClick={() => console.log('🔍 [LOGIN] Button clicked! Version:', LOGIN_VERSION)}
             >
               {isLoading ? "Signing in..." : "Sign In"}
             </Button>
@@ -182,6 +191,7 @@ export default function Login({ isAutoLoggingIn = false }) {
             
             {debugMode && (
               <div className="space-y-2 text-xs bg-yellow-50 p-2 rounded border">
+                <p><strong>Version:</strong> {LOGIN_VERSION}</p>
                 <p><strong>Username:</strong> "{formData.username}"</p>
                 <p><strong>Password:</strong> "{formData.password}"</p>
                 <p><strong>Password Length:</strong> {formData.password.length}</p>

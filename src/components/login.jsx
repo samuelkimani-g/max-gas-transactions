@@ -21,12 +21,17 @@ export default function Login({ isAutoLoggingIn = false }) {
   const deviceInfo = getDeviceInfo()
 
   const handleSubmit = async (e) => {
+    console.log('[LOGIN] Form submitted!')
     e.preventDefault()
+    console.log('[LOGIN] Prevented default form submission')
     setIsLoading(true)
     setError("")
 
     try {
       console.log('[LOGIN] Starting login process...')
+      console.log('[LOGIN] Username:', formData.username)
+      console.log('[LOGIN] Password length:', formData.password.length)
+      
       const result = await login(formData.username, formData.password)
       console.log('[LOGIN] Login successful, result:', result)
       
@@ -41,6 +46,9 @@ export default function Login({ isAutoLoggingIn = false }) {
       if (token) {
         console.log('[LOGIN] Token preview:', token.substring(0, 20) + '...')
       }
+      
+      // Force a re-render by updating some state
+      console.log('[LOGIN] Login completed successfully!')
       
     } catch (error) {
       console.error('[LOGIN] Login error:', error)
@@ -154,6 +162,7 @@ export default function Login({ isAutoLoggingIn = false }) {
               type="submit"
               disabled={isLoading}
               className="w-full bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white shadow-lg"
+              onClick={() => console.log('[LOGIN] Button clicked!')}
             >
               {isLoading ? "Signing in..." : "Sign In"}
             </Button>

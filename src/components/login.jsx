@@ -5,6 +5,7 @@ import { Label } from "./ui/label"
 import { Card, CardContent, CardHeader, CardTitle } from "./ui/card"
 import { useStore } from "../lib/store"
 import { getDeviceInfo } from "../lib/device-config"
+import { Eye, EyeOff } from "lucide-react"
 
 export default function Login({ isAutoLoggingIn = false }) {
   const { login } = useStore()
@@ -14,6 +15,8 @@ export default function Login({ isAutoLoggingIn = false }) {
   })
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState("")
+  const [showPassword, setShowPassword] = useState(false)
+  const [debugMode, setDebugMode] = useState(false)
   
   const deviceInfo = getDeviceInfo()
 
@@ -111,7 +114,7 @@ export default function Login({ isAutoLoggingIn = false }) {
                 {/* <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" /> */}
                 <Input
                   id="password"
-                  type="password"
+                  type={showPassword ? "text" : "password"}
                   placeholder="Enter password"
                   name="password"
                   value={formData.password}
@@ -119,7 +122,7 @@ export default function Login({ isAutoLoggingIn = false }) {
                   className="pl-10 pr-10"
                   required
                 />
-                {/* <button
+                <button
                   type="button"
                   aria-label={showPassword ? "Hide password" : "Show password"}
                   onClick={() => setShowPassword((v) => !v)}
@@ -127,7 +130,7 @@ export default function Login({ isAutoLoggingIn = false }) {
                   tabIndex={0}
                 >
                   {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                </button> */}
+                </button>
               </div>
             </div>
             
@@ -141,12 +144,34 @@ export default function Login({ isAutoLoggingIn = false }) {
           </form>
           
           <div className="mt-6 p-4 bg-gray-50 rounded-lg">
-            <h4 className="font-medium text-gray-900 mb-2">Default Credentials:</h4>
-            <div className="space-y-1 text-sm text-gray-600">
-              <p><strong>Admin:</strong> admin@maxgas.com / admin123</p>
-              <p><strong>Manager:</strong> manager1@maxgas.com / manager123</p>
-              <p><strong>Operator:</strong> operator1@maxgas.com / operator123</p>
-              <p className="text-xs text-gray-500 mt-2">Note: Passwords are case-sensitive. These are the correct credentials as seeded in the database.</p>
+            <div className="flex justify-between items-center mb-2">
+              <h4 className="font-medium text-gray-900">Debug Information:</h4>
+              <button
+                type="button"
+                onClick={() => setDebugMode(!debugMode)}
+                className="text-xs bg-blue-500 text-white px-2 py-1 rounded"
+              >
+                {debugMode ? "Hide Debug" : "Show Debug"}
+              </button>
+            </div>
+            
+            {debugMode && (
+              <div className="space-y-2 text-xs bg-yellow-50 p-2 rounded border">
+                <p><strong>Username:</strong> "{formData.username}"</p>
+                <p><strong>Password:</strong> "{formData.password}"</p>
+                <p><strong>Password Length:</strong> {formData.password.length}</p>
+                <p><strong>Current Credentials:</strong></p>
+                <ul className="ml-4 space-y-1">
+                  <li>• sammy / kimani@90</li>
+                  <li>• kamunyu / maxgas1455</li>
+                </ul>
+              </div>
+            )}
+            
+            <div className="mt-3 space-y-1 text-sm text-gray-600">
+              <p><strong>Current Admin:</strong> sammy / kimani@90</p>
+              <p><strong>Current Owner:</strong> kamunyu / maxgas1455</p>
+              <p className="text-xs text-gray-500 mt-2">Note: Passwords are case-sensitive. Use the exact credentials above.</p>
             </div>
             <div className="mt-3 p-2 bg-green-50 border border-green-200 rounded text-xs text-green-700">
               <strong>Production Mode:</strong> Connected to real backend and database. All changes will persist.

@@ -10,6 +10,7 @@ import { Eye, EyeOff } from "lucide-react"
 // CACHE BUST: This timestamp confirms we're using the latest version
 const LOGIN_VERSION = `v${Date.now()}`
 console.log('🔍 LOGIN COMPONENT LOADED:', LOGIN_VERSION)
+alert(`🚨 FRESH DEPLOYMENT DETECTED! Version: ${LOGIN_VERSION}`)
 
 export default function Login({ isAutoLoggingIn = false }) {
   const { login } = useStore()
@@ -95,8 +96,13 @@ export default function Login({ isAutoLoggingIn = false }) {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-purple-50 flex items-center justify-center p-4">
+      {/* MASSIVE CACHE BUST INDICATOR */}
+      <div className="fixed top-0 left-0 right-0 bg-red-600 text-white text-center py-2 text-lg font-bold z-50">
+        🚨 FRESH DEPLOYMENT: {LOGIN_VERSION} - If you see this, you're using the NEW version! 🚨
+      </div>
+      
       {/* CACHE BUST INDICATOR */}
-      <div className="fixed top-4 right-4 bg-red-500 text-white px-2 py-1 rounded text-xs z-50">
+      <div className="fixed top-16 right-4 bg-red-500 text-white px-2 py-1 rounded text-xs z-50">
         FRESH VERSION: {LOGIN_VERSION}
       </div>
       

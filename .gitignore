@@ -109,3 +109,5 @@ debug-*.js
 test-*.js
 fix-*.js
 check-*.js
+
+.vercel

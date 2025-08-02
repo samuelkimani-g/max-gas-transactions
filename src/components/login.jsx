@@ -19,7 +19,11 @@ console.log('🔍 LOGIN COMPONENT LOADED:', LOGIN_VERSION)
 // }, 100)
 
 export default function Login({ isAutoLoggingIn = false }) {
+  console.log('🔍 [LOGIN] Component function starting...')
+  
   const { login } = useStore()
+  console.log('🔍 [LOGIN] Store hook successful')
+  
   const [formData, setFormData] = useState({
     username: "",
     password: "",
@@ -29,7 +33,10 @@ export default function Login({ isAutoLoggingIn = false }) {
   const [showPassword, setShowPassword] = useState(false)
   const [debugMode, setDebugMode] = useState(false)
   
+  console.log('🔍 [LOGIN] State hooks successful')
+  
   const deviceInfo = getDeviceInfo()
+  console.log('🔍 [LOGIN] Device info:', deviceInfo)
 
   const handleSubmit = async (e) => {
     console.log('🔍 [LOGIN] Form submitted! Version:', LOGIN_VERSION)
@@ -94,11 +101,11 @@ export default function Login({ isAutoLoggingIn = false }) {
             <div className="flex justify-center">
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-600"></div>
             </div>
-          </CardContent>
-        </Card>
-      </div>
-    )
-  }
+                   </CardContent>
+       </Card>
+     </div>
+   )
+ }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-purple-50 flex items-center justify-center p-4">
@@ -138,6 +145,26 @@ export default function Login({ isAutoLoggingIn = false }) {
                 <span className="text-sm">{error}</span>
               </div>
             )}
+            
+            {/* TEST BUTTON - Outside the form to test if any button clicks work */}
+            <button
+              type="button"
+              style={{
+                width: '100%',
+                padding: '8px',
+                backgroundColor: '#3b82f6',
+                color: 'white',
+                border: 'none',
+                borderRadius: '0.5rem',
+                marginBottom: '10px'
+              }}
+              onClick={() => {
+                console.log('🔍 [TEST] Test button clicked!')
+                alert('Test button works!')
+              }}
+            >
+              TEST BUTTON - Click this first
+            </button>
             
             <div className="space-y-2">
               <Label htmlFor="username" className="text-sm font-medium text-gray-700">

@@ -138,7 +138,10 @@ class DeviceAuth {
 
   // Manual login
   async manualLogin(username, password) {
+    console.log('🔍 [DEVICE-AUTH] manualLogin called with username:', username);
     try {
+      console.log('🔍 [DEVICE-AUTH] Making API request to:', `${this.apiBase}/auth/login`);
+      
       const response = await fetch(`${this.apiBase}/auth/login`, {
         method: 'POST',
         headers: {
@@ -147,16 +150,23 @@ class DeviceAuth {
         body: JSON.stringify({ username, password })
       });
 
+      console.log('🔍 [DEVICE-AUTH] Response status:', response.status);
+      console.log('🔍 [DEVICE-AUTH] Response ok:', response.ok);
+
       const data = await response.json();
+      console.log('🔍 [DEVICE-AUTH] Response data:', data);
 
       if (response.ok && data.success) {
         console.log('✅ Manual login successful for user:', data.user.username);
+        console.log('🔍 [DEVICE-AUTH] Storing token...');
         this.storeToken(data.token);
+        console.log('🔍 [DEVICE-AUTH] Token stored, returning success');
         return {
           success: true,
           user: data.user
         };
       } else {
+        console.log('🔍 [DEVICE-AUTH] Login failed, returning error');
         return {
           success: false,
           message: data.message
@@ -164,6 +174,7 @@ class DeviceAuth {
       }
     } catch (error) {
       console.error('🚨 Manual login error:', error);
+      console.log('🔍 [DEVICE-AUTH] Caught error, returning network error');
       return {
         success: false,
         message: 'Network error during login'

@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import deviceAuth from '../lib/device-auth';
+import { useStore } from '../lib/store';
 
 const PermissionRequest = () => {
+  const { login } = useStore();
   const [deviceInfo, setDeviceInfo] = useState(null);
   const [copied, setCopied] = useState(false);
   const [showManualLogin, setShowManualLogin] = useState(false);
@@ -35,18 +37,18 @@ const PermissionRequest = () => {
     setLoginError('');
 
     try {
-      console.log('🔍 [PERMISSION] About to call deviceAuth.manualLogin...');
+      console.log('🔍 [PERMISSION] About to call store.login...');
       // Add a small delay to see if the page refreshes before the API call
       await new Promise(resolve => setTimeout(resolve, 100));
-      console.log('🔍 [PERMISSION] Still here after delay, calling deviceAuth.manualLogin...');
+      console.log('🔍 [PERMISSION] Still here after delay, calling store.login...');
       
-      const result = await deviceAuth.manualLogin(loginForm.username, loginForm.password);
-      console.log('🔍 [PERMISSION] Login result:', result);
+      const result = await login(loginForm.username, loginForm.password);
+      console.log('🔍 [PERMISSION] Store login result:', result);
       
       if (result.success) {
-        console.log('🔍 [PERMISSION] Login successful, reloading page...');
-        // Redirect to main app
-        window.location.reload();
+        console.log('🔍 [PERMISSION] Login successful, no need to reload - store will handle state update');
+        // The store will automatically update the authentication state
+        // No need to reload the page
       } else {
         console.log('🔍 [PERMISSION] Login failed:', result.message);
         setLoginError(result.message);

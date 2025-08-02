@@ -12,6 +12,11 @@ const LOGIN_VERSION = `v${Date.now()}`
 console.log('🔍 LOGIN COMPONENT LOADED:', LOGIN_VERSION)
 alert(`🚨 FRESH DEPLOYMENT DETECTED! Version: ${LOGIN_VERSION}`)
 
+// IMMEDIATE ALERT - This will show as soon as the component loads
+setTimeout(() => {
+  alert(`🔥 ULTRA FRESH VERSION LOADED! ${LOGIN_VERSION} - If you see this, you're on the NEW deployment!`)
+}, 100)
+
 export default function Login({ isAutoLoggingIn = false }) {
   const { login } = useStore()
   const [formData, setFormData] = useState({
@@ -96,6 +101,13 @@ export default function Login({ isAutoLoggingIn = false }) {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-purple-50 flex items-center justify-center p-4">
+      {/* MASSIVE FULL SCREEN INDICATOR */}
+      <div className="fixed inset-0 bg-yellow-400 text-black text-center flex items-center justify-center text-4xl font-bold z-50">
+        🔥 ULTRA FRESH VERSION: {LOGIN_VERSION} 🔥
+        <br />
+        If you see this, you're on the NEW deployment!
+      </div>
+      
       {/* MASSIVE CACHE BUST INDICATOR */}
       <div className="fixed top-0 left-0 right-0 bg-red-600 text-white text-center py-2 text-lg font-bold z-50">
         🚨 FRESH DEPLOYMENT: {LOGIN_VERSION} - If you see this, you're using the NEW version! 🚨

@@ -7,26 +7,8 @@ import { useStore } from "../lib/store"
 import { getDeviceInfo } from "../lib/device-config"
 import { Eye, EyeOff } from "lucide-react"
 
-// CACHE BUST: This timestamp confirms we're using the latest version
-const LOGIN_VERSION = `v${Date.now()}`
-console.log('🔍 LOGIN COMPONENT LOADED:', LOGIN_VERSION)
-// TEMPORARILY DISABLED ALERTS FOR TESTING
-// alert(`🚨 FRESH DEPLOYMENT DETECTED! Version: ${LOGIN_VERSION}`)
-
-// IMMEDIATE ALERT - This will show as soon as the component loads
-// setTimeout(() => {
-//   alert(`🔥 ULTRA FRESH VERSION LOADED! ${LOGIN_VERSION} - If you see this, you're on the NEW deployment!`)
-// }, 100)
-
 export default function Login({ isAutoLoggingIn = false }) {
-  console.log('🔍 [LOGIN] Component function starting...')
-  
-  // SIMPLE TEST - Add this to see if the component renders at all
-  console.log('🔍 [LOGIN] About to call useStore...')
-  
   const { login } = useStore()
-  console.log('🔍 [LOGIN] Store hook successful')
-  
   const [formData, setFormData] = useState({
     username: "",
     password: "",
@@ -34,15 +16,11 @@ export default function Login({ isAutoLoggingIn = false }) {
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState("")
   const [showPassword, setShowPassword] = useState(false)
-  const [debugMode, setDebugMode] = useState(false)
-  
-  console.log('🔍 [LOGIN] State hooks successful')
   
   const deviceInfo = getDeviceInfo()
-  console.log('🔍 [LOGIN] Device info:', deviceInfo)
 
   const handleSubmit = async (e) => {
-    console.log('🔍 [LOGIN] Form submitted! Version:', LOGIN_VERSION)
+    console.log('🔍 [LOGIN] Form submitted!')
     e.preventDefault()
     console.log('🔍 [LOGIN] Prevented default form submission')
     setIsLoading(true)
@@ -50,27 +28,8 @@ export default function Login({ isAutoLoggingIn = false }) {
 
     try {
       console.log('🔍 [LOGIN] Starting login process...')
-      console.log('🔍 [LOGIN] Username:', formData.username)
-      console.log('🔍 [LOGIN] Password length:', formData.password.length)
-      
       const result = await login(formData.username, formData.password)
       console.log('🔍 [LOGIN] Login successful, result:', result)
-      
-      // Check if we're authenticated after login
-      const authStatus = useStore.getState().isAuthenticated
-      console.log('🔍 [LOGIN] Authentication status after login:', authStatus)
-      
-      // Check if token is stored
-      const token = localStorage.getItem('authToken')
-      console.log('🔍 [LOGIN] Token stored:', token ? 'Yes' : 'No')
-      
-      if (token) {
-        console.log('🔍 [LOGIN] Token preview:', token.substring(0, 20) + '...')
-      }
-      
-      // Force a re-render by updating some state
-      console.log('🔍 [LOGIN] Login completed successfully!')
-      
     } catch (error) {
       console.error('🔍 [LOGIN] Login error:', error)
       setError(error.message)
@@ -104,40 +63,17 @@ export default function Login({ isAutoLoggingIn = false }) {
             <div className="flex justify-center">
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-600"></div>
             </div>
-                   </CardContent>
-       </Card>
-     </div>
-   )
- }
+          </CardContent>
+        </Card>
+      </div>
+    )
+  }
 
-     return (
-     <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-purple-50 flex items-center justify-center p-4">
-       {/* SIMPLE TEST ELEMENT */}
-       <div className="fixed top-0 left-0 bg-green-500 text-white p-2 text-sm z-50">
-         COMPONENT RENDERED: {LOGIN_VERSION}
-       </div>
-       
-       {/* MASSIVE FULL SCREEN INDICATOR */}
-       <div className="fixed inset-0 bg-yellow-400 text-black text-center flex items-center justify-center text-4xl font-bold z-50">
-         🔥 ULTRA FRESH VERSION: {LOGIN_VERSION} 🔥
-         <br />
-         If you see this, you're on the NEW deployment!
-       </div>
-      
-      {/* MASSIVE CACHE BUST INDICATOR */}
-      <div className="fixed top-0 left-0 right-0 bg-red-600 text-white text-center py-2 text-lg font-bold z-50">
-        🚨 FRESH DEPLOYMENT: {LOGIN_VERSION} - If you see this, you're using the NEW version! 🚨
-      </div>
-      
-      {/* CACHE BUST INDICATOR */}
-      <div className="fixed top-16 right-4 bg-red-500 text-white px-2 py-1 rounded text-xs z-50">
-        FRESH VERSION: {LOGIN_VERSION}
-      </div>
-      
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-purple-50 flex items-center justify-center p-4">
       <Card className="w-full max-w-md shadow-xl border-0 bg-white/80 backdrop-blur-sm">
         <CardHeader className="text-center pb-6">
           <div className="mx-auto w-16 h-16 bg-gradient-to-r from-orange-500 to-orange-600 rounded-full flex items-center justify-center mb-4">
-            {/* <User className="w-8 h-8 text-white" /> */}
           </div>
           <CardTitle className="text-2xl font-bold bg-gradient-to-r from-orange-500 to-orange-600 bg-clip-text text-transparent">
             Gas Cylinder Manager
@@ -145,57 +81,27 @@ export default function Login({ isAutoLoggingIn = false }) {
           <p className="text-gray-600 mt-2">Sign in to your account</p>
         </CardHeader>
         
-                 <CardContent>
-           {/* SIMPLE FORM TEST */}
-           <div className="space-y-4">
-             <p className="text-center text-sm text-gray-600">Form Test - No onSubmit yet</p>
-             
-             {/* TEST BUTTON - Outside the form to test if any button clicks work */}
-             <button
-               type="button"
-               style={{
-                 width: '100%',
-                 padding: '8px',
-                 backgroundColor: '#3b82f6',
-                 color: 'white',
-                 border: 'none',
-                 borderRadius: '0.5rem',
-                 marginBottom: '10px'
-               }}
-               onClick={() => {
-                 console.log('🔍 [TEST] Test button clicked!')
-                 alert('Test button works!')
-               }}
-             >
-               TEST BUTTON - Click this first
-             </button>
-             
-             {/* SIMPLE FORM */}
-             <form onSubmit={handleSubmit} className="space-y-4">
-               {error && (
-                 <div className="flex items-center gap-2 p-3 bg-red-50 border border-red-200 rounded-lg text-red-700">
-                   {/* <AlertCircle className="w-4 h-4" /> */}
-                   <span className="text-sm">{error}</span>
-                 </div>
-               )}
+        <CardContent>
+          <form onSubmit={handleSubmit} className="space-y-4">
+            {error && (
+              <div className="flex items-center gap-2 p-3 bg-red-50 border border-red-200 rounded-lg text-red-700">
+                <span className="text-sm">{error}</span>
+              </div>
+            )}
             
             <div className="space-y-2">
               <Label htmlFor="username" className="text-sm font-medium text-gray-700">
                 Username or Email
               </Label>
-              <div className="relative">
-                {/* <User className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" /> */}
-                <Input
-                  id="username"
-                  type="text"
-                  placeholder="Enter username or email"
-                  name="username"
-                  value={formData.username}
-                  onChange={handleChange}
-                  className="pl-10"
-                  required
-                />
-              </div>
+              <Input
+                id="username"
+                type="text"
+                placeholder="Enter username or email"
+                name="username"
+                value={formData.username}
+                onChange={handleChange}
+                required
+              />
             </div>
             
             <div className="space-y-2">
@@ -203,7 +109,6 @@ export default function Login({ isAutoLoggingIn = false }) {
                 Password
               </Label>
               <div className="relative">
-                {/* <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" /> */}
                 <Input
                   id="password"
                   type={showPassword ? "text" : "password"}
@@ -211,75 +116,33 @@ export default function Login({ isAutoLoggingIn = false }) {
                   name="password"
                   value={formData.password}
                   onChange={handleChange}
-                  className="pl-10 pr-10"
+                  className="pr-10"
                   required
                 />
                 <button
                   type="button"
-                  aria-label={showPassword ? "Hide password" : "Show password"}
-                  onClick={() => setShowPassword((v) => !v)}
-                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-700 focus:outline-none"
-                  tabIndex={0}
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-700"
                 >
                   {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                 </button>
               </div>
             </div>
             
-                         <button
-               type="submit"
-               disabled={isLoading}
-               style={{
-                 width: '100%',
-                 padding: '12px',
-                 backgroundColor: '#f97316',
-                 color: 'white',
-                 border: 'none',
-                 borderRadius: '0.5rem',
-                 cursor: isLoading ? 'not-allowed' : 'pointer',
-                 fontSize: '16px',
-                 fontWeight: '500'
-               }}
-               onClick={() => console.log('🔍 [LOGIN] Plain HTML Button clicked! Version:', LOGIN_VERSION)}
-             >
-               {isLoading ? "Signing in..." : "Sign In (Test)"}
-             </button>
+            <Button
+              type="submit"
+              disabled={isLoading}
+              className="w-full bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white shadow-lg"
+            >
+              {isLoading ? "Signing in..." : "Sign In"}
+            </Button>
           </form>
-          </div>
           
           <div className="mt-6 p-4 bg-gray-50 rounded-lg">
-            <div className="flex justify-between items-center mb-2">
-              <h4 className="font-medium text-gray-900">Debug Information:</h4>
-              <button
-                type="button"
-                onClick={() => setDebugMode(!debugMode)}
-                className="text-xs bg-blue-500 text-white px-2 py-1 rounded"
-              >
-                {debugMode ? "Hide Debug" : "Show Debug"}
-              </button>
-            </div>
-            
-            {debugMode && (
-              <div className="space-y-2 text-xs bg-yellow-50 p-2 rounded border">
-                <p><strong>Version:</strong> {LOGIN_VERSION}</p>
-                <p><strong>Username:</strong> "{formData.username}"</p>
-                <p><strong>Password:</strong> "{formData.password}"</p>
-                <p><strong>Password Length:</strong> {formData.password.length}</p>
-                <p><strong>Current Credentials:</strong></p>
-                <ul className="ml-4 space-y-1">
-                  <li>• sammy / kimani@90</li>
-                  <li>• kamunyu / maxgas1455</li>
-                </ul>
-              </div>
-            )}
-            
-            <div className="mt-3 space-y-1 text-sm text-gray-600">
+            <div className="space-y-1 text-sm text-gray-600">
               <p><strong>Current Admin:</strong> sammy / kimani@90</p>
               <p><strong>Current Owner:</strong> kamunyu / maxgas1455</p>
               <p className="text-xs text-gray-500 mt-2">Note: Passwords are case-sensitive. Use the exact credentials above.</p>
-            </div>
-            <div className="mt-3 p-2 bg-green-50 border border-green-200 rounded text-xs text-green-700">
-              <strong>Production Mode:</strong> Connected to real backend and database. All changes will persist.
             </div>
           </div>
         </CardContent>

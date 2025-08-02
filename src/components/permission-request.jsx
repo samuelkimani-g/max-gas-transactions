@@ -46,6 +46,21 @@ const PermissionRequest = () => {
       console.log('🔍 [PERMISSION] Store login result:', result);
       
       if (result.success) {
+        console.log('🔍 [PERMISSION] Login successful, checking store state...');
+        // Check if the store state was actually updated
+        const storeState = useStore.getState();
+        console.log('🔍 [PERMISSION] Store state after login:', {
+          isAuthenticated: storeState.isAuthenticated,
+          user: storeState.user
+        });
+        
+        // Wait a bit to see if the component re-renders
+        await new Promise(resolve => setTimeout(resolve, 500));
+        console.log('🔍 [PERMISSION] After 500ms delay, store state:', {
+          isAuthenticated: useStore.getState().isAuthenticated,
+          user: useStore.getState().user
+        });
+        
         console.log('🔍 [PERMISSION] Login successful, no need to reload - store will handle state update');
         // The store will automatically update the authentication state
         // No need to reload the page

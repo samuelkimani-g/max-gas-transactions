@@ -104,7 +104,8 @@ export default function App() {
   useEffect(() => {
     console.log("App rendered, selectedCustomerId:", selectedCustomerId)
     console.log("Available customers:", customers || [])
-  }, [selectedCustomerId, customers])
+    console.log("🔍 [APP] Authentication state:", { isAuthenticated, authState, user })
+  }, [selectedCustomerId, customers, isAuthenticated, authState, user])
 
   const handleSearch = (e) => {
     setSearchQuery(e.target.value)
@@ -142,11 +143,14 @@ export default function App() {
   }
 
   // Show permission request if device is not trusted
+  console.log('🔍 [APP] Rendering decision:', { authState, isAuthenticated })
   if (authState === 'permission') {
+    console.log('🔍 [APP] Rendering PermissionRequest component')
     return <PermissionRequest />
   }
 
   if (!isAuthenticated) {
+    console.log('🔍 [APP] Rendering Login component')
     return <Login />
   }
 

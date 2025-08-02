@@ -24,16 +24,22 @@ const PermissionRequest = () => {
   };
 
   const handleManualLogin = async (e) => {
+    console.log('🔍 [PERMISSION] Form submission event:', e);
     e.preventDefault();
     console.log('🔍 [PERMISSION] Manual login form submitted!');
     console.log('🔍 [PERMISSION] Username:', loginForm.username);
     console.log('🔍 [PERMISSION] Password length:', loginForm.password.length);
+    console.log('🔍 [PERMISSION] Prevented default form submission');
     
     setIsLoading(true);
     setLoginError('');
 
     try {
-      console.log('🔍 [PERMISSION] Calling deviceAuth.manualLogin...');
+      console.log('🔍 [PERMISSION] About to call deviceAuth.manualLogin...');
+      // Add a small delay to see if the page refreshes before the API call
+      await new Promise(resolve => setTimeout(resolve, 100));
+      console.log('🔍 [PERMISSION] Still here after delay, calling deviceAuth.manualLogin...');
+      
       const result = await deviceAuth.manualLogin(loginForm.username, loginForm.password);
       console.log('🔍 [PERMISSION] Login result:', result);
       
@@ -49,6 +55,7 @@ const PermissionRequest = () => {
       console.error('🔍 [PERMISSION] Login error:', error);
       setLoginError('Network error. Please try again.');
     } finally {
+      console.log('🔍 [PERMISSION] Finally block executed');
       setIsLoading(false);
     }
   };
@@ -156,47 +163,48 @@ const PermissionRequest = () => {
             {showManualLogin ? 'Hide' : 'Show'} manual login option
           </button>
 
-          {showManualLogin && (
-            <form onSubmit={handleManualLogin} className="mt-4 space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Username
-                </label>
-                <input
-                  type="text"
-                  value={loginForm.username}
-                  onChange={(e) => setLoginForm({ ...loginForm, username: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  required
-                />
-              </div>
+                     {showManualLogin && (
+             <form onSubmit={handleManualLogin} className="mt-4 space-y-4">
+               <div>
+                 <label className="block text-sm font-medium text-gray-700 mb-1">
+                   Username
+                 </label>
+                 <input
+                   type="text"
+                   value={loginForm.username}
+                   onChange={(e) => setLoginForm({ ...loginForm, username: e.target.value })}
+                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                   required
+                 />
+               </div>
 
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Password
-                </label>
-                <input
-                  type="password"
-                  value={loginForm.password}
-                  onChange={(e) => setLoginForm({ ...loginForm, password: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  required
-                />
-              </div>
+               <div>
+                 <label className="block text-sm font-medium text-gray-700 mb-1">
+                   Password
+                 </label>
+                 <input
+                   type="password"
+                   value={loginForm.password}
+                   onChange={(e) => setLoginForm({ ...loginForm, password: e.target.value })}
+                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                   required
+                 />
+               </div>
 
-              {loginError && (
-                <div className="text-red-600 text-sm">{loginError}</div>
-              )}
+               {loginError && (
+                 <div className="text-red-600 text-sm">{loginError}</div>
+               )}
 
-              <button
-                type="submit"
-                disabled={isLoading}
-                className="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-              >
-                {isLoading ? 'Logging in...' : 'Login'}
-              </button>
-            </form>
-          )}
+               <button
+                 type="submit"
+                 disabled={isLoading}
+                 onClick={() => console.log('🔍 [PERMISSION] Button clicked!')}
+                 className="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+               >
+                 {isLoading ? 'Logging in...' : 'Login'}
+               </button>
+             </form>
+           )}
         </div>
 
         {/* Footer */}

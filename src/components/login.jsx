@@ -21,6 +21,9 @@ console.log('🔍 LOGIN COMPONENT LOADED:', LOGIN_VERSION)
 export default function Login({ isAutoLoggingIn = false }) {
   console.log('🔍 [LOGIN] Component function starting...')
   
+  // SIMPLE TEST - Add this to see if the component renders at all
+  console.log('🔍 [LOGIN] About to call useStore...')
+  
   const { login } = useStore()
   console.log('🔍 [LOGIN] Store hook successful')
   
@@ -107,14 +110,19 @@ export default function Login({ isAutoLoggingIn = false }) {
    )
  }
 
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-purple-50 flex items-center justify-center p-4">
-      {/* MASSIVE FULL SCREEN INDICATOR */}
-      <div className="fixed inset-0 bg-yellow-400 text-black text-center flex items-center justify-center text-4xl font-bold z-50">
-        🔥 ULTRA FRESH VERSION: {LOGIN_VERSION} 🔥
-        <br />
-        If you see this, you're on the NEW deployment!
-      </div>
+     return (
+     <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-purple-50 flex items-center justify-center p-4">
+       {/* SIMPLE TEST ELEMENT */}
+       <div className="fixed top-0 left-0 bg-green-500 text-white p-2 text-sm z-50">
+         COMPONENT RENDERED: {LOGIN_VERSION}
+       </div>
+       
+       {/* MASSIVE FULL SCREEN INDICATOR */}
+       <div className="fixed inset-0 bg-yellow-400 text-black text-center flex items-center justify-center text-4xl font-bold z-50">
+         🔥 ULTRA FRESH VERSION: {LOGIN_VERSION} 🔥
+         <br />
+         If you see this, you're on the NEW deployment!
+       </div>
       
       {/* MASSIVE CACHE BUST INDICATOR */}
       <div className="fixed top-0 left-0 right-0 bg-red-600 text-white text-center py-2 text-lg font-bold z-50">
@@ -137,34 +145,39 @@ export default function Login({ isAutoLoggingIn = false }) {
           <p className="text-gray-600 mt-2">Sign in to your account</p>
         </CardHeader>
         
-        <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-4">
-            {error && (
-              <div className="flex items-center gap-2 p-3 bg-red-50 border border-red-200 rounded-lg text-red-700">
-                {/* <AlertCircle className="w-4 h-4" /> */}
-                <span className="text-sm">{error}</span>
-              </div>
-            )}
-            
-            {/* TEST BUTTON - Outside the form to test if any button clicks work */}
-            <button
-              type="button"
-              style={{
-                width: '100%',
-                padding: '8px',
-                backgroundColor: '#3b82f6',
-                color: 'white',
-                border: 'none',
-                borderRadius: '0.5rem',
-                marginBottom: '10px'
-              }}
-              onClick={() => {
-                console.log('🔍 [TEST] Test button clicked!')
-                alert('Test button works!')
-              }}
-            >
-              TEST BUTTON - Click this first
-            </button>
+                 <CardContent>
+           {/* SIMPLE FORM TEST */}
+           <div className="space-y-4">
+             <p className="text-center text-sm text-gray-600">Form Test - No onSubmit yet</p>
+             
+             {/* TEST BUTTON - Outside the form to test if any button clicks work */}
+             <button
+               type="button"
+               style={{
+                 width: '100%',
+                 padding: '8px',
+                 backgroundColor: '#3b82f6',
+                 color: 'white',
+                 border: 'none',
+                 borderRadius: '0.5rem',
+                 marginBottom: '10px'
+               }}
+               onClick={() => {
+                 console.log('🔍 [TEST] Test button clicked!')
+                 alert('Test button works!')
+               }}
+             >
+               TEST BUTTON - Click this first
+             </button>
+             
+             {/* SIMPLE FORM */}
+             <form onSubmit={handleSubmit} className="space-y-4">
+               {error && (
+                 <div className="flex items-center gap-2 p-3 bg-red-50 border border-red-200 rounded-lg text-red-700">
+                   {/* <AlertCircle className="w-4 h-4" /> */}
+                   <span className="text-sm">{error}</span>
+                 </div>
+               )}
             
             <div className="space-y-2">
               <Label htmlFor="username" className="text-sm font-medium text-gray-700">
@@ -232,6 +245,7 @@ export default function Login({ isAutoLoggingIn = false }) {
                {isLoading ? "Signing in..." : "Sign In (Test)"}
              </button>
           </form>
+          </div>
           
           <div className="mt-6 p-4 bg-gray-50 rounded-lg">
             <div className="flex justify-between items-center mb-2">

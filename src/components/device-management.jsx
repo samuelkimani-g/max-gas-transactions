@@ -33,7 +33,7 @@ const DeviceManagement = () => {
 
   const loadDevices = async () => {
     try {
-      const token = localStorage.getItem('maxgas_jwt_token');
+      const token = localStorage.getItem('authToken');
       const response = await fetch(`${apiBase}/devices`, {
         headers: {
           'Authorization': `Bearer ${token}`
@@ -55,7 +55,7 @@ const DeviceManagement = () => {
 
   const loadUsers = async () => {
     try {
-      const token = localStorage.getItem('maxgas_jwt_token');
+      const token = localStorage.getItem('authToken');
       const response = await fetch(`${apiBase}/users`, {
         headers: {
           'Authorization': `Bearer ${token}`
@@ -73,7 +73,7 @@ const DeviceManagement = () => {
 
   const loadStats = async () => {
     try {
-      const token = localStorage.getItem('maxgas_jwt_token');
+      const token = localStorage.getItem('authToken');
       const response = await fetch(`${apiBase}/devices/stats`, {
         headers: {
           'Authorization': `Bearer ${token}`
@@ -94,7 +94,7 @@ const DeviceManagement = () => {
     setIsRegistering(true);
 
     try {
-      const token = localStorage.getItem('maxgas_jwt_token');
+      const token = localStorage.getItem('authToken');
       const response = await fetch(`${apiBase}/devices/register`, {
         method: 'POST',
         headers: {
@@ -139,7 +139,7 @@ const DeviceManagement = () => {
     }
 
     try {
-      const token = localStorage.getItem('maxgas_jwt_token');
+      const token = localStorage.getItem('authToken');
       const response = await fetch(`${apiBase}/devices/${deviceId}/revoke`, {
         method: 'DELETE',
         headers: {

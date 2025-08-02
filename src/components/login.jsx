@@ -10,12 +10,13 @@ import { Eye, EyeOff } from "lucide-react"
 // CACHE BUST: This timestamp confirms we're using the latest version
 const LOGIN_VERSION = `v${Date.now()}`
 console.log('🔍 LOGIN COMPONENT LOADED:', LOGIN_VERSION)
-alert(`🚨 FRESH DEPLOYMENT DETECTED! Version: ${LOGIN_VERSION}`)
+// TEMPORARILY DISABLED ALERTS FOR TESTING
+// alert(`🚨 FRESH DEPLOYMENT DETECTED! Version: ${LOGIN_VERSION}`)
 
 // IMMEDIATE ALERT - This will show as soon as the component loads
-setTimeout(() => {
-  alert(`🔥 ULTRA FRESH VERSION LOADED! ${LOGIN_VERSION} - If you see this, you're on the NEW deployment!`)
-}, 100)
+// setTimeout(() => {
+//   alert(`🔥 ULTRA FRESH VERSION LOADED! ${LOGIN_VERSION} - If you see this, you're on the NEW deployment!`)
+// }, 100)
 
 export default function Login({ isAutoLoggingIn = false }) {
   const { login } = useStore()
@@ -185,14 +186,24 @@ export default function Login({ isAutoLoggingIn = false }) {
               </div>
             </div>
             
-            <Button
-              type="submit"
-              disabled={isLoading}
-              className="w-full bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white shadow-lg"
-              onClick={() => console.log('🔍 [LOGIN] Button clicked! Version:', LOGIN_VERSION)}
-            >
-              {isLoading ? "Signing in..." : "Sign In"}
-            </Button>
+                         <button
+               type="submit"
+               disabled={isLoading}
+               style={{
+                 width: '100%',
+                 padding: '12px',
+                 backgroundColor: '#f97316',
+                 color: 'white',
+                 border: 'none',
+                 borderRadius: '0.5rem',
+                 cursor: isLoading ? 'not-allowed' : 'pointer',
+                 fontSize: '16px',
+                 fontWeight: '500'
+               }}
+               onClick={() => console.log('🔍 [LOGIN] Plain HTML Button clicked! Version:', LOGIN_VERSION)}
+             >
+               {isLoading ? "Signing in..." : "Sign In (Test)"}
+             </button>
           </form>
           
           <div className="mt-6 p-4 bg-gray-50 rounded-lg">

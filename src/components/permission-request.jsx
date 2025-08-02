@@ -25,19 +25,28 @@ const PermissionRequest = () => {
 
   const handleManualLogin = async (e) => {
     e.preventDefault();
+    console.log('🔍 [PERMISSION] Manual login form submitted!');
+    console.log('🔍 [PERMISSION] Username:', loginForm.username);
+    console.log('🔍 [PERMISSION] Password length:', loginForm.password.length);
+    
     setIsLoading(true);
     setLoginError('');
 
     try {
+      console.log('🔍 [PERMISSION] Calling deviceAuth.manualLogin...');
       const result = await deviceAuth.manualLogin(loginForm.username, loginForm.password);
+      console.log('🔍 [PERMISSION] Login result:', result);
       
       if (result.success) {
+        console.log('🔍 [PERMISSION] Login successful, reloading page...');
         // Redirect to main app
         window.location.reload();
       } else {
+        console.log('🔍 [PERMISSION] Login failed:', result.message);
         setLoginError(result.message);
       }
     } catch (error) {
+      console.error('🔍 [PERMISSION] Login error:', error);
       setLoginError('Network error. Please try again.');
     } finally {
       setIsLoading(false);
@@ -57,6 +66,11 @@ const PermissionRequest = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
+      {/* VERSION INDICATOR */}
+      <div className="fixed top-4 right-4 bg-green-500 text-white px-3 py-1 rounded text-sm z-50">
+        PERMISSION REQUEST v{Date.now()}
+      </div>
+      
       <div className="max-w-md w-full bg-white rounded-lg shadow-xl p-8">
         {/* Header */}
         <div className="text-center mb-8">

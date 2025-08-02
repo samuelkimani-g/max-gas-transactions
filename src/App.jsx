@@ -146,7 +146,10 @@ export default function App() {
   console.log('🔍 [APP] Rendering decision:', { authState, isAuthenticated })
   if (authState === 'permission') {
     console.log('🔍 [APP] Rendering PermissionRequest component')
-    return <PermissionRequest />
+    return <PermissionRequest onLoginSuccess={() => {
+      console.log('🔍 [APP] Login success callback called, updating authState to trusted')
+      setAuthState('trusted')
+    }} />
   }
 
   if (!isAuthenticated) {

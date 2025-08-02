@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import deviceAuth from '../lib/device-auth';
 import { useStore } from '../lib/store';
 
-const PermissionRequest = () => {
+const PermissionRequest = ({ onLoginSuccess }) => {
   const { login } = useStore();
   const [deviceInfo, setDeviceInfo] = useState(null);
   const [copied, setCopied] = useState(false);
@@ -61,9 +61,11 @@ const PermissionRequest = () => {
           user: useStore.getState().user
         });
         
-        console.log('🔍 [PERMISSION] Login successful, no need to reload - store will handle state update');
-        // The store will automatically update the authentication state
-        // No need to reload the page
+        console.log('🔍 [PERMISSION] Login successful, calling onLoginSuccess callback');
+        // Call the callback to update authState in App.jsx
+        if (onLoginSuccess) {
+          onLoginSuccess();
+        }
       } else {
         console.log('🔍 [PERMISSION] Login failed:', result.message);
         setLoginError(result.message);

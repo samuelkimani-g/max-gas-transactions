@@ -141,12 +141,12 @@ export default function Login({ isAutoLoggingIn = false }) {
           </form>
           
           <div className="mt-6 p-4 bg-gray-50 rounded-lg">
-            <h4 className="font-medium text-gray-900 mb-2">Default Credentials:</h4>
+            <h4 className="font-medium text-gray-900 mb-2">Login Credentials:</h4>
             <div className="space-y-1 text-sm text-gray-600">
-              <p><strong>Admin:</strong> admin@maxgas.com / admin123</p>
-              <p><strong>Manager:</strong> manager1@maxgas.com / manager123</p>
-              <p><strong>Operator:</strong> operator1@maxgas.com / operator123</p>
-              <p className="text-xs text-gray-500 mt-2">Note: Passwords are case-sensitive. These are the correct credentials as seeded in the database.</p>
+              <p><strong>Admin:</strong> admin / maxgas1455</p>
+              <p><strong>Manager:</strong> manager / maxmanager</p>
+              <p><strong>Operator:</strong> operator / operator123</p>
+              <p className="text-xs text-gray-500 mt-2">Note: Passwords are case-sensitive.</p>
             </div>
             <div className="mt-3 p-2 bg-green-50 border border-green-200 rounded text-xs text-green-700">
               <strong>Production Mode:</strong> Connected to real backend and database. All changes will persist.

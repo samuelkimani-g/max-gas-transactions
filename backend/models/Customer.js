@@ -64,10 +64,6 @@ const Customer = sequelize.define('Customer', {
   },
   
   // -- Standard Fields --
-  notes: {
-    type: DataTypes.TEXT,
-    allowNull: true
-  },
   tags: {
     type: DataTypes.JSON,
     defaultValue: []

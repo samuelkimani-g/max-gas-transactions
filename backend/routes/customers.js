@@ -97,7 +97,7 @@ router.get('/:id', [
 
     // Get recent transactions
     const recentTransactions = await Transaction.findAll({
-      where: { customerId: customer.id },
+      where: { customer_id: customer.id },
       order: [['date', 'DESC']],
       limit: 10
     });
@@ -180,10 +180,6 @@ router.post('/', [
       phone,
       email: cleanEmail,
       address,
-      category,
-      branchId: branchId || req.user.branchId,
-      creditLimit: creditLimit || 100000, // Set higher default credit limit
-      notes,
       tags
     });
 
@@ -307,7 +303,7 @@ router.delete('/:id', [
 
       // Check if customer has transactions
       const transactionCount = await Transaction.count({
-        where: { customerId: customer.id }
+        where: { customer_id: customer.id }
       });
 
       if (transactionCount > 0) {
@@ -321,7 +317,7 @@ router.delete('/:id', [
       console.log(`🗑️ Force deleting customer ${customer.name} and all related data...`);
       
       const deletedTransactions = await Transaction.destroy({
-        where: { customerId: customer.id },
+        where: { customer_id: customer.id },
         force: true
       });
       
@@ -366,11 +362,11 @@ router.get('/:id/debug', async (req, res) => {
       where: { customerId: customer.id }
     });
 
-    // Get actual transactions
-    const transactions = await Transaction.findAll({
-      where: { customerId: customer.id },
-      attributes: ['id', 'total', 'paid', 'balance', 'date', 'status']
-    });
+          // Get actual transactions
+      const transactions = await Transaction.findAll({
+        where: { customer_id: customer.id },
+        attributes: ['id', 'total_bill', 'amount_paid', 'financial_balance', 'date']
+      });
 
     // Parse balance
     const balance = parseFloat(customer.balance || 0);
@@ -428,7 +424,7 @@ router.get('/:id/transactions', [
     }
 
     const { count, rows: transactions } = await Transaction.findAndCountAll({
-      where: { customerId: customer.id },
+      where: { customer_id: customer.id },
       order: [['date', 'DESC']],
       limit: parseInt(limit),
       offset: parseInt(offset)
@@ -521,16 +517,14 @@ router.post('/:id/payment', [
 
     // Create payment transaction
     const paymentTransaction = await Transaction.create({
-      customerId: customer.id,
-      userId: req.user.id,
-      branchId: req.user.branchId,
+      customer_id: customer.id,
+      user_id: req.user.id,
       date: new Date(),
-      total: 0,
-      paid: amount,
-      balance: -amount,
-      paymentMethod: method,
-      notes: `Payment: ${notes || ''}`,
-      status: 'completed'
+      total_bill: 0,
+      amount_paid: amount,
+      financial_balance: -amount,
+      payment_method: method,
+      notes: `Payment: ${notes || ''}`
     });
 
     res.json({

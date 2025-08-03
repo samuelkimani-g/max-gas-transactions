@@ -68,23 +68,7 @@ const Transaction = sequelize.define('Transaction', {
     defaultValue: 0
   },
   
-  // Detailed cylinder balance by size
-  cylinder_balance_6kg: {
-    type: DataTypes.INTEGER,
-    defaultValue: 0
-  },
-  cylinder_balance_13kg: {
-    type: DataTypes.INTEGER,
-    defaultValue: 0
-  },
-  cylinder_balance_50kg: {
-    type: DataTypes.INTEGER,
-    defaultValue: 0
-  },
-  cylinder_balance: {
-    type: DataTypes.INTEGER,
-    defaultValue: 0
-  },
+
   
   // Financial fields
   financial_balance: {

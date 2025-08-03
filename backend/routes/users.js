@@ -24,7 +24,7 @@ router.get('/', [
       role = '',
       status = '',
       branchId = '',
-      sortBy = 'fullName',
+      sortBy = 'username',
       sortOrder = 'ASC'
     } = req.query;
 
@@ -34,7 +34,6 @@ router.get('/', [
     // Search filter
     if (search) {
       whereClause[Op.or] = [
-        { fullName: { [Op.iLike]: `%${search}%` } },
         { username: { [Op.iLike]: `%${search}%` } },
         { email: { [Op.iLike]: `%${search}%` } }
       ];
@@ -45,14 +44,14 @@ router.get('/', [
       whereClause.role = role;
     }
 
-    // Status filter
+    // Status filter (using is_active instead of status)
     if (status) {
-      whereClause.status = status;
+      whereClause.is_active = status === 'active';
     }
 
     // Branch filter
     if (branchId) {
-      whereClause.branchId = branchId;
+      whereClause.branch_id = branchId;
     }
 
     // Role-based filtering
@@ -154,11 +153,9 @@ router.put('/:id', [
   authenticateToken,
   requirePermission('users:update'),
   canManageTargetUser,
-  body('fullName').optional().isLength({ min: 2, max: 100 }),
   body('email').optional().isEmail(),
   body('role').optional().isIn(['admin', 'manager', 'operator']),
-  body('status').optional().isIn(['active', 'inactive', 'suspended']),
-  body('phone').optional().isLength({ min: 10, max: 20 })
+  body('is_active').optional().isBoolean()
 ], async (req, res) => {
   try {
     // Check for validation errors

@@ -18,18 +18,10 @@ const User = sequelize.define('User', {
   },
   email: {
     type: DataTypes.STRING(100),
-    unique: true,
-    allowNull: false,
-    validate: {
-      isEmail: true
-    }
+    allowNull: true
   },
   password: {
     type: DataTypes.STRING(255),
-    allowNull: false
-  },
-  fullName: {
-    type: DataTypes.STRING(100),
     allowNull: false
   },
   role: {
@@ -37,12 +29,7 @@ const User = sequelize.define('User', {
     defaultValue: 'operator',
     allowNull: false
   },
-  status: {
-    type: DataTypes.ENUM('active', 'inactive', 'suspended'),
-    defaultValue: 'active',
-    allowNull: false
-  },
-  branchId: {
+  branch_id: {
     type: DataTypes.INTEGER,
     allowNull: true,
     references: {
@@ -50,25 +37,10 @@ const User = sequelize.define('User', {
       key: 'id'
     }
   },
-  permissions: {
-    type: DataTypes.JSON,
-    defaultValue: []
-  },
-  lastLogin: {
-    type: DataTypes.DATE,
-    allowNull: true
-  },
-  phone: {
-    type: DataTypes.STRING(20),
-    allowNull: true
-  },
-  avatar: {
-    type: DataTypes.STRING(255),
-    allowNull: true
-  },
-  notes: {
-    type: DataTypes.TEXT,
-    allowNull: true
+  is_active: {
+    type: DataTypes.BOOLEAN,
+    defaultValue: true,
+    allowNull: false
   }
 }, {
   tableName: 'users',

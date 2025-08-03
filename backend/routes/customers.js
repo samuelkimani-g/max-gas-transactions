@@ -512,7 +512,9 @@ router.post('/:id/payment', [
     const { amount, method, notes } = req.body;
 
     // Update customer balance
-    await customer.updateBalance(-amount); // Negative because it's a payment
+    const currentBalance = Number(customer.financial_balance) || 0;
+    const newBalance = currentBalance - amount; // Negative because it's a payment
+    await customer.update({ financial_balance: newBalance });
 
     // Create payment transaction
     const paymentTransaction = await Transaction.create({

@@ -179,8 +179,7 @@ router.post('/', [
       name,
       phone,
       email: cleanEmail,
-      address,
-      tags
+      address
     });
 
     res.status(201).json({

@@ -64,10 +64,6 @@ const Customer = sequelize.define('Customer', {
   },
   
   // -- Standard Fields --
-  tags: {
-    type: DataTypes.JSON,
-    defaultValue: []
-  },
   last_transaction_date: {
     type: DataTypes.DATE,
     allowNull: true

@@ -12,7 +12,7 @@ const Transaction = sequelize.define('Transaction', {
     unique: true,
     allowNull: false
   },
-  customerId: {
+  customer_id: {
     type: DataTypes.INTEGER,
     allowNull: false,
     references: {
@@ -20,7 +20,7 @@ const Transaction = sequelize.define('Transaction', {
       key: 'id'
     }
   },
-  userId: {
+  user_id: {
     type: DataTypes.INTEGER,
     allowNull: false,
     references: {

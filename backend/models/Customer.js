@@ -36,16 +36,6 @@ const Customer = sequelize.define('Customer', {
     type: DataTypes.TEXT,
     allowNull: true
   },
-  category: {
-    type: DataTypes.ENUM('regular', 'premium', 'wholesale', 'retail', 'sales_team'),
-    defaultValue: 'regular',
-    allowNull: false
-  },
-  status: {
-    type: DataTypes.ENUM('active', 'inactive', 'suspended'),
-    defaultValue: 'active',
-    allowNull: false
-  },
   
   // -- NEW Reconciled Ledger System Balance Fields --
   financial_balance: {
@@ -82,16 +72,16 @@ const Customer = sequelize.define('Customer', {
     type: DataTypes.JSON,
     defaultValue: []
   },
-  lastTransactionDate: {
+  last_transaction_date: {
     type: DataTypes.DATE,
     allowNull: true
   },
-  totalTransactions: {
+  total_transactions: {
     type: DataTypes.INTEGER,
     defaultValue: 0,
     allowNull: false
   },
-  totalSpent: {
+  total_spent: {
     type: DataTypes.DECIMAL(10, 2),
     defaultValue: 0.00,
     allowNull: false
@@ -102,8 +92,7 @@ const Customer = sequelize.define('Customer', {
   underscored: true,
   indexes: [
     { fields: ['name'] },
-    { fields: ['phone'], unique: true },
-    { fields: ['status'] },
+    { fields: ['phone'], unique: true }
   ]
 });
 

@@ -223,9 +223,7 @@ router.post('/logout', authenticateToken, async (req, res) => {
 // @access  Private
 router.get('/me', authenticateToken, async (req, res) => {
   try {
-    const user = await User.findByPk(req.user.id, {
-      include: ['Branch']
-    });
+    const user = await User.findByPk(req.user.id);
 
     res.json({
       success: true,

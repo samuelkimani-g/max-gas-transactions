@@ -85,7 +85,7 @@ User.findByCredentials = async function(username, password) {
         { username: username },
         { email: username }
       ],
-      status: 'active'
+      is_active: true
     }
   });
 

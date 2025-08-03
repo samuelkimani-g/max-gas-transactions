@@ -14,6 +14,7 @@ export default function Login({ isAutoLoggingIn = false }) {
   })
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState("")
+  const [showPassword, setShowPassword] = useState(false)
   
   const deviceInfo = getDeviceInfo()
 
@@ -111,7 +112,7 @@ export default function Login({ isAutoLoggingIn = false }) {
                 {/* <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" /> */}
                 <Input
                   id="password"
-                  type="password"
+                  type={showPassword ? "text" : "password"}
                   placeholder="Enter password"
                   name="password"
                   value={formData.password}
@@ -119,15 +120,15 @@ export default function Login({ isAutoLoggingIn = false }) {
                   className="pl-10 pr-10"
                   required
                 />
-                {/* <button
+                <button
                   type="button"
                   aria-label={showPassword ? "Hide password" : "Show password"}
                   onClick={() => setShowPassword((v) => !v)}
                   className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-700 focus:outline-none"
                   tabIndex={0}
                 >
-                  {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                </button> */}
+                  {showPassword ? "👁️" : "👁️‍🗨️"}
+                </button>
               </div>
             </div>
             

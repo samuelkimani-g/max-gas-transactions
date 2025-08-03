@@ -21,9 +21,6 @@ router.get('/', [
       page = 1,
       limit = 20,
       search = '',
-      category = '',
-      status = '',
-      branchId = '',
       sortBy = 'name',
       sortOrder = 'ASC'
     } = req.query;
@@ -40,31 +37,13 @@ router.get('/', [
       ];
     }
 
-    // Category filter
-    if (category) {
-      whereClause.category = category;
-    }
 
-    // Status filter
-    if (status) {
-      whereClause.status = status;
-    }
 
-    // Branch filter
-    if (branchId) {
-      whereClause.branchId = branchId;
-    }
+
 
     // Get customers with pagination
     const { count, rows: customers } = await Customer.findAndCountAll({
       where: whereClause,
-      include: [
-        {
-          model: Branch,
-          as: 'Branch',
-          attributes: ['id', 'name', 'city']
-        }
-      ],
       order: [[sortBy, sortOrder.toUpperCase()]],
       limit: parseInt(limit),
       offset: parseInt(offset)
@@ -107,15 +86,7 @@ router.get('/:id', [
   requirePermission('customers:read')
 ], async (req, res) => {
   try {
-    const customer = await Customer.findByPk(req.params.id, {
-      include: [
-        {
-          model: Branch,
-          as: 'Branch',
-          attributes: ['id', 'name', 'city', 'phone']
-        }
-      ]
-    });
+    const customer = await Customer.findByPk(req.params.id);
 
     if (!customer) {
       return res.status(404).json({

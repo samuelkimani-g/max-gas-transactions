@@ -229,10 +229,6 @@ router.get('/', [
 
     const { count, rows: transactions } = await Transaction.findAndCountAll({
       where: whereClause,
-      include: [
-        { model: Customer, as: 'Customer', attributes: ['id', 'name'] },
-        { model: User, as: 'User', attributes: ['id', 'username'] },
-      ],
       order: [[sortBy, sortOrder.toUpperCase()]],
       limit: parseInt(limit),
       offset: parseInt(offset)

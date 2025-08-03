@@ -36,7 +36,7 @@ const authenticateToken = async (req, res, next) => {
       console.log('[AUTH] User from token:', user ? user.username : null);
     }
 
-    if (!user || user.status !== 'active') {
+    if (!user || !user.is_active) {
       if (process.env.NODE_ENV === 'development') {
         console.log('[AUTH] User not found or inactive');
       }

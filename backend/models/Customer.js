@@ -44,40 +44,9 @@ const Customer = sequelize.define('Customer', {
     allowNull: false,
     comment: 'The overall monetary balance for the customer. Positive means they owe money.'
   },
-  cylinder_balance: {
-    type: DataTypes.INTEGER,
-    defaultValue: 0
-  },
-  
-  // Detailed cylinder balance by size
-  cylinder_balance_6kg: {
-    type: DataTypes.INTEGER,
-    defaultValue: 0
-  },
-  cylinder_balance_13kg: {
-    type: DataTypes.INTEGER,
-    defaultValue: 0
-  },
-  cylinder_balance_50kg: {
-    type: DataTypes.INTEGER,
-    defaultValue: 0
-  },
+
   
   // -- Standard Fields --
-  last_transaction_date: {
-    type: DataTypes.DATE,
-    allowNull: true
-  },
-  total_transactions: {
-    type: DataTypes.INTEGER,
-    defaultValue: 0,
-    allowNull: false
-  },
-  total_spent: {
-    type: DataTypes.DECIMAL(10, 2),
-    defaultValue: 0.00,
-    allowNull: false
-  }
 }, {
   tableName: 'customers',
   timestamps: true,

@@ -21,6 +21,7 @@ export default function BulkPaymentForm({ customerId, customerName, outstandingA
   const [selectedIds, setSelectedIds] = useState([])
   const [selectAll, setSelectAll] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [clickTimeout, setClickTimeout] = useState(null)
 
   // Get all customer transactions to show in the payment form
   const customerTransactions = getCustomerTransactions(customerId)
@@ -46,7 +47,14 @@ export default function BulkPaymentForm({ customerId, customerName, outstandingA
       setSelectAll(false)
       setIsSubmitting(false)
     }
-  }, [isOpen])
+    
+    // Cleanup timeout on unmount
+    return () => {
+      if (clickTimeout) {
+        clearTimeout(clickTimeout);
+      }
+    };
+  }, [isOpen, clickTimeout])
 
   useEffect(() => {
     if (selectAll) {
@@ -57,7 +65,25 @@ export default function BulkPaymentForm({ customerId, customerName, outstandingA
   }, [selectAll, unpaidTransactions])
 
   const handleSelect = (id) => {
-    setSelectedIds(prev => prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id])
+    // Prevent rapid clicking
+    if (clickTimeout) {
+      clearTimeout(clickTimeout);
+    }
+    
+    const timeout = setTimeout(() => {
+      console.log('handleSelect called for id:', id);
+      setSelectedIds(prev => {
+        const isCurrentlySelected = prev.includes(id);
+        console.log('Current selection state for id', id, ':', isCurrentlySelected);
+        const newSelection = isCurrentlySelected 
+          ? prev.filter(x => x !== id) 
+          : [...prev, id];
+        console.log('New selection:', newSelection);
+        return newSelection;
+      });
+    }, 100); // 100ms debounce
+    
+    setClickTimeout(timeout);
   }
 
   const handleSelectAll = () => {
@@ -258,7 +284,7 @@ export default function BulkPaymentForm({ customerId, customerName, outstandingA
                                   onClick={(e) => {
                                     e.stopPropagation();
                                     e.preventDefault();
-                                    console.log('Checkbox button clicked for transaction:', t.id);
+                                    console.log('Checkbox button clicked for transaction:', t.id, 'isSelected:', isSelected);
                                     handleSelect(t.id);
                                   }}
                                   className={`w-5 h-5 border-2 rounded flex items-center justify-center transition-colors ${
@@ -266,6 +292,7 @@ export default function BulkPaymentForm({ customerId, customerName, outstandingA
                                       ? 'bg-green-600 border-green-600 text-white' 
                                       : 'border-gray-300 hover:border-green-500'
                                   }`}
+                                  disabled={isSubmitting}
                                 >
                                   {isSelected && (
                                     <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">

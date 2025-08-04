@@ -48,17 +48,17 @@ export default function TransactionHistory({ transactions = [], customerId, onEd
     
     if (rbac?.permissions?.canRequestTransactionApproval) {
       // Manager/Operator: Submit approval request
-      try {
-        await submitApprovalRequest({
+            try {
+              await submitApprovalRequest({
           entityType: 'transaction',
           entityId: transaction.id,
           requestType: 'transaction_delete',
           reason: `${user.role === 'manager' ? 'Manager' : 'Operator'} requests deletion of transaction #${transaction.transaction_number || transaction.id}.`,
         });
         toast({ title: 'Deletion Requested', description: 'Deletion request submitted for admin approval.', variant: 'success' });
-      } catch (error) {
-        toast({ title: 'Error', description: `Failed to submit deletion request: ${error.message}`, variant: 'destructive' });
-      }
+            } catch (error) {
+              toast({ title: 'Error', description: `Failed to submit deletion request: ${error.message}`, variant: 'destructive' });
+            }
     } else if (rbac?.permissions?.canDeleteTransaction) {
       // Admin: Direct delete
       try {
@@ -183,8 +183,8 @@ export default function TransactionHistory({ transactions = [], customerId, onEd
                                 </span>
                               </div>
                             </div>
-                          </div>
-                        </div>
+                      </div>
+                      </div>
                       </div>
                     </div>
                   </TableCell>
@@ -445,21 +445,21 @@ export default function TransactionHistory({ transactions = [], customerId, onEd
                       
                       <div className="bg-white rounded-lg p-4 border border-purple-100">
                         <h5 className="font-semibold text-purple-700 mb-3">Cylinder Balance</h5>
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                           <div className="text-center">
-                            <div className="text-xl font-bold text-gray-900">{cylinderBalance6kg}</div>
+                        <div className="text-xl font-bold text-gray-900">{cylinderBalance6kg}</div>
                             <div className="text-sm text-gray-600">6kg Cylinders</div>
-                            <div className="text-xs text-gray-500">{cylinderBalance6kg > 0 ? 'Owed to us' : cylinderBalance6kg < 0 ? 'Owed to customer' : 'Settled'}</div>
-                          </div>
+                        <div className="text-xs text-gray-500">{cylinderBalance6kg > 0 ? 'Owed to us' : cylinderBalance6kg < 0 ? 'Owed to customer' : 'Settled'}</div>
+                      </div>
                           <div className="text-center">
-                            <div className="text-xl font-bold text-gray-900">{cylinderBalance13kg}</div>
+                        <div className="text-xl font-bold text-gray-900">{cylinderBalance13kg}</div>
                             <div className="text-sm text-gray-600">13kg Cylinders</div>
-                            <div className="text-xs text-gray-500">{cylinderBalance13kg > 0 ? 'Owed to us' : cylinderBalance13kg < 0 ? 'Owed to customer' : 'Settled'}</div>
-                          </div>
+                        <div className="text-xs text-gray-500">{cylinderBalance13kg > 0 ? 'Owed to us' : cylinderBalance13kg < 0 ? 'Owed to customer' : 'Settled'}</div>
+                      </div>
                           <div className="text-center">
-                            <div className="text-xl font-bold text-gray-900">{cylinderBalance50kg}</div>
+                        <div className="text-xl font-bold text-gray-900">{cylinderBalance50kg}</div>
                             <div className="text-sm text-gray-600">50kg Cylinders</div>
-                            <div className="text-xs text-gray-500">{cylinderBalance50kg > 0 ? 'Owed to us' : cylinderBalance50kg < 0 ? 'Owed to customer' : 'Settled'}</div>
+                        <div className="text-xs text-gray-500">{cylinderBalance50kg > 0 ? 'Owed to us' : cylinderBalance50kg < 0 ? 'Owed to customer' : 'Settled'}</div>
                           </div>
                         </div>
                         <div className="text-center mt-3 pt-3 border-t border-gray-200">

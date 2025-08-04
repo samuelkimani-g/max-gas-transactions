@@ -106,8 +106,8 @@ router.post('/', authenticateToken, async (req, res) => {
 
     // Create transaction record
     let newTransaction = await Transaction.create({
-      customer_id: customerId,
-      user_id: req.user.id,
+      customerId,
+      userId: req.user.id,
       load_6kg,
       load_13kg,
       load_50kg,
@@ -115,6 +115,10 @@ router.post('/', authenticateToken, async (req, res) => {
       returns_breakdown: returnsBreakdown || {},
       outright_breakdown: outrightBreakdown || {},
       total_returns,
+      cylinder_balance_6kg,
+      cylinder_balance_13kg,
+      cylinder_balance_50kg,
+      cylinder_balance,
       total_bill,
       amount_paid: amountPaid || 0,
       financial_balance,
@@ -131,14 +135,32 @@ router.post('/', authenticateToken, async (req, res) => {
       await newTransaction.update({ transaction_number }, { transaction });
     }
 
-    // Update customer financial balance
+    // Update customer balances with detailed tracking
     const currentCustomer = await Customer.findByPk(customerId, { transaction });
+    // Ensure all values are numbers to avoid string concatenation
     const currentFinBal = Number(currentCustomer.financial_balance) || 0;
+    const currentCylBal = Number(currentCustomer.cylinder_balance) || 0;
+    const currentCylBal6 = Number(currentCustomer.cylinder_balance_6kg) || 0;
+    const currentCylBal13 = Number(currentCustomer.cylinder_balance_13kg) || 0;
+    const currentCylBal50 = Number(currentCustomer.cylinder_balance_50kg) || 0;
     const newFinBal = Number(financial_balance) || 0;
+    const newCylBal = Number(cylinder_balance) || 0;
+    const newCylBal6 = Number(cylinder_balance_6kg) || 0;
+    const newCylBal13 = Number(cylinder_balance_13kg) || 0;
+    const newCylBal50 = Number(cylinder_balance_50kg) || 0;
+
     const newFinancialBalance = currentFinBal + newFinBal;
+    const newCylinderBalance = currentCylBal + newCylBal;
+    const newCylinderBalance6kg = currentCylBal6 + newCylBal6;
+    const newCylinderBalance13kg = currentCylBal13 + newCylBal13;
+    const newCylinderBalance50kg = currentCylBal50 + newCylBal50;
 
     await Customer.update({
-      financial_balance: newFinancialBalance
+      financial_balance: newFinancialBalance,
+      cylinder_balance: newCylinderBalance,
+      cylinder_balance_6kg: newCylinderBalance6kg,
+      cylinder_balance_13kg: newCylinderBalance13kg,
+      cylinder_balance_50kg: newCylinderBalance50kg
     }, { 
       where: { id: customerId },
       transaction 
@@ -207,6 +229,10 @@ router.get('/', [
 
     const { count, rows: transactions } = await Transaction.findAndCountAll({
       where: whereClause,
+      include: [
+        { model: Customer, as: 'Customer', attributes: ['id', 'name'] },
+        { model: User, as: 'User', attributes: ['id', 'username'] },
+      ],
       order: [[sortBy, sortOrder.toUpperCase()]],
       limit: parseInt(limit),
       offset: parseInt(offset)

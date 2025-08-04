@@ -14,7 +14,6 @@ export default function Login({ isAutoLoggingIn = false }) {
   })
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState("")
-  const [showPassword, setShowPassword] = useState(false)
   
   const deviceInfo = getDeviceInfo()
 
@@ -112,7 +111,7 @@ export default function Login({ isAutoLoggingIn = false }) {
                 {/* <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" /> */}
                 <Input
                   id="password"
-                  type={showPassword ? "text" : "password"}
+                  type="password"
                   placeholder="Enter password"
                   name="password"
                   value={formData.password}
@@ -120,15 +119,15 @@ export default function Login({ isAutoLoggingIn = false }) {
                   className="pl-10 pr-10"
                   required
                 />
-                <button
+                {/* <button
                   type="button"
                   aria-label={showPassword ? "Hide password" : "Show password"}
                   onClick={() => setShowPassword((v) => !v)}
                   className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-700 focus:outline-none"
                   tabIndex={0}
                 >
-                  {showPassword ? "👁️" : "👁️‍🗨️"}
-                </button>
+                  {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                </button> */}
               </div>
             </div>
             
@@ -142,15 +141,12 @@ export default function Login({ isAutoLoggingIn = false }) {
           </form>
           
           <div className="mt-6 p-4 bg-gray-50 rounded-lg">
-            <h4 className="font-medium text-gray-900 mb-2">Login Credentials:</h4>
+            <h4 className="font-medium text-gray-900 mb-2">System Status:</h4>
             <div className="space-y-1 text-sm text-gray-600">
-              <p><strong>Admin:</strong> admin / maxgas1455</p>
-              <p><strong>Manager:</strong> manager / maxmanager</p>
-              <p><strong>Operator:</strong> operator / operator123</p>
-              <p className="text-xs text-gray-500 mt-2">Note: Passwords are case-sensitive.</p>
+              <p className="text-xs text-gray-500">Production Mode: Connected to real backend and database.</p>
             </div>
             <div className="mt-3 p-2 bg-green-50 border border-green-200 rounded text-xs text-green-700">
-              <strong>Production Mode:</strong> Connected to real backend and database. All changes will persist.
+              <strong>✅ System Ready:</strong> All changes will persist.
             </div>
           </div>
         </CardContent>

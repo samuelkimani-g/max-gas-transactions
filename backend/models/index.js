@@ -7,12 +7,21 @@ const Analytics = require('./Analytics');
 const Payment = require('./Payment');
 const PendingApproval = require('./PendingApproval');
 
-// Define associations - Simplified for current schema
-Transaction.belongsTo(Customer, { foreignKey: 'customer_id', as: 'Customer' });
-Customer.hasMany(Transaction, { foreignKey: 'customer_id', as: 'Transactions' });
+// Define associations
+User.belongsTo(Branch, { foreignKey: 'branchId', as: 'Branch' });
+Branch.hasMany(User, { foreignKey: 'branchId', as: 'Users' });
 
-Transaction.belongsTo(User, { foreignKey: 'user_id', as: 'User' });
-User.hasMany(Transaction, { foreignKey: 'user_id', as: 'Transactions' });
+Customer.belongsTo(Branch, { foreignKey: 'branchId', as: 'Branch' });
+Branch.hasMany(Customer, { foreignKey: 'branchId', as: 'Customers' });
+
+Transaction.belongsTo(Customer, { foreignKey: 'customerId', as: 'Customer' });
+Customer.hasMany(Transaction, { foreignKey: 'customerId', as: 'Transactions' });
+
+Transaction.belongsTo(User, { foreignKey: 'userId', as: 'User' });
+User.hasMany(Transaction, { foreignKey: 'userId', as: 'Transactions' });
+
+Transaction.belongsTo(Branch, { foreignKey: 'branchId', as: 'Branch' });
+Branch.hasMany(Transaction, { foreignKey: 'branchId', as: 'Transactions' });
 
 // Payment associations
 Payment.belongsTo(Transaction, { foreignKey: 'transactionId', as: 'Transaction' });
@@ -23,6 +32,23 @@ Customer.hasMany(Payment, { foreignKey: 'customerId', as: 'Payments' });
 
 Payment.belongsTo(User, { foreignKey: 'processedBy', as: 'ProcessedBy' });
 User.hasMany(Payment, { foreignKey: 'processedBy', as: 'ProcessedPayments' });
+
+Payment.belongsTo(Branch, { foreignKey: 'branchId', as: 'Branch' });
+Branch.hasMany(Payment, { foreignKey: 'branchId', as: 'Payments' });
+
+// Forecast associations
+Forecast.belongsTo(Branch, { foreignKey: 'branchId', as: 'Branch' });
+Branch.hasMany(Forecast, { foreignKey: 'branchId', as: 'Forecasts' });
+
+Forecast.belongsTo(User, { foreignKey: 'createdBy', as: 'CreatedBy' });
+User.hasMany(Forecast, { foreignKey: 'createdBy', as: 'CreatedForecasts' });
+
+// Analytics associations
+Analytics.belongsTo(Branch, { foreignKey: 'branchId', as: 'Branch' });
+Branch.hasMany(Analytics, { foreignKey: 'branchId', as: 'Analytics' });
+
+Analytics.belongsTo(User, { foreignKey: 'generatedBy', as: 'GeneratedBy' });
+User.hasMany(Analytics, { foreignKey: 'generatedBy', as: 'GeneratedAnalytics' });
 
 // Approval associations
 PendingApproval.belongsTo(User, { foreignKey: 'requestedBy', as: 'RequestedByUser' });

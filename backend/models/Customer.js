@@ -36,6 +36,16 @@ const Customer = sequelize.define('Customer', {
     type: DataTypes.TEXT,
     allowNull: true
   },
+  category: {
+    type: DataTypes.ENUM('regular', 'premium', 'wholesale', 'retail', 'sales_team'),
+    defaultValue: 'regular',
+    allowNull: false
+  },
+  status: {
+    type: DataTypes.ENUM('active', 'inactive', 'suspended'),
+    defaultValue: 'active',
+    allowNull: false
+  },
   
   // -- NEW Reconciled Ledger System Balance Fields --
   financial_balance: {
@@ -44,16 +54,56 @@ const Customer = sequelize.define('Customer', {
     allowNull: false,
     comment: 'The overall monetary balance for the customer. Positive means they owe money.'
   },
-
+  cylinder_balance: {
+    type: DataTypes.INTEGER,
+    defaultValue: 0
+  },
+  
+  // Detailed cylinder balance by size
+  cylinder_balance_6kg: {
+    type: DataTypes.INTEGER,
+    defaultValue: 0
+  },
+  cylinder_balance_13kg: {
+    type: DataTypes.INTEGER,
+    defaultValue: 0
+  },
+  cylinder_balance_50kg: {
+    type: DataTypes.INTEGER,
+    defaultValue: 0
+  },
   
   // -- Standard Fields --
+  notes: {
+    type: DataTypes.TEXT,
+    allowNull: true
+  },
+  tags: {
+    type: DataTypes.JSON,
+    defaultValue: []
+  },
+  lastTransactionDate: {
+    type: DataTypes.DATE,
+    allowNull: true
+  },
+  totalTransactions: {
+    type: DataTypes.INTEGER,
+    defaultValue: 0,
+    allowNull: false
+  },
+  totalSpent: {
+    type: DataTypes.DECIMAL(10, 2),
+    defaultValue: 0.00,
+    allowNull: false
+  }
 }, {
   tableName: 'customers',
   timestamps: true,
   underscored: true,
   indexes: [
     { fields: ['name'] },
-    { fields: ['phone'], unique: true }
+    { fields: ['phone'], unique: true },
+    { fields: ['status'] },
   ]
 });
 

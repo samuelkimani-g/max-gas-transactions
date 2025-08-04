@@ -64,7 +64,7 @@ router.post('/login', [
       });
     }
 
-    if (!user.is_active) {
+    if (user.status !== 'active') {
       console.log('[LOGIN] User inactive');
       return res.status(401).json({
         success: false,
@@ -82,8 +82,9 @@ router.post('/login', [
       });
     }
 
-    // Note: We removed lastLogin field from the schema
-    // No need to update last login for now
+    // Update last login
+    user.lastLogin = new Date();
+    await user.save();
 
     // Generate token
     const token = generateToken(user.id);
@@ -98,8 +99,10 @@ router.post('/login', [
           id: user.id,
           username: user.username,
           email: user.email,
+          fullName: user.fullName,
           role: user.role,
-          branch_id: user.branch_id
+          permissions: user.permissions,
+          branchId: user.branchId
         }
       }
     });
@@ -122,7 +125,7 @@ router.post('/register', [
   body('username', 'Username is required').isLength({ min: 3, max: 50 }),
   body('email', 'Please include a valid email').isEmail(),
   body('password', 'Password must be 6 or more characters').isLength({ min: 6 }),
-  // Removed fullName validation since we don't have that field anymore
+  body('fullName', 'Full name is required').notEmpty(),
   body('role', 'Role is required').isIn(['admin', 'manager', 'operator'])
 ], async (req, res) => {
   try {
@@ -136,7 +139,7 @@ router.post('/register', [
       });
     }
 
-    const { username, email, password, role, branch_id } = req.body;
+    const { username, email, password, fullName, role, branchId, permissions } = req.body;
 
     // Check if user already exists
     const existingUser = await User.findOne({
@@ -171,8 +174,10 @@ router.post('/register', [
       username,
       email,
       password,
+      fullName,
       role,
-      branch_id
+      branchId,
+      permissions: permissions || []
     });
 
     res.status(201).json({
@@ -183,8 +188,10 @@ router.post('/register', [
           id: user.id,
           username: user.username,
           email: user.email,
+          fullName: user.fullName,
           role: user.role,
-          branch_id: user.branch_id
+          permissions: user.permissions,
+          branchId: user.branchId
         }
       }
     });
@@ -223,7 +230,9 @@ router.post('/logout', authenticateToken, async (req, res) => {
 // @access  Private
 router.get('/me', authenticateToken, async (req, res) => {
   try {
-    const user = await User.findByPk(req.user.id);
+    const user = await User.findByPk(req.user.id, {
+      include: ['Branch']
+    });
 
     res.json({
       success: true,
@@ -232,8 +241,12 @@ router.get('/me', authenticateToken, async (req, res) => {
           id: user.id,
           username: user.username,
           email: user.email,
+          fullName: user.fullName,
           role: user.role,
-          branch_id: user.branch_id
+          permissions: user.permissions,
+          branchId: user.branchId,
+          branch: user.Branch,
+          lastLogin: user.lastLogin
         }
       }
     });

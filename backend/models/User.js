@@ -18,10 +18,18 @@ const User = sequelize.define('User', {
   },
   email: {
     type: DataTypes.STRING(100),
-    allowNull: true
+    unique: true,
+    allowNull: false,
+    validate: {
+      isEmail: true
+    }
   },
   password: {
     type: DataTypes.STRING(255),
+    allowNull: false
+  },
+  fullName: {
+    type: DataTypes.STRING(100),
     allowNull: false
   },
   role: {
@@ -29,7 +37,12 @@ const User = sequelize.define('User', {
     defaultValue: 'operator',
     allowNull: false
   },
-  branch_id: {
+  status: {
+    type: DataTypes.ENUM('active', 'inactive', 'suspended'),
+    defaultValue: 'active',
+    allowNull: false
+  },
+  branchId: {
     type: DataTypes.INTEGER,
     allowNull: true,
     references: {
@@ -37,10 +50,25 @@ const User = sequelize.define('User', {
       key: 'id'
     }
   },
-  is_active: {
-    type: DataTypes.BOOLEAN,
-    defaultValue: true,
-    allowNull: false
+  permissions: {
+    type: DataTypes.JSON,
+    defaultValue: []
+  },
+  lastLogin: {
+    type: DataTypes.DATE,
+    allowNull: true
+  },
+  phone: {
+    type: DataTypes.STRING(20),
+    allowNull: true
+  },
+  avatar: {
+    type: DataTypes.STRING(255),
+    allowNull: true
+  },
+  notes: {
+    type: DataTypes.TEXT,
+    allowNull: true
   }
 }, {
   tableName: 'users',
@@ -85,7 +113,7 @@ User.findByCredentials = async function(username, password) {
         { username: username },
         { email: username }
       ],
-      is_active: true
+      status: 'active'
     }
   });
 

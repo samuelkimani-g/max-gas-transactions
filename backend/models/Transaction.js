@@ -106,6 +106,14 @@ const Transaction = sequelize.define('Transaction', {
   notes: {
     type: DataTypes.TEXT,
     allowNull: true
+  },
+  branchId: {
+    type: DataTypes.INTEGER,
+    allowNull: true,
+    references: {
+      model: 'branches',
+      key: 'id'
+    }
   }
 }, {
   tableName: 'transactions',

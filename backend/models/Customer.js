@@ -95,6 +95,14 @@ const Customer = sequelize.define('Customer', {
     type: DataTypes.DECIMAL(10, 2),
     defaultValue: 0.00,
     allowNull: false
+  },
+  branchId: {
+    type: DataTypes.INTEGER,
+    allowNull: true,
+    references: {
+      model: 'branches',
+      key: 'id'
+    }
   }
 }, {
   tableName: 'customers',

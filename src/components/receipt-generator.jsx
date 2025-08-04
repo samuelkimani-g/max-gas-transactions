@@ -221,6 +221,21 @@ export default function ReceiptGenerator({ transaction, customer }) {
               font-weight: bold;
             }
             
+            .immediate-payment {
+              margin-bottom: 3mm;
+              background: #90EE90;
+              border: 1px solid #000;
+              padding: 2mm;
+              border-radius: 1mm;
+            }
+            
+            .immediate-payment-title {
+              font-size: 8px;
+              font-weight: bold;
+              margin-bottom: 1mm;
+              color: #006400;
+            }
+            
             .payment-history {
               margin-bottom: 3mm;
             }
@@ -357,6 +372,13 @@ export default function ReceiptGenerator({ transaction, customer }) {
               .payment-table th {
                 background: #f0f0f0 !important;
                 color: black !important;
+              }
+              .immediate-payment {
+                background: #90EE90 !important;
+                border: 1px solid black !important;
+              }
+              .immediate-payment-title {
+                color: #006400 !important;
               }
               .payment-table td {
                 color: black !important;
@@ -681,6 +703,33 @@ export default function ReceiptGenerator({ transaction, customer }) {
         {/* Payment Details */}
         <div className="p-4 border-t border-gray-200">
           <div className="text-sm font-bold text-gray-800 border-b-2 border-orange-500 bg-orange-50 p-2 rounded mb-3">Payment Details</div>
+          
+          {/* Immediate Payment Information */}
+          {paid > 0 && (
+            <div className="mb-4 p-3 bg-green-50 border border-green-200 rounded-lg">
+              <div className="text-xs font-bold text-green-800 mb-2">💰 IMMEDIATE PAYMENT</div>
+              <div className="flex justify-between text-xs mb-1">
+                <span className="font-semibold">Amount Paid:</span>
+                <span className="font-bold text-green-600">{formatCurrency(paid)}</span>
+              </div>
+              <div className="flex justify-between text-xs mb-1">
+                <span className="font-semibold">Payment Method:</span>
+                <span className="font-bold">{transaction.payment_method?.toUpperCase() || 'CASH'}</span>
+              </div>
+              {transaction.notes && (
+                <div className="flex justify-between text-xs mb-1">
+                  <span className="font-semibold">Payment Notes:</span>
+                  <span className="text-gray-600">{transaction.notes}</span>
+                </div>
+              )}
+              <div className="flex justify-between text-xs mb-1">
+                <span className="font-semibold">Payment Date:</span>
+                <span>{formatDate(transaction.date || new Date())}</span>
+              </div>
+            </div>
+          )}
+          
+          {/* Payment History */}
           <div className="text-xs mb-2">
             <span>Payment History for Transaction #{transaction.transaction_number}:</span>
           </div>
@@ -712,7 +761,7 @@ export default function ReceiptGenerator({ transaction, customer }) {
             </table>
           ) : (
             <div className="summary-row">
-              <span>No payment history available</span>
+              <span>No additional payment history available</span>
             </div>
           )}
           

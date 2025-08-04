@@ -49,21 +49,31 @@ export default function BulkPaymentForm({ customerId, customerName, outstandingA
     
   }, [isOpen])
 
+  // Effect to sync "Select All" checkbox state based on individual selections
+  // This now *reads* the selectedIds to update selectAll, instead of setting selectedIds
   useEffect(() => {
-    if (selectAll) {
-      setSelectedIds(unpaidTransactions.map(t => t.id))
+    if (unpaidTransactions.length > 0 && selectedIds.length === unpaidTransactions.length) {
+      setSelectAll(true);
     } else {
-      setSelectedIds([])
+      setSelectAll(false);
     }
-  }, [selectAll, unpaidTransactions])
+  }, [selectedIds, unpaidTransactions]); // Dependencies: whenever selectedIds or unpaidTransactions change
 
   const handleSelect = (id) => {
     setSelectedIds(prev => prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id])
   }
 
+  // Handle "Select All" checkbox toggle
   const handleSelectAll = () => {
-    setSelectAll(prev => !prev)
-  }
+    // When "Select All" is clicked, it explicitly sets the selection based on its current state
+    if (!selectAll) { // If currently not all selected, select all
+      setSelectedIds(unpaidTransactions.map(t => t.id));
+    } else { // If currently all selected, deselect all
+      setSelectedIds([]);
+    }
+    // The `useEffect` above will then update `selectAll` based on `selectedIds`
+    // No need to call `setSelectAll` here directly, the effect handles it
+  };
 
 
 
@@ -204,7 +214,9 @@ export default function BulkPaymentForm({ customerId, customerName, outstandingA
                             <input
                               type="checkbox"
                               checked={selectAll}
-                              onChange={handleSelectAll}
+                              // We removed the onChange here because `handleSelectAll` is called from the button
+                              // The `checked` prop is now purely derived from the `selectAll` state, which is managed by the useEffect
+                              readOnly // Make it read-only as its state is managed by the button and useEffect
                               className="w-5 h-5 text-green-600 border-gray-300 rounded focus:ring-green-500 cursor-pointer"
                             />
                           </div>

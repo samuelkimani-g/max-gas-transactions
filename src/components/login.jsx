@@ -140,15 +140,7 @@ export default function Login({ isAutoLoggingIn = false }) {
             </Button>
           </form>
           
-          <div className="mt-6 p-4 bg-gray-50 rounded-lg">
-            <h4 className="font-medium text-gray-900 mb-2">System Status:</h4>
-            <div className="space-y-1 text-sm text-gray-600">
-              <p className="text-xs text-gray-500">Production Mode: Connected to real backend and database.</p>
-            </div>
-            <div className="mt-3 p-2 bg-green-50 border border-green-200 rounded text-xs text-green-700">
-              <strong>✅ System Ready:</strong> All changes will persist.
-            </div>
-          </div>
+
         </CardContent>
       </Card>
     </div>

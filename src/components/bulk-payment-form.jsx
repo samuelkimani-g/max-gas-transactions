@@ -198,13 +198,14 @@ export default function BulkPaymentForm({ customerId, customerName, outstandingA
                   <table className="w-full">
                     <thead className="bg-gray-50 sticky top-0">
                       <tr>
-                        <th className="px-4 py-3 text-left">
-                          <div className="flex items-center justify-center">
+                                                <th className="px-4 py-3 text-left">
+                          <div className="flex items-center justify-center pointer-events-auto">
                             <input
                               type="checkbox"
                               checked={selectAll}
                               onChange={handleSelectAll}
-                              className="w-5 h-5 text-green-600 border-gray-300 rounded focus:ring-green-500"
+                              className="w-5 h-5 text-green-600 border-gray-300 rounded focus:ring-green-500 cursor-pointer z-10 relative pointer-events-auto"
+                              style={{ pointerEvents: 'auto' }}
                             />
                           </div>
                         </th>
@@ -229,10 +230,16 @@ export default function BulkPaymentForm({ customerId, customerName, outstandingA
                             className={`hover:bg-gray-50 cursor-pointer transition-colors ${
                               isSelected ? 'bg-green-50 border-l-4 border-l-green-500' : ''
                             }`}
-                            onClick={() => handleSelect(t.id)}
+                            onClick={(e) => {
+                              // Don't trigger row click if clicking on checkbox
+                              if (e.target.type === 'checkbox') {
+                                return;
+                              }
+                              handleSelect(t.id);
+                            }}
                           >
                             <td className="px-4 py-3">
-                              <div className="flex items-center justify-center">
+                              <div className="flex items-center justify-center pointer-events-auto">
                                 <input
                                   type="checkbox"
                                   checked={isSelected}
@@ -240,7 +247,8 @@ export default function BulkPaymentForm({ customerId, customerName, outstandingA
                                     e.stopPropagation();
                                     handleSelect(t.id);
                                   }}
-                                  className="w-5 h-5 text-green-600 border-gray-300 rounded focus:ring-green-500 cursor-pointer"
+                                  className="w-5 h-5 text-green-600 border-gray-300 rounded focus:ring-green-500 cursor-pointer z-10 relative pointer-events-auto"
+                                  style={{ pointerEvents: 'auto' }}
                                 />
                               </div>
                             </td>

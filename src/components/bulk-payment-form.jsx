@@ -200,13 +200,26 @@ export default function BulkPaymentForm({ customerId, customerName, outstandingA
                       <tr>
                                                 <th className="px-4 py-3 text-left">
                           <div className="flex items-center justify-center pointer-events-auto">
-                            <input
-                              type="checkbox"
-                              checked={selectAll}
-                              onChange={handleSelectAll}
-                              className="w-5 h-5 text-green-600 border-gray-300 rounded focus:ring-green-500 cursor-pointer z-10 relative pointer-events-auto"
-                              style={{ pointerEvents: 'auto' }}
-                            />
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                e.preventDefault();
+                                console.log('Select all button clicked');
+                                handleSelectAll();
+                              }}
+                              className={`w-5 h-5 border-2 rounded flex items-center justify-center transition-colors ${
+                                selectAll 
+                                  ? 'bg-green-600 border-green-600 text-white' 
+                                  : 'border-gray-300 hover:border-green-500'
+                              }`}
+                            >
+                              {selectAll && (
+                                <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                                  <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                                </svg>
+                              )}
+                            </button>
                           </div>
                         </th>
                         <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700">Transaction</th>
@@ -238,18 +251,28 @@ export default function BulkPaymentForm({ customerId, customerName, outstandingA
                               handleSelect(t.id);
                             }}
                           >
-                            <td className="px-4 py-3">
+                            <td className="px-4 py-3" onClick={(e) => e.stopPropagation()}>
                               <div className="flex items-center justify-center pointer-events-auto">
-                                <input
-                                  type="checkbox"
-                                  checked={isSelected}
-                                  onChange={(e) => {
+                                <button
+                                  type="button"
+                                  onClick={(e) => {
                                     e.stopPropagation();
+                                    e.preventDefault();
+                                    console.log('Checkbox button clicked for transaction:', t.id);
                                     handleSelect(t.id);
                                   }}
-                                  className="w-5 h-5 text-green-600 border-gray-300 rounded focus:ring-green-500 cursor-pointer z-10 relative pointer-events-auto"
-                                  style={{ pointerEvents: 'auto' }}
-                                />
+                                  className={`w-5 h-5 border-2 rounded flex items-center justify-center transition-colors ${
+                                    isSelected 
+                                      ? 'bg-green-600 border-green-600 text-white' 
+                                      : 'border-gray-300 hover:border-green-500'
+                                  }`}
+                                >
+                                  {isSelected && (
+                                    <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                                      <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                                    </svg>
+                                  )}
+                                </button>
                               </div>
                             </td>
                             <td className="px-4 py-3">

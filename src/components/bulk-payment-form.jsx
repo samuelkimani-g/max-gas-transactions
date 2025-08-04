@@ -21,7 +21,6 @@ export default function BulkPaymentForm({ customerId, customerName, outstandingA
   const [selectedIds, setSelectedIds] = useState([])
   const [selectAll, setSelectAll] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
-  const [clickTimeout, setClickTimeout] = useState(null)
 
   // Get all customer transactions to show in the payment form
   const customerTransactions = getCustomerTransactions(customerId)
@@ -48,13 +47,7 @@ export default function BulkPaymentForm({ customerId, customerName, outstandingA
       setIsSubmitting(false)
     }
     
-    // Cleanup timeout on unmount
-    return () => {
-      if (clickTimeout) {
-        clearTimeout(clickTimeout);
-      }
-    };
-  }, [isOpen, clickTimeout])
+  }, [isOpen])
 
   useEffect(() => {
     if (selectAll) {
@@ -65,25 +58,16 @@ export default function BulkPaymentForm({ customerId, customerName, outstandingA
   }, [selectAll, unpaidTransactions])
 
   const handleSelect = (id) => {
-    // Prevent rapid clicking
-    if (clickTimeout) {
-      clearTimeout(clickTimeout);
-    }
-    
-    const timeout = setTimeout(() => {
-      console.log('handleSelect called for id:', id);
-      setSelectedIds(prev => {
-        const isCurrentlySelected = prev.includes(id);
-        console.log('Current selection state for id', id, ':', isCurrentlySelected);
-        const newSelection = isCurrentlySelected 
-          ? prev.filter(x => x !== id) 
-          : [...prev, id];
-        console.log('New selection:', newSelection);
-        return newSelection;
-      });
-    }, 100); // 100ms debounce
-    
-    setClickTimeout(timeout);
+    console.log('handleSelect called for id:', id);
+    setSelectedIds(prev => {
+      const isCurrentlySelected = prev.includes(id);
+      console.log('Current selection state for id', id, ':', isCurrentlySelected);
+      const newSelection = isCurrentlySelected 
+        ? prev.filter(x => x !== id) 
+        : [...prev, id];
+      console.log('New selection:', newSelection);
+      return newSelection;
+    });
   }
 
   const handleSelectAll = () => {
@@ -261,11 +245,12 @@ export default function BulkPaymentForm({ customerId, customerName, outstandingA
                         const total = calculateTransactionTotal(t)
                         const paid = t.amount_paid || 0
                         const outstanding = total - paid
-                        const isSelected = selectedIds.includes(t.id)
+                        const isSelected = useMemo(() => selectedIds.includes(t.id), [selectedIds, t.id])
+                        console.log('Rendering transaction', t.id, 'isSelected:', isSelected, 'selectedIds:', selectedIds)
                         
                         return (
                           <tr 
-                            key={t.id} 
+                            key={`transaction-${t.id}-${isSelected}`} 
                             className={`hover:bg-gray-50 cursor-pointer transition-colors ${
                               isSelected ? 'bg-green-50 border-l-4 border-l-green-500' : ''
                             }`}

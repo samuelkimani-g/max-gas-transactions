@@ -58,16 +58,7 @@ export default function BulkPaymentForm({ customerId, customerName, outstandingA
   }, [selectAll, unpaidTransactions])
 
   const handleSelect = (id) => {
-    console.log('handleSelect called for id:', id);
-    setSelectedIds(prev => {
-      const isCurrentlySelected = prev.includes(id);
-      console.log('Current selection state for id', id, ':', isCurrentlySelected);
-      const newSelection = isCurrentlySelected 
-        ? prev.filter(x => x !== id) 
-        : [...prev, id];
-      console.log('New selection:', newSelection);
-      return newSelection;
-    });
+    setSelectedIds(prev => prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id])
   }
 
   const handleSelectAll = () => {
@@ -215,7 +206,6 @@ export default function BulkPaymentForm({ customerId, customerName, outstandingA
                               onClick={(e) => {
                                 e.stopPropagation();
                                 e.preventDefault();
-                                console.log('Select all button clicked');
                                 handleSelectAll();
                               }}
                               className={`w-5 h-5 border-2 rounded flex items-center justify-center transition-colors ${
@@ -245,12 +235,11 @@ export default function BulkPaymentForm({ customerId, customerName, outstandingA
                         const total = calculateTransactionTotal(t)
                         const paid = t.amount_paid || 0
                         const outstanding = total - paid
-                        const isSelected = useMemo(() => selectedIds.includes(t.id), [selectedIds, t.id])
-                        console.log('Rendering transaction', t.id, 'isSelected:', isSelected, 'selectedIds:', selectedIds)
+                        const isSelected = selectedIds.includes(t.id)
                         
                         return (
                           <tr 
-                            key={`transaction-${t.id}-${isSelected}`} 
+                            key={t.id} 
                             className={`hover:bg-gray-50 cursor-pointer transition-colors ${
                               isSelected ? 'bg-green-50 border-l-4 border-l-green-500' : ''
                             }`}
@@ -269,7 +258,6 @@ export default function BulkPaymentForm({ customerId, customerName, outstandingA
                                   onClick={(e) => {
                                     e.stopPropagation();
                                     e.preventDefault();
-                                    console.log('Checkbox button clicked for transaction:', t.id, 'isSelected:', isSelected);
                                     handleSelect(t.id);
                                   }}
                                   className={`w-5 h-5 border-2 rounded flex items-center justify-center transition-colors ${

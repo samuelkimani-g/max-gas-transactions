@@ -63,14 +63,14 @@ export default function ReportingInsights() {
       return transaction.payments.reduce((sum, payment) => sum + (payment.amount || 0), 0)
     }
     
-    // Check if there's a direct amount_paid field
+    // Check if there's a direct amount_paid field (convert string to number)
     if (transaction.amount_paid) {
-      return transaction.amount_paid
+      return parseFloat(transaction.amount_paid) || 0
     }
     
-    // Check if there's a paid field
+    // Check if there's a paid field (convert string to number)
     if (transaction.paid) {
-      return transaction.paid
+      return parseFloat(transaction.paid) || 0
     }
     
     // If no payment data found, return 0
@@ -236,26 +236,20 @@ export default function ReportingInsights() {
 
     const currentData = getCurrentPeriodData(selectedPeriod)
     const previousData = getPreviousPeriodData(selectedPeriod)
+    
+    // Debug: Log the data being used for calculations
+    console.log('[REPORTING DEBUG] Current period data:', {
+      period: selectedPeriod,
+      transactionCount: currentData.length,
+      transactions: currentData.map(t => ({ id: t.id, amount_paid: t.amount_paid, total: calculateTransactionTotal(t) }))
+    })
 
     // Calculate metrics with proper data handling
     const calculateMetrics = (data) => {
       const totalSales = data.reduce((total, transaction) => total + calculateTransactionTotal(transaction), 0)
       
-      // Debug: Log first few transactions to see their structure
-      if (data.length > 0) {
-        console.log('[REPORTING DEBUG] Sample transaction structure:', {
-          id: data[0].id,
-          customerId: data[0].customerId,
-          amount_paid: data[0].amount_paid,
-          paid: data[0].paid,
-          payments: data[0].payments,
-          total: calculateTransactionTotal(data[0])
-        })
-      }
-      
       const totalPayments = data.reduce((total, transaction) => {
         const payment = calculateTotalPayments(transaction)
-        console.log(`[REPORTING DEBUG] Transaction ${transaction.id}: payment = ${payment}`)
         return total + payment
       }, 0)
       
@@ -287,6 +281,14 @@ export default function ReportingInsights() {
 
     const currentMetrics = calculateMetrics(currentData)
     const previousMetrics = calculateMetrics(previousData)
+    
+    // Debug: Log the calculated metrics
+    console.log('[REPORTING DEBUG] Calculated metrics:', {
+      currentMetrics,
+      previousMetrics,
+      currentDataLength: currentData.length,
+      previousDataLength: previousData.length
+    })
 
     // Calculate growth percentages
     const calculateGrowth = (current, previous) => {

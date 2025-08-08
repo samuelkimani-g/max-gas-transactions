@@ -74,8 +74,11 @@ app.use(cors({
     'https://max-gas-transactions.vercel.app',
     'https://max-gas-transactions-git-main-samuels-projects-a44fd59b.vercel.app',
     'https://max-gas-transactions-n83ibkmnl-samuels-projects-a44fd59b.vercel.app',
+    'https://gas-cylinder-dashboard.vercel.app',
+    'https://gas-cylinder-dashboard-jp63mfnmm-samuels-projects-a44fd59b.vercel.app',
     // Allow all Vercel preview URLs
-    /^https:\/\/max-gas-transactions-.*\.vercel\.app$/
+    /^https:\/\/max-gas-transactions-.*\.vercel\.app$/,
+    /^https:\/\/gas-cylinder-dashboard-.*\.vercel\.app$/
   ],
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'HEAD', 'PATCH'],
@@ -95,7 +98,33 @@ app.use(cors({
 
 // Handle preflight requests explicitly
 app.options('*', (req, res) => {
-  res.header('Access-Control-Allow-Origin', req.headers.origin || '*');
+  const allowedOrigins = [
+    'http://localhost:3000', 
+    'http://localhost:5173', 
+    'http://localhost:5174',
+    'http://localhost:5175',
+    'http://localhost:5176',
+    'http://localhost:5177',
+    'http://localhost:5178',
+    'http://localhost:5181',
+    'http://127.0.0.1:5173',
+    'http://127.0.0.1:5174',
+    'http://127.0.0.1:5175',
+    'http://127.0.0.1:5176',
+    'http://127.0.0.1:5177',
+    'http://127.0.0.1:5178',
+    'http://127.0.0.1:5181',
+    'https://max-gas-transactions.vercel.app',
+    'https://max-gas-transactions-git-main-samuels-projects-a44fd59b.vercel.app',
+    'https://max-gas-transactions-n83ibkmnl-samuels-projects-a44fd59b.vercel.app',
+    'https://gas-cylinder-dashboard.vercel.app',
+    'https://gas-cylinder-dashboard-jp63mfnmm-samuels-projects-a44fd59b.vercel.app'
+  ];
+  
+  const origin = req.headers.origin;
+  if (origin && allowedOrigins.includes(origin)) {
+    res.header('Access-Control-Allow-Origin', origin);
+  }
   res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS, HEAD, PATCH');
   res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With, Accept, Origin, Cache-Control, X-File-Name');
   res.header('Access-Control-Allow-Credentials', 'true');

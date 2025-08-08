@@ -78,7 +78,7 @@ export default function ReportingInsights() {
         if (dateRange.end && date > new Date(dateRange.end)) return false
         
         // Customer filter
-        if (customerFilter !== 'all' && t.customer_id !== parseInt(customerFilter)) return false
+        if (customerFilter !== 'all' && t.customerId !== parseInt(customerFilter)) return false
         
         // Transaction type filter
         if (transactionTypeFilter !== 'all') {
@@ -106,7 +106,9 @@ export default function ReportingInsights() {
         
         // Status filter
         if (statusFilter !== 'all') {
-          const paid = t.amount_paid || 0
+          const paid = t.payments && Array.isArray(t.payments) 
+            ? t.payments.reduce((sum, payment) => sum + (payment.amount || 0), 0)
+            : (t.amount_paid || 0)
           const outstanding = total - paid
           
           switch (statusFilter) {
@@ -124,7 +126,7 @@ export default function ReportingInsights() {
         
         // Search query filter
         if (searchQuery) {
-          const customer = safeCustomers.find(c => c.id === t.customer_id)
+          const customer = safeCustomers.find(c => c.id === t.customerId)
           const customerName = customer ? customer.name.toLowerCase() : ''
           const transactionId = t.id.toString()
           const query = searchQuery.toLowerCase()
@@ -156,6 +158,9 @@ export default function ReportingInsights() {
             // For custom period, we use the date range filter
             isInPeriod = true
             break
+          case 'all':
+            isInPeriod = true
+            break
           default:
             isInPeriod = true
         }
@@ -179,7 +184,7 @@ export default function ReportingInsights() {
         if (isNaN(date.getTime())) return false
         
         // Apply same filters as current period
-        if (customerFilter !== 'all' && t.customer_id !== parseInt(customerFilter)) return false
+        if (customerFilter !== 'all' && t.customerId !== parseInt(customerFilter)) return false
         if (transactionTypeFilter !== 'all') {
           const hasRefill = (t.returns_breakdown?.max_empty?.kg6 || 0) + (t.returns_breakdown?.max_empty?.kg13 || 0) + (t.returns_breakdown?.max_empty?.kg50 || 0) > 0
           const hasOutright = (t.outright_breakdown?.kg6 || 0) + (t.outright_breakdown?.kg13 || 0) + (t.outright_breakdown?.kg50 || 0) > 0
@@ -203,7 +208,9 @@ export default function ReportingInsights() {
         if (maxAmount && total > parseFloat(maxAmount)) return false
         
         if (statusFilter !== 'all') {
-          const paid = t.amount_paid || 0
+          const paid = t.payments && Array.isArray(t.payments) 
+            ? t.payments.reduce((sum, payment) => sum + (payment.amount || 0), 0)
+            : (t.amount_paid || 0)
           const outstanding = total - paid
           
           switch (statusFilter) {
@@ -220,7 +227,7 @@ export default function ReportingInsights() {
         }
         
         if (searchQuery) {
-          const customer = safeCustomers.find(c => c.id === t.customer_id)
+          const customer = safeCustomers.find(c => c.id === t.customerId)
           const customerName = customer ? customer.name.toLowerCase() : ''
           const transactionId = t.id.toString()
           const query = searchQuery.toLowerCase()
@@ -237,13 +244,27 @@ export default function ReportingInsights() {
             return date >= twoWeeksAgo && date < weekAgo
           case 'monthly':
             const prevMonth = new Date(currentYear, currentMonth - 1, 1)
-            return date.getMonth() === prevMonth.getMonth() && date.getFullYear() === prevMonth.getFullYear()
+            const prevMonthEnd = new Date(currentYear, currentMonth, 0)
+            return date >= prevMonth && date <= prevMonthEnd
           case 'quarterly':
             const prevQuarterStart = new Date(currentYear, Math.floor((currentMonth - 3) / 3) * 3, 1)
             const prevQuarterEnd = new Date(currentYear, Math.floor((currentMonth - 3) / 3) * 3 + 3, 0)
             return date >= prevQuarterStart && date <= prevQuarterEnd
           case 'yearly':
             return date.getFullYear() === currentYear - 1
+          case 'custom':
+            // For custom period, we need to calculate the previous equivalent period
+            if (dateRange.start && dateRange.end) {
+              const currentStart = new Date(dateRange.start)
+              const currentEnd = new Date(dateRange.end)
+              const duration = currentEnd.getTime() - currentStart.getTime()
+              const prevStart = new Date(currentStart.getTime() - duration)
+              const prevEnd = new Date(currentStart.getTime())
+              return date >= prevStart && date < prevEnd
+            }
+            return false
+          case 'all':
+            return false // No previous period for 'all'
           default:
             return false
         }
@@ -256,7 +277,15 @@ export default function ReportingInsights() {
     // Calculate metrics for both periods
     const calculateMetrics = (data) => {
       const totalSales = data.reduce((total, t) => total + calculateTransactionTotal(t), 0)
-      const totalPayments = data.reduce((total, t) => total + (t.amount_paid || 0), 0)
+      
+      // Calculate total payments - sum all payment amounts from the payments array
+      const totalPayments = data.reduce((total, t) => {
+        if (t.payments && Array.isArray(t.payments)) {
+          return total + t.payments.reduce((sum, payment) => sum + (payment.amount || 0), 0)
+        }
+        return total + (t.amount_paid || 0) // Fallback to old structure
+      }, 0)
+      
       const totalCylinders = data.reduce((total, t) => {
         // Use new structure
         const returns = (t.returns_breakdown?.max_empty?.kg6 || 0) + (t.returns_breakdown?.max_empty?.kg13 || 0) + (t.returns_breakdown?.max_empty?.kg50 || 0)
@@ -265,6 +294,7 @@ export default function ReportingInsights() {
         const outright = (t.outright_breakdown?.kg6 || 0) + (t.outright_breakdown?.kg13 || 0) + (t.outright_breakdown?.kg50 || 0);
         return total + returns + outright;
       }, 0)
+      
       return { totalSales, totalPayments, totalCylinders, transactionCount: data.length }
     }
 

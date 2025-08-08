@@ -267,7 +267,7 @@ export default function ReportingInsights() {
       return ((current - previous) / previous) * 100
     }
 
-    // Customer insights
+    // Detailed customer insights with cylinder breakdowns
     const getCustomerInsights = () => {
       const customerStats = {}
       
@@ -276,28 +276,108 @@ export default function ReportingInsights() {
         if (customer) {
           if (!customerStats[customer.id]) {
             customerStats[customer.id] = {
+              id: customer.id,
               name: customer.name,
               totalSales: 0,
               totalTransactions: 0,
-              totalCylinders: 0
+              totalPayments: 0,
+              cylinders: {
+                kg6: { swaps: 0, maxEmpty: 0, outright: 0 },
+                kg13: { swaps: 0, maxEmpty: 0, outright: 0 },
+                kg50: { swaps: 0, maxEmpty: 0, outright: 0 }
+              },
+              transactionTypes: {
+                swaps: 0,
+                maxEmpty: 0,
+                outright: 0
+              }
             }
           }
           
           customerStats[customer.id].totalSales += calculateTransactionTotal(transaction)
           customerStats[customer.id].totalTransactions += 1
+          customerStats[customer.id].totalPayments += calculateTotalPayments(transaction)
           
-          const cylinders = (transaction.returns_breakdown?.max_empty?.kg6 || 0) + 
-                           (transaction.returns_breakdown?.max_empty?.kg13 || 0) + 
-                           (transaction.returns_breakdown?.max_empty?.kg50 || 0) +
-                           (transaction.outright_breakdown?.kg6 || 0) + 
-                           (transaction.outright_breakdown?.kg13 || 0) + 
-                           (transaction.outright_breakdown?.kg50 || 0)
+          // Cylinder breakdown by size and type
+          const returns = transaction.returns_breakdown || {}
+          const outright = transaction.outright_breakdown || {}
           
-          customerStats[customer.id].totalCylinders += cylinders
+          // Swaps
+          customerStats[customer.id].cylinders.kg6.swaps += returns.swap_empty?.kg6 || 0
+          customerStats[customer.id].cylinders.kg13.swaps += returns.swap_empty?.kg13 || 0
+          customerStats[customer.id].cylinders.kg50.swaps += returns.swap_empty?.kg50 || 0
+          
+          // Max Empty (Refills)
+          customerStats[customer.id].cylinders.kg6.maxEmpty += returns.max_empty?.kg6 || 0
+          customerStats[customer.id].cylinders.kg13.maxEmpty += returns.max_empty?.kg13 || 0
+          customerStats[customer.id].cylinders.kg50.maxEmpty += returns.max_empty?.kg50 || 0
+          
+          // Outright
+          customerStats[customer.id].cylinders.kg6.outright += outright.kg6 || 0
+          customerStats[customer.id].cylinders.kg13.outright += outright.kg13 || 0
+          customerStats[customer.id].cylinders.kg50.outright += outright.kg50 || 0
+          
+          // Transaction type counts
+          const hasSwaps = (returns.swap_empty?.kg6 || 0) + (returns.swap_empty?.kg13 || 0) + (returns.swap_empty?.kg50 || 0) > 0
+          const hasMaxEmpty = (returns.max_empty?.kg6 || 0) + (returns.max_empty?.kg13 || 0) + (returns.max_empty?.kg50 || 0) > 0
+          const hasOutright = (outright.kg6 || 0) + (outright.kg13 || 0) + (outright.kg50 || 0) > 0
+          
+          if (hasSwaps) customerStats[customer.id].transactionTypes.swaps++
+          if (hasMaxEmpty) customerStats[customer.id].transactionTypes.maxEmpty++
+          if (hasOutright) customerStats[customer.id].transactionTypes.outright++
         }
       })
       
       return Object.values(customerStats).sort((a, b) => b.totalSales - a.totalSales)
+    }
+
+    // Cylinder breakdown for charts
+    const getCylinderBreakdown = () => {
+      const breakdown = {
+        swaps: { kg6: 0, kg13: 0, kg50: 0 },
+        maxEmpty: { kg6: 0, kg13: 0, kg50: 0 },
+        outright: { kg6: 0, kg13: 0, kg50: 0 }
+      }
+      
+      currentData.forEach(transaction => {
+        const returns = transaction.returns_breakdown || {}
+        const outright = transaction.outright_breakdown || {}
+        
+        // Swaps
+        breakdown.swaps.kg6 += returns.swap_empty?.kg6 || 0
+        breakdown.swaps.kg13 += returns.swap_empty?.kg13 || 0
+        breakdown.swaps.kg50 += returns.swap_empty?.kg50 || 0
+        
+        // Max Empty
+        breakdown.maxEmpty.kg6 += returns.max_empty?.kg6 || 0
+        breakdown.maxEmpty.kg13 += returns.max_empty?.kg13 || 0
+        breakdown.maxEmpty.kg50 += returns.max_empty?.kg50 || 0
+        
+        // Outright
+        breakdown.outright.kg6 += outright.kg6 || 0
+        breakdown.outright.kg13 += outright.kg13 || 0
+        breakdown.outright.kg50 += outright.kg50 || 0
+      })
+      
+      return breakdown
+    }
+
+    // Prepare chart data for pie charts
+    const getChartData = () => {
+      const breakdown = getCylinderBreakdown()
+      
+      return {
+        transactionTypes: [
+          { name: 'Swaps', value: breakdown.swaps.kg6 + breakdown.swaps.kg13 + breakdown.swaps.kg50, color: '#3b82f6' },
+          { name: 'Max Empty (Refills)', value: breakdown.maxEmpty.kg6 + breakdown.maxEmpty.kg13 + breakdown.maxEmpty.kg50, color: '#10b981' },
+          { name: 'Outright', value: breakdown.outright.kg6 + breakdown.outright.kg13 + breakdown.outright.kg50, color: '#f59e0b' }
+        ],
+        cylinderSizes: [
+          { name: '6kg', value: breakdown.swaps.kg6 + breakdown.maxEmpty.kg6 + breakdown.outright.kg6, color: '#ef4444' },
+          { name: '13kg', value: breakdown.swaps.kg13 + breakdown.maxEmpty.kg13 + breakdown.outright.kg13, color: '#8b5cf6' },
+          { name: '50kg', value: breakdown.swaps.kg50 + breakdown.maxEmpty.kg50 + breakdown.outright.kg50, color: '#06b6d4' }
+        ]
+      }
     }
 
     return {
@@ -312,6 +392,8 @@ export default function ReportingInsights() {
         transactions: calculateGrowth(currentMetrics.transactionCount, previousMetrics.transactionCount)
       },
       customerInsights: getCustomerInsights(),
+      chartData: getChartData(),
+      cylinderBreakdown: getCylinderBreakdown(),
       safeCustomers,
       safeTransactions
     }
@@ -712,11 +794,191 @@ export default function ReportingInsights() {
                   </div>
                   <div className="text-right">
                     <p className="font-bold text-blue-600">{formatCurrency(customer.totalSales)}</p>
-                    <p className="text-sm text-gray-600">{customer.totalCylinders} cylinders</p>
+                    <p className="text-sm text-gray-600">
+                      {customer.cylinders.kg6.swaps + customer.cylinders.kg6.maxEmpty + customer.cylinders.kg6.outright +
+                       customer.cylinders.kg13.swaps + customer.cylinders.kg13.maxEmpty + customer.cylinders.kg13.outright +
+                       customer.cylinders.kg50.swaps + customer.cylinders.kg50.maxEmpty + customer.cylinders.kg50.outright} cylinders
+                    </p>
                   </div>
                 </div>
               ))}
             </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Detailed Customer Analytics */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Users className="w-5 h-5 text-purple-600" />
+            Detailed Customer Analytics
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-6">
+            {reportingData.customerInsights.slice(0, 3).map((customer) => (
+              <div key={customer.id} className="border rounded-lg p-4">
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-lg font-semibold text-gray-900">{customer.name}</h3>
+                  <div className="text-right">
+                    <p className="text-sm text-gray-600">Total Sales</p>
+                    <p className="text-xl font-bold text-green-600">{formatCurrency(customer.totalSales)}</p>
+                  </div>
+                </div>
+                
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                  <div className="bg-blue-50 p-3 rounded-lg">
+                    <h4 className="font-medium text-blue-800 mb-2">6kg Cylinders</h4>
+                    <div className="space-y-1 text-sm">
+                      <div className="flex justify-between">
+                        <span>Swaps:</span>
+                        <span className="font-medium">{customer.cylinders.kg6.swaps}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span>Max Empty:</span>
+                        <span className="font-medium">{customer.cylinders.kg6.maxEmpty}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span>Outright:</span>
+                        <span className="font-medium">{customer.cylinders.kg6.outright}</span>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div className="bg-purple-50 p-3 rounded-lg">
+                    <h4 className="font-medium text-purple-800 mb-2">13kg Cylinders</h4>
+                    <div className="space-y-1 text-sm">
+                      <div className="flex justify-between">
+                        <span>Swaps:</span>
+                        <span className="font-medium">{customer.cylinders.kg13.swaps}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span>Max Empty:</span>
+                        <span className="font-medium">{customer.cylinders.kg13.maxEmpty}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span>Outright:</span>
+                        <span className="font-medium">{customer.cylinders.kg13.outright}</span>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div className="bg-cyan-50 p-3 rounded-lg">
+                    <h4 className="font-medium text-cyan-800 mb-2">50kg Cylinders</h4>
+                    <div className="space-y-1 text-sm">
+                      <div className="flex justify-between">
+                        <span>Swaps:</span>
+                        <span className="font-medium">{customer.cylinders.kg50.swaps}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span>Max Empty:</span>
+                        <span className="font-medium">{customer.cylinders.kg50.maxEmpty}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span>Outright:</span>
+                        <span className="font-medium">{customer.cylinders.kg50.outright}</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div className="text-center p-3 bg-green-50 rounded-lg">
+                    <p className="text-sm text-green-600">Transaction Types</p>
+                    <div className="space-y-1 text-sm mt-2">
+                      <div className="flex justify-between">
+                        <span>Swaps:</span>
+                        <span className="font-medium">{customer.transactionTypes.swaps}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span>Max Empty:</span>
+                        <span className="font-medium">{customer.transactionTypes.maxEmpty}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span>Outright:</span>
+                        <span className="font-medium">{customer.transactionTypes.outright}</span>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div className="text-center p-3 bg-orange-50 rounded-lg">
+                    <p className="text-sm text-orange-600">Payments</p>
+                    <p className="text-lg font-bold text-orange-800 mt-1">{formatCurrency(customer.totalPayments)}</p>
+                    <p className="text-xs text-orange-600">of {formatCurrency(customer.totalSales)} total</p>
+                  </div>
+                  
+                  <div className="text-center p-3 bg-blue-50 rounded-lg">
+                    <p className="text-sm text-blue-600">Total Transactions</p>
+                    <p className="text-lg font-bold text-blue-800 mt-1">{customer.totalTransactions}</p>
+                    <p className="text-xs text-blue-600">transactions</p>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Cylinder Analytics Charts */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Transaction Types Pie Chart */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <PieChart className="w-5 h-5 text-blue-600" />
+              Transaction Types Distribution
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <ResponsiveContainer width="100%" height={300}>
+              <PieChart>
+                <Pie
+                  data={reportingData.chartData.transactionTypes}
+                  cx="50%"
+                  cy="50%"
+                  outerRadius={80}
+                  dataKey="value"
+                  label={({ name, value }) => `${name}: ${value}`}
+                >
+                  {reportingData.chartData.transactionTypes.map((entry, index) => (
+                    <Cell key={`cell-${index}`} fill={entry.color} />
+                  ))}
+                </Pie>
+                <Tooltip formatter={(value) => [value, 'Cylinders']} />
+                <Legend />
+              </PieChart>
+            </ResponsiveContainer>
+          </CardContent>
+        </Card>
+
+        {/* Cylinder Sizes Pie Chart */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <BarChart3 className="w-5 h-5 text-green-600" />
+              Cylinder Sizes Distribution
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <ResponsiveContainer width="100%" height={300}>
+              <PieChart>
+                <Pie
+                  data={reportingData.chartData.cylinderSizes}
+                  cx="50%"
+                  cy="50%"
+                  outerRadius={80}
+                  dataKey="value"
+                  label={({ name, value }) => `${name}: ${value}`}
+                >
+                  {reportingData.chartData.cylinderSizes.map((entry, index) => (
+                    <Cell key={`cell-${index}`} fill={entry.color} />
+                  ))}
+                </Pie>
+                <Tooltip formatter={(value) => [value, 'Cylinders']} />
+                <Legend />
+              </PieChart>
+            </ResponsiveContainer>
           </CardContent>
         </Card>
       </div>

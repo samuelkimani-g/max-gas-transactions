@@ -55,6 +55,7 @@ export default function ReportingInsights() {
   const [minAmount, setMinAmount] = useState('')
   const [maxAmount, setMaxAmount] = useState('')
   const [searchQuery, setSearchQuery] = useState('')
+  const [selectedCustomerForAnalytics, setSelectedCustomerForAnalytics] = useState('all')
 
   // Helper function to calculate total payments for a transaction
   const calculateTotalPayments = (transaction) => {
@@ -236,13 +237,6 @@ export default function ReportingInsights() {
 
     const currentData = getCurrentPeriodData(selectedPeriod)
     const previousData = getPreviousPeriodData(selectedPeriod)
-    
-    // Debug: Log the data being used for calculations
-    console.log('[REPORTING DEBUG] Current period data:', {
-      period: selectedPeriod,
-      transactionCount: currentData.length,
-      transactions: currentData.map(t => ({ id: t.id, amount_paid: t.amount_paid, total: calculateTransactionTotal(t) }))
-    })
 
     // Calculate metrics with proper data handling
     const calculateMetrics = (data) => {
@@ -281,14 +275,6 @@ export default function ReportingInsights() {
 
     const currentMetrics = calculateMetrics(currentData)
     const previousMetrics = calculateMetrics(previousData)
-    
-    // Debug: Log the calculated metrics
-    console.log('[REPORTING DEBUG] Calculated metrics:', {
-      currentMetrics,
-      previousMetrics,
-      currentDataLength: currentData.length,
-      previousDataLength: previousData.length
-    })
 
     // Calculate growth percentages
     const calculateGrowth = (current, previous) => {
@@ -845,8 +831,28 @@ export default function ReportingInsights() {
           </CardTitle>
         </CardHeader>
         <CardContent>
+          <div className="mb-4">
+            <Label className="text-sm font-medium mb-2 block">Select Customer for Detailed Analysis:</Label>
+            <Select value={selectedCustomerForAnalytics} onValueChange={setSelectedCustomerForAnalytics}>
+              <SelectTrigger className="w-full md:w-64">
+                <SelectValue placeholder="All Customers" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Customers</SelectItem>
+                {reportingData.customerInsights.map(customer => (
+                  <SelectItem key={customer.id} value={customer.id.toString()}>
+                    {customer.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          
           <div className="space-y-6">
-            {reportingData.customerInsights.slice(0, 3).map((customer) => (
+            {(selectedCustomerForAnalytics === 'all' 
+              ? reportingData.customerInsights 
+              : reportingData.customerInsights.filter(c => c.id.toString() === selectedCustomerForAnalytics)
+            ).map((customer) => (
               <div key={customer.id} className="border rounded-lg p-4">
                 <div className="flex items-center justify-between mb-4">
                   <h3 className="text-lg font-semibold text-gray-900">{customer.name}</h3>
@@ -951,37 +957,28 @@ export default function ReportingInsights() {
 
       {/* Cylinder Analytics Charts */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Transaction Types Pie Chart */}
+        {/* Transaction Types Bar Chart */}
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <PieChart className="w-5 h-5 text-blue-600" />
+              <BarChart3 className="w-5 h-5 text-blue-600" />
               Transaction Types Distribution
             </CardTitle>
           </CardHeader>
           <CardContent>
             <ResponsiveContainer width="100%" height={300}>
-              <PieChart>
-                <Pie
-                  data={reportingData.chartData.transactionTypes}
-                  cx="50%"
-                  cy="50%"
-                  outerRadius={80}
-                  dataKey="value"
-                  label={({ name, value }) => `${name}: ${value}`}
-                >
-                  {reportingData.chartData.transactionTypes.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={entry.color} />
-                  ))}
-                </Pie>
+              <BarChart data={reportingData.chartData.transactionTypes}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="name" />
+                <YAxis />
                 <Tooltip formatter={(value) => [value, 'Cylinders']} />
-                <Legend />
-              </PieChart>
+                <Bar dataKey="value" fill="#3b82f6" radius={[4, 4, 0, 0]} />
+              </BarChart>
             </ResponsiveContainer>
           </CardContent>
         </Card>
 
-        {/* Cylinder Sizes Pie Chart */}
+        {/* Cylinder Sizes Bar Chart */}
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
@@ -991,26 +988,60 @@ export default function ReportingInsights() {
           </CardHeader>
           <CardContent>
             <ResponsiveContainer width="100%" height={300}>
-              <PieChart>
-                <Pie
-                  data={reportingData.chartData.cylinderSizes}
-                  cx="50%"
-                  cy="50%"
-                  outerRadius={80}
-                  dataKey="value"
-                  label={({ name, value }) => `${name}: ${value}`}
-                >
-                  {reportingData.chartData.cylinderSizes.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={entry.color} />
-                  ))}
-                </Pie>
+              <BarChart data={reportingData.chartData.cylinderSizes}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="name" />
+                <YAxis />
                 <Tooltip formatter={(value) => [value, 'Cylinders']} />
-                <Legend />
-              </PieChart>
+                <Bar dataKey="value" fill="#10b981" radius={[4, 4, 0, 0]} />
+              </BarChart>
             </ResponsiveContainer>
           </CardContent>
         </Card>
       </div>
+
+      {/* Combined Cylinder Analytics */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <BarChart3 className="w-5 h-5 text-purple-600" />
+            Combined Cylinder Analytics
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <ResponsiveContainer width="100%" height={400}>
+            <BarChart data={[
+              {
+                name: '6kg',
+                swaps: reportingData.cylinderBreakdown.swaps.kg6,
+                maxEmpty: reportingData.cylinderBreakdown.maxEmpty.kg6,
+                outright: reportingData.cylinderBreakdown.outright.kg6
+              },
+              {
+                name: '13kg',
+                swaps: reportingData.cylinderBreakdown.swaps.kg13,
+                maxEmpty: reportingData.cylinderBreakdown.maxEmpty.kg13,
+                outright: reportingData.cylinderBreakdown.outright.kg13
+              },
+              {
+                name: '50kg',
+                swaps: reportingData.cylinderBreakdown.swaps.kg50,
+                maxEmpty: reportingData.cylinderBreakdown.maxEmpty.kg50,
+                outright: reportingData.cylinderBreakdown.outright.kg50
+              }
+            ]}>
+              <CartesianGrid strokeDasharray="3 3" />
+              <XAxis dataKey="name" />
+              <YAxis />
+              <Tooltip formatter={(value) => [value, 'Cylinders']} />
+              <Legend />
+              <Bar dataKey="swaps" stackId="a" fill="#3b82f6" name="Swaps" />
+              <Bar dataKey="maxEmpty" stackId="a" fill="#10b981" name="Max Empty (Refills)" />
+              <Bar dataKey="outright" stackId="a" fill="#f59e0b" name="Outright" />
+            </BarChart>
+          </ResponsiveContainer>
+        </CardContent>
+      </Card>
 
       {/* Data Summary */}
       <Card>

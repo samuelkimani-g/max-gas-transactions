@@ -58,10 +58,23 @@ export default function ReportingInsights() {
 
   // Helper function to calculate total payments for a transaction
   const calculateTotalPayments = (transaction) => {
+    // First check if payments are embedded in the transaction
     if (transaction.payments && Array.isArray(transaction.payments)) {
       return transaction.payments.reduce((sum, payment) => sum + (payment.amount || 0), 0)
     }
-    return transaction.amount_paid || 0
+    
+    // Check if there's a direct amount_paid field
+    if (transaction.amount_paid) {
+      return transaction.amount_paid
+    }
+    
+    // Check if there's a paid field
+    if (transaction.paid) {
+      return transaction.paid
+    }
+    
+    // If no payment data found, return 0
+    return 0
   }
 
   // Helper function to check if transaction matches filters
@@ -228,8 +241,22 @@ export default function ReportingInsights() {
     const calculateMetrics = (data) => {
       const totalSales = data.reduce((total, transaction) => total + calculateTransactionTotal(transaction), 0)
       
+      // Debug: Log first few transactions to see their structure
+      if (data.length > 0) {
+        console.log('[REPORTING DEBUG] Sample transaction structure:', {
+          id: data[0].id,
+          customerId: data[0].customerId,
+          amount_paid: data[0].amount_paid,
+          paid: data[0].paid,
+          payments: data[0].payments,
+          total: calculateTransactionTotal(data[0])
+        })
+      }
+      
       const totalPayments = data.reduce((total, transaction) => {
-        return total + calculateTotalPayments(transaction)
+        const payment = calculateTotalPayments(transaction)
+        console.log(`[REPORTING DEBUG] Transaction ${transaction.id}: payment = ${payment}`)
+        return total + payment
       }, 0)
       
       const totalCylinders = data.reduce((total, transaction) => {

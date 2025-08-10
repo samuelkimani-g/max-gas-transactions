@@ -20,6 +20,7 @@ router.post('/', authenticateToken, async (req, res) => {
   try {
     const { 
       customerId, 
+      date,
       loadBreakdown,
       returnsBreakdown, 
       outrightBreakdown, 
@@ -108,6 +109,7 @@ router.post('/', authenticateToken, async (req, res) => {
     let newTransaction = await Transaction.create({
       customerId,
       userId: req.user.id,
+      date: date || new Date(),
       load_6kg,
       load_13kg,
       load_50kg,
@@ -520,6 +522,7 @@ router.put('/:id', [
     const { id } = req.params;
     const { 
       customerId, 
+      date,
       loadBreakdown,
       returnsBreakdown, 
       outrightBreakdown, 
@@ -596,6 +599,7 @@ router.put('/:id', [
     // Update the transaction
     await existingTransaction.update({
       customerId,
+      date: date || existingTransaction.date,
       load_6kg,
       load_13kg,
       load_50kg,

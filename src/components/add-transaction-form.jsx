@@ -104,6 +104,7 @@ const LiveSummary = ({ summary }) => (
 
 export default function AddTransactionForm({ customerId, customerName, onBack, onSuccess, transaction = null, mode = 'add' }) {
   const { addTransaction, updateTransaction } = useStore();
+  const [transactionDate, setTransactionDate] = useState(new Date().toISOString().split('T')[0]);
   const [totalReturns, setTotalReturns] = useState(0);
   const [totalLoad, setTotalLoad] = useState({ kg6: 0, kg13: 0, kg50: 0 });
   const [amountPaid, setAmountPaid] = useState(0);
@@ -167,6 +168,7 @@ export default function AddTransactionForm({ customerId, customerName, onBack, o
       setReturnsBreakdown(originalReturns);
       setOutrightBreakdown(originalOutright);
       setTotalLoad(originalLoad);
+      setTransactionDate(transaction.date ? new Date(transaction.date).toISOString().split('T')[0] : new Date().toISOString().split('T')[0]);
       setAmountPaid(transaction.amount_paid || 0);
       setPaymentMethod(transaction.payment_method || 'cash');
       setNotes(transaction.notes || '');
@@ -272,6 +274,7 @@ export default function AddTransactionForm({ customerId, customerName, onBack, o
     try {
       const transactionData = {
         customerId: customerId,
+        date: transactionDate,
         loadBreakdown: {
           kg6: totalLoad.kg6,  // Use totalLoad (Cylinders OUT) instead of loadBreakdown (Cylinders IN)
           kg13: totalLoad.kg13,
@@ -301,6 +304,7 @@ export default function AddTransactionForm({ customerId, customerName, onBack, o
       });
       setOutrightBreakdown({ kg6: 0, kg13: 0, kg50: 0, price6: 2200, price13: 4400, price50: 8000 });
       setTotalLoad({ kg6: 0, kg13: 0, kg50: 0 });
+      setTransactionDate(new Date().toISOString().split('T')[0]);
       setAmountPaid(0);
       setPaymentMethod('cash');
       setNotes('');
@@ -325,6 +329,20 @@ export default function AddTransactionForm({ customerId, customerName, onBack, o
           <p className="text-orange-600 text-lg">Customer: <span className="font-semibold">{customerName}</span></p>
         </div>
       </div>
+
+      {/* Date Selection */}
+      <SectionCard title="Transaction Date" description="Select the date for this transaction.">
+        <div className="max-w-xs">
+          <Label htmlFor="transaction-date" className="text-gray-700 font-medium">Transaction Date</Label>
+          <Input
+            id="transaction-date"
+            type="date"
+            value={transactionDate}
+            onChange={(e) => setTransactionDate(e.target.value)}
+            className="mt-2 border-gray-300 focus:border-orange-400 focus:ring-orange-200"
+          />
+        </div>
+      </SectionCard>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         <SectionCard title="Step 1: Cylinders IN" description="What the customer brought into the compound (detailed breakdown).">

@@ -3,6 +3,7 @@ const { body, validationResult, query } = require('express-validator');
 const { Op } = require('sequelize');
 const Customer = require('../models/Customer');
 const Transaction = require('../models/Transaction');
+const Payment = require('../models/Payment');
 const Branch = require('../models/Branch');
 const { authenticateToken, authorizePermissions, authorizeRoles } = require('../middleware/auth');
 const { requirePermission } = require('../middleware/rbac');
@@ -346,16 +347,37 @@ router.delete('/:id', [
         });
       }
     } else {
-      // Force delete: Remove all related transactions first
+      // Force delete: Remove all related data in correct order
       console.log(`🗑️ Force deleting customer ${customer.name} and all related data...`);
       
-      const deletedTransactions = await Transaction.destroy({
+      // First, delete all payments for this customer's transactions
+      const customerTransactions = await Transaction.findAll({
         where: { customerId: customer.id },
-        force: true
+        attributes: ['id']
       });
       
-      if (deletedTransactions > 0) {
-        console.log(`✅ Deleted ${deletedTransactions} related transactions`);
+      if (customerTransactions.length > 0) {
+        const transactionIds = customerTransactions.map(t => t.id);
+        
+        // Delete all payments for these transactions
+        const deletedPayments = await Payment.destroy({
+          where: { transactionId: transactionIds },
+          force: true
+        });
+        
+        if (deletedPayments > 0) {
+          console.log(`✅ Deleted ${deletedPayments} related payments`);
+        }
+        
+        // Now delete the transactions
+        const deletedTransactions = await Transaction.destroy({
+          where: { customerId: customer.id },
+          force: true
+        });
+        
+        if (deletedTransactions > 0) {
+          console.log(`✅ Deleted ${deletedTransactions} related transactions`);
+        }
       }
     }
 

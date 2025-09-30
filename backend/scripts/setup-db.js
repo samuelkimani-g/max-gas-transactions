@@ -1,5 +1,5 @@
 const { sequelize } = require('../config/database');
-const { User, Customer, Transaction, Branch, Forecast, Analytics, Payment } = require('../models');
+const { User, Customer, Transaction, Branch, Forecast, Analytics, Payment, Inventory } = require('../models');
 
 async function setupDatabase() {
   try {
@@ -12,6 +12,57 @@ async function setupDatabase() {
     // Sync all models (create tables)
     await sequelize.sync({ force: false, alter: true });
     console.log('✅ Database models synchronized.');
+    
+    // Ensure inventory table exists and has initial data
+    const inventoryCount = await Inventory.count();
+    if (inventoryCount === 0) {
+      console.log('🔄 Adding initial inventory data...');
+      
+      const initialData = [
+        {
+          cylinder_type: '6KG',
+          available_stock_kg: 1000,
+          supplier_place: 'Nairobi Gas Depot',
+          cost_per_kg: 150.00,
+          total_amount_paid: 150000.00,
+          branchId: 1,
+          createdBy: 1
+        },
+        {
+          cylinder_type: '13KG',
+          available_stock_kg: 2000,
+          supplier_place: 'Nairobi Gas Depot',
+          cost_per_kg: 140.00,
+          total_amount_paid: 280000.00,
+          branchId: 1,
+          createdBy: 1
+        },
+        {
+          cylinder_type: '50KG',
+          available_stock_kg: 500,
+          supplier_place: 'Mombasa Gas Plant',
+          cost_per_kg: 130.00,
+          total_amount_paid: 65000.00,
+          branchId: 1,
+          createdBy: 1
+        },
+        {
+          cylinder_type: 'LPG Bulk',
+          available_stock_kg: 10000,
+          supplier_place: 'Kisumu Gas Terminal',
+          cost_per_kg: 120.00,
+          total_amount_paid: 1200000.00,
+          branchId: 1,
+          createdBy: 1
+        }
+      ];
+      
+      for (const data of initialData) {
+        await Inventory.create(data);
+      }
+      
+      console.log('✅ Initial inventory data added');
+    }
     
     // Create default admin user if it doesn't exist
     const adminExists = await User.findOne({ where: { email: 'admin@gascylinder.com' } });

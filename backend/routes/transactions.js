@@ -394,18 +394,21 @@ router.put('/bulk-customer-payment-select', [
     
     // Start transaction after validation
     dbTransaction = await sequelize.transaction();
-    // Validate customer exists
-    const customer = await Customer.findByPk(customerId);
-    if (!customer) {
-      await dbTransaction.rollback();
-      return res.status(404).json({ success: false, error: 'Customer not found' });
-    }
-    // Get the selected transactions for this customer, in the order provided
-    const transactions = await Transaction.findAll({
-      where: { id: transactionIds, customerId },
-      order: [['date', 'ASC']],
-      transaction: dbTransaction
-    });
+    
+    try {
+      // Validate customer exists
+      const customer = await Customer.findByPk(customerId, { transaction: dbTransaction });
+      if (!customer) {
+        await dbTransaction.rollback();
+        return res.status(404).json({ success: false, error: 'Customer not found' });
+      }
+      
+      // Get the selected transactions for this customer, in the order provided
+      const transactions = await Transaction.findAll({
+        where: { id: transactionIds, customerId },
+        order: [['date', 'ASC']],
+        transaction: dbTransaction
+      });
     // Sort transactions in the order of transactionIds
     const orderedTransactions = transactionIds.map(id => transactions.find(t => t.id === id)).filter(Boolean);
     console.log('[BACKEND DEBUG] Processing bulk payment:', {
@@ -456,11 +459,23 @@ router.put('/bulk-customer-payment-select', [
         remainingAmount
       });
       
+      console.log('[BACKEND DEBUG] About to update transaction:', {
+        id: transactionRecord.id,
+        newAmountPaid,
+        method,
+        note
+      });
+      
       const updatedTransaction = await transactionRecord.update({
         amount_paid: Math.round(newAmountPaid * 100) / 100,
         payment_method: method || transactionRecord.payment_method,
         notes: transactionRecord.notes ? `${transactionRecord.notes}\n${note}` : note,
       }, { transaction: dbTransaction });
+      
+      console.log('[BACKEND DEBUG] Transaction updated successfully:', {
+        id: updatedTransaction.id,
+        amount_paid: updatedTransaction.amount_paid
+      });
       
       // Create Payment record for this transaction
       const Payment = require('../models/Payment');
@@ -521,17 +536,23 @@ router.put('/bulk-customer-payment-select', [
       where: { id: customerId },
       transaction: dbTransaction
     });
-    await dbTransaction.commit();
-    res.json({
-      success: true,
-      message: `Bulk payment of ${amount} applied to ${updatedTransactions.length} transactions`,
-      payments: createdPayments,
-      data: {
-        message: `Bulk payment of ${totalPaid} recorded successfully`,
-        remainingAmount,
-        updatedTransactions
+      await dbTransaction.commit();
+      res.json({
+        success: true,
+        message: `Bulk payment of ${amount} applied to ${updatedTransactions.length} transactions`,
+        payments: createdPayments,
+        data: {
+          message: `Bulk payment of ${totalPaid} recorded successfully`,
+          remainingAmount,
+          updatedTransactions
+        }
+      });
+    } catch (innerError) {
+      if (dbTransaction && !dbTransaction.finished) {
+        await dbTransaction.rollback();
       }
-    });
+      throw innerError;
+    }
   } catch (error) {
     if (dbTransaction && !dbTransaction.finished) {
       await dbTransaction.rollback();

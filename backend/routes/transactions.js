@@ -379,46 +379,48 @@ router.put('/bulk-customer-payment-select', [
   authenticateToken,
   requirePermission('transactions:update')
 ], async (req, res) => {
-  let dbTransaction;
+  const { customerId, transactionIds, amount, method, note } = req.body;
+  
+  // Validate input parameters
+  if (!customerId || !Array.isArray(transactionIds) || transactionIds.length === 0 || !amount) {
+    return res.status(400).json({ success: false, error: 'Missing required fields.' });
+  }
+  
+  if (amount <= 0) {
+    return res.status(400).json({ success: false, error: 'Amount must be greater than 0.' });
+  }
+  
+  // Validate customer exists first (without transaction)
+  const customer = await Customer.findByPk(customerId);
+  if (!customer) {
+    return res.status(404).json({ success: false, error: 'Customer not found' });
+  }
+  
+  // Get the selected transactions for this customer (without transaction)
+  const transactions = await Transaction.findAll({
+    where: { id: transactionIds, customerId },
+    order: [['date', 'ASC']]
+  });
+  
+  if (transactions.length === 0) {
+    return res.status(404).json({ success: false, error: 'No valid transactions found' });
+  }
+  
+  // Sort transactions in the order of transactionIds
+  const orderedTransactions = transactionIds.map(id => transactions.find(t => t.id === id)).filter(Boolean);
+  
+  console.log('[BACKEND DEBUG] Processing bulk payment:', {
+    customerId,
+    transactionIds,
+    amount,
+    method,
+    orderedTransactionsCount: orderedTransactions.length
+  });
+  
+  // Now start the transaction for the actual updates
+  const dbTransaction = await sequelize.transaction();
+  
   try {
-    const { customerId, transactionIds, amount, method, note } = req.body;
-    
-    // Validate input parameters
-    if (!customerId || !Array.isArray(transactionIds) || transactionIds.length === 0 || !amount) {
-      return res.status(400).json({ success: false, error: 'Missing required fields.' });
-    }
-    
-    if (amount <= 0) {
-      return res.status(400).json({ success: false, error: 'Amount must be greater than 0.' });
-    }
-    
-    // Start transaction after validation
-    dbTransaction = await sequelize.transaction();
-    
-    try {
-      // Validate customer exists
-      const customer = await Customer.findByPk(customerId, { transaction: dbTransaction });
-      if (!customer) {
-        await dbTransaction.rollback();
-        return res.status(404).json({ success: false, error: 'Customer not found' });
-      }
-      
-      // Get the selected transactions for this customer, in the order provided
-      const transactions = await Transaction.findAll({
-        where: { id: transactionIds, customerId },
-        order: [['date', 'ASC']],
-        transaction: dbTransaction
-      });
-    // Sort transactions in the order of transactionIds
-    const orderedTransactions = transactionIds.map(id => transactions.find(t => t.id === id)).filter(Boolean);
-    console.log('[BACKEND DEBUG] Processing bulk payment:', {
-      customerId,
-      transactionIds,
-      amount,
-      method,
-      orderedTransactionsCount: orderedTransactions.length
-    });
-    
     let remainingAmount = amount;
     const updatedTransactions = [];
     const createdPayments = [];
@@ -547,12 +549,6 @@ router.put('/bulk-customer-payment-select', [
           updatedTransactions
         }
       });
-    } catch (innerError) {
-      if (dbTransaction && !dbTransaction.finished) {
-        await dbTransaction.rollback();
-      }
-      throw innerError;
-    }
   } catch (error) {
     if (dbTransaction && !dbTransaction.finished) {
       await dbTransaction.rollback();

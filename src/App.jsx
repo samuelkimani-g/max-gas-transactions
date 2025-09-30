@@ -240,7 +240,6 @@ export default function App() {
                 Export/Import
               </TabsTrigger>
               )}
-              {user?.role === 'admin' && (
               <TabsTrigger
                 value="inventory"
                 className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-orange-500 data-[state=active]:to-orange-600 data-[state=active]:text-white"
@@ -248,7 +247,6 @@ export default function App() {
                 <Package className="w-4 h-4 mr-2" />
                 Inventory
               </TabsTrigger>
-              )}
               {user?.role === 'admin' && (
               <TabsTrigger
                 value="forecast"
@@ -316,11 +314,9 @@ export default function App() {
             <ExportImport />
           </TabsContent>
           )}
-          {user?.role === 'admin' && (
           <TabsContent value="inventory" className="m-0">
             <InventoryDashboard />
           </TabsContent>
-          )}
           {user?.role === 'admin' && (
           <TabsContent value="forecast" className="m-0">
             <ForecastDashboard />

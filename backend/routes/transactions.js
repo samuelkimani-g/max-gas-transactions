@@ -372,13 +372,21 @@ router.put('/bulk-customer-payment-select', [
   authenticateToken,
   requirePermission('transactions:update')
 ], async (req, res) => {
-  const dbTransaction = await sequelize.transaction();
+  let dbTransaction;
   try {
     const { customerId, transactionIds, amount, method, note } = req.body;
+    
+    // Validate input parameters
     if (!customerId || !Array.isArray(transactionIds) || transactionIds.length === 0 || !amount) {
-      await dbTransaction.rollback();
       return res.status(400).json({ success: false, error: 'Missing required fields.' });
     }
+    
+    if (amount <= 0) {
+      return res.status(400).json({ success: false, error: 'Amount must be greater than 0.' });
+    }
+    
+    // Start transaction after validation
+    dbTransaction = await sequelize.transaction();
     // Validate customer exists
     const customer = await Customer.findByPk(customerId);
     if (!customer) {
@@ -461,33 +469,38 @@ router.put('/bulk-customer-payment-select', [
         notes: note || `Bulk payment of ${paymentForThis} for transaction ${transactionRecord.transaction_number}`
       });
       
-      const paymentRecord = await Payment.create({
-        transactionId: transactionRecord.id,
-        customerId: customerId,
-        amount: paymentForThis,
-        paymentMethod: method || 'cash',
-        reference: note || `Bulk payment - ${new Date().toISOString()}`,
-        processedBy: 1, // Default to admin user
-        status: 'completed',
-        paymentDate: new Date(),
-        notes: note || `Bulk payment of ${paymentForThis} for transaction ${transactionRecord.transaction_number}`
-      }, { transaction: dbTransaction });
-      
-      console.log('[BACKEND DEBUG] Payment record created:', {
-        id: paymentRecord.id,
-        amount: paymentRecord.amount,
-        amountType: typeof paymentRecord.amount,
-        paymentMethod: paymentRecord.paymentMethod,
-        transactionId: paymentRecord.transactionId
-      });
-      
-      createdPayments.push(paymentRecord);
+      try {
+        const paymentRecord = await Payment.create({
+          transactionId: transactionRecord.id,
+          customerId: customerId,
+          amount: paymentForThis,
+          paymentMethod: method || 'cash',
+          reference: note || `Bulk payment - ${new Date().toISOString()}`,
+          processedBy: req.user?.id || 1, // Use current user ID or default to admin
+          status: 'completed',
+          paymentDate: new Date(),
+          notes: note || `Bulk payment of ${paymentForThis} for transaction ${transactionRecord.transaction_number}`
+        }, { transaction: dbTransaction });
+        
+        console.log('[BACKEND DEBUG] Payment record created:', {
+          id: paymentRecord.id,
+          amount: paymentRecord.amount,
+          amountType: typeof paymentRecord.amount,
+          paymentMethod: paymentRecord.paymentMethod,
+          transactionId: paymentRecord.transactionId
+        });
+        
+        createdPayments.push(paymentRecord);
+      } catch (paymentError) {
+        console.error('[BACKEND DEBUG] Payment creation failed:', paymentError);
+        throw new Error(`Failed to create payment record: ${paymentError.message}`);
+      }
       
       console.log('[BACKEND DEBUG] Transaction updated and payment created:', {
         id: updatedTransaction.id,
         amount_paid: updatedTransaction.amount_paid,
         payment_method: updatedTransaction.payment_method,
-        paymentId: paymentRecord.id
+        paymentId: createdPayments[createdPayments.length - 1]?.id
       });
       
       updatedTransactions.push(updatedTransaction);

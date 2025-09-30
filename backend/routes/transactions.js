@@ -7,6 +7,7 @@ const Customer = require('../models/Customer');
 const User = require('../models/User');
 const Branch = require('../models/Branch');
 const Inventory = require('../models/Inventory');
+const Payment = require('../models/Payment');
 const { authenticateToken } = require('../middleware/auth');
 const { requirePermission } = require('../middleware/rbac');
 
@@ -673,27 +674,46 @@ router.delete('/:id', [
   authenticateToken,
   requirePermission('transactions:delete')
 ], async (req, res) => {
+  const dbTransaction = await sequelize.transaction();
+  
   try {
     const { id } = req.params;
 
     // Find the transaction
     const transaction = await Transaction.findByPk(id);
     if (!transaction) {
+      await dbTransaction.rollback();
       return res.status(404).json({ 
         success: false, 
         message: 'Transaction not found' 
       });
     }
 
-    // Delete the transaction
-    await transaction.destroy();
+    // First, delete all associated payments
+    const deletedPayments = await Payment.destroy({
+      where: { transactionId: id },
+      transaction: dbTransaction
+    });
+
+    if (deletedPayments > 0) {
+      console.log(`✅ Deleted ${deletedPayments} associated payments`);
+    }
+
+    // Now delete the transaction
+    await transaction.destroy({ transaction: dbTransaction });
+
+    // Commit the transaction
+    await dbTransaction.commit();
 
     res.json({
       success: true,
-      message: 'Transaction deleted successfully'
+      message: 'Transaction and associated payments deleted successfully'
     });
 
   } catch (error) {
+    if (dbTransaction && !dbTransaction.finished) {
+      await dbTransaction.rollback();
+    }
     console.error('Delete transaction error:', error);
     res.status(500).json({
       success: false,

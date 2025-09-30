@@ -8,9 +8,11 @@ A comprehensive gas cylinder management dashboard with web and desktop applicati
 - **Customer Management**: Add, edit, and track customer information
 - **Transaction Tracking**: Record gas cylinder sales and returns
 - **Payment Processing**: Handle payments and credit management
-- **Inventory Management**: Track cylinder stock levels
+- **Inventory Management**: Track cylinder stock levels with automatic updates
 - **Reporting & Analytics**: Generate reports and business insights
-- **Forecasting**: Predict future demand using ARIMA models
+- **Demand Forecasting**: Predict future demand using ARIMA models
+- **Sales Forecasting**: Project revenue and growth trends
+- **Inventory Forecasting**: Optimize stock levels and reorder points
 
 ### User Roles & Access Control
 - **Admin**: Full system access and user management
@@ -195,7 +197,7 @@ npm run dist:linux  # Linux
 
 ## 📄 License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+This project is licensed under the MIT License - see the [LICENSE](https://opensource.org/license/mit/) file for details.
 
 ## 🆘 Support
 

@@ -6,6 +6,7 @@ const Transaction = require('../models/Transaction');
 const Customer = require('../models/Customer');
 const User = require('../models/User');
 const Branch = require('../models/Branch');
+const Inventory = require('../models/Inventory');
 const { authenticateToken } = require('../middleware/auth');
 const { requirePermission } = require('../middleware/rbac');
 
@@ -167,6 +168,20 @@ router.post('/', authenticateToken, async (req, res) => {
       where: { id: customerId },
       transaction 
     });
+
+    // Update inventory based on transaction loads
+    const branchId = req.user.branchId || 1; // Default to branch 1 if not set
+    
+    // Update inventory for each cylinder type that was loaded
+    if (load_6kg > 0) {
+      await Inventory.updateStock('6KG', load_6kg, 'subtract', branchId);
+    }
+    if (load_13kg > 0) {
+      await Inventory.updateStock('13KG', load_13kg, 'subtract', branchId);
+    }
+    if (load_50kg > 0) {
+      await Inventory.updateStock('50KG', load_50kg, 'subtract', branchId);
+    }
 
     await transaction.commit();
 

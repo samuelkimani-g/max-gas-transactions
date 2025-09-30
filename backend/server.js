@@ -23,6 +23,8 @@ const forecastRoutes = require('./routes/forecasts');
 const paymentRoutes = require('./routes/payments');
 const approvalRoutes = require('./routes/approvals');
 const adminRoutes = require('./routes/admin');
+const inventoryRoutes = require('./routes/inventory');
+const forecastRoutes = require('./routes/forecast');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -191,6 +193,8 @@ app.use('/api/forecasts', forecastRoutes);
 app.use('/api/payments', paymentRoutes);
 app.use('/api/approvals', approvalRoutes);
 app.use('/api/admin', adminRoutes);
+app.use('/api/inventory', inventoryRoutes);
+app.use('/api/forecast', forecastRoutes);
 
 // 404 handler
 app.use('*', (req, res) => {

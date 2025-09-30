@@ -5,7 +5,7 @@ import { Button } from "./components/ui/button"
 import { Input } from "./components/ui/input"
 import { Card, CardContent, CardHeader, CardTitle } from "./components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "./components/ui/tabs"
-import { Search, Plus, Users, BarChart3, FileText, TrendingUp, Trash2, LogOut, Shield, Clock } from "lucide-react"
+import { Search, Plus, Users, BarChart3, FileText, TrendingUp, Trash2, LogOut, Shield, Clock, Package, LineChart } from "lucide-react"
 import { useStore } from "./lib/store"
 import { useRBAC } from "./lib/rbac"
 import CustomerCards from "./components/customer-cards"
@@ -16,6 +16,8 @@ import ExportImport from "./components/export-import"
 import ReportingInsights from "./components/reporting-insights"
 import UserManagement from "./components/user-management"
 import ApprovalManagement from "./components/approval-management"
+import InventoryDashboard from "./components/inventory-dashboard"
+import ForecastDashboard from "./components/forecast-dashboard"
 import Login from "./components/login"
 import { Toaster } from "./components/ui/toster";
 import { getAutoLoginCredentials, getDeviceInfo, isFeatureEnabled } from './lib/device-config'
@@ -238,6 +240,24 @@ export default function App() {
                 Export/Import
               </TabsTrigger>
               )}
+              {user?.role === 'admin' && (
+              <TabsTrigger
+                value="inventory"
+                className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-orange-500 data-[state=active]:to-orange-600 data-[state=active]:text-white"
+              >
+                <Package className="w-4 h-4 mr-2" />
+                Inventory
+              </TabsTrigger>
+              )}
+              {user?.role === 'admin' && (
+              <TabsTrigger
+                value="forecast"
+                className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-orange-500 data-[state=active]:to-orange-600 data-[state=active]:text-white"
+              >
+                <LineChart className="w-4 h-4 mr-2" />
+                Forecast
+              </TabsTrigger>
+              )}
             </TabsList>
 
             <div className="relative w-full sm:w-auto">
@@ -294,6 +314,16 @@ export default function App() {
           {rbac?.permissions.canAccessExport && (
           <TabsContent value="export" className="m-0">
             <ExportImport />
+          </TabsContent>
+          )}
+          {user?.role === 'admin' && (
+          <TabsContent value="inventory" className="m-0">
+            <InventoryDashboard />
+          </TabsContent>
+          )}
+          {user?.role === 'admin' && (
+          <TabsContent value="forecast" className="m-0">
+            <ForecastDashboard />
           </TabsContent>
           )}
         </Tabs>

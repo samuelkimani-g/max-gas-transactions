@@ -6,6 +6,7 @@ const Forecast = require('./Forecast');
 const Analytics = require('./Analytics');
 const Payment = require('./Payment');
 const PendingApproval = require('./PendingApproval');
+const Inventory = require('./Inventory');
 
 // Define associations
 User.belongsTo(Branch, { foreignKey: 'branchId', as: 'Branch' });
@@ -57,6 +58,13 @@ User.hasMany(PendingApproval, { foreignKey: 'requestedBy', as: 'RequestedApprova
 PendingApproval.belongsTo(User, { foreignKey: 'approvedBy', as: 'ApprovedByUser' });
 User.hasMany(PendingApproval, { foreignKey: 'approvedBy', as: 'ApprovedApprovals' });
 
+// Inventory associations
+Inventory.belongsTo(Branch, { foreignKey: 'branchId', as: 'Branch' });
+Branch.hasMany(Inventory, { foreignKey: 'branchId', as: 'Inventories' });
+
+Inventory.belongsTo(User, { foreignKey: 'createdBy', as: 'CreatedBy' });
+User.hasMany(Inventory, { foreignKey: 'createdBy', as: 'CreatedInventories' });
+
 module.exports = {
   User,
   Customer,
@@ -65,5 +73,6 @@ module.exports = {
   Forecast,
   Analytics,
   Payment,
-  PendingApproval
+  PendingApproval,
+  Inventory
 }; 
